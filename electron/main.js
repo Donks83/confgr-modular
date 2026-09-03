@@ -85,7 +85,7 @@ function createWindow() {
   // because the renderer cannot see the main process's environment, and it
   // makes the visual check repeatable rather than depending on someone dragging
   // parts by hand the same way twice.
-  const query = process.env.CONFGR_DEMO ? '?demo=1' : '';
+  const query = process.env.CONFGR_DEMO ? `?demo=${encodeURIComponent(process.env.CONFGR_DEMO)}` : '';
 
   if (isDev) {
     mainWindow.loadURL(`http://localhost:5174${query}`);

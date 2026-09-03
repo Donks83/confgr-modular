@@ -192,9 +192,29 @@ export default function SnapSpike() {
         // error, since every part would land in the right place by luck.
         const LEFT = 'md-snap.carcass-side.left';
         const RIGHT = 'md-snap.carcass-side.right';
+        const demo = new URLSearchParams(window.location.search).get('demo');
 
-        if (new URLSearchParams(window.location.search).has('demo')
-            && loaded.has('unit-600') && loaded.has('unit-900')) {
+        // ?demo=rack answers the multi-height question directly. One upright
+        // offering four levels; two filled with DIFFERENT SKUs, two left empty.
+        // Nothing chooses a height — each level point already is one.
+        if (demo === 'rack' && loaded.has('rack-upright-1800')) {
+          setAssembly({
+            instances: [
+              { instanceId: 'r0', componentId: 'rack-upright-1800', position: [0, 0, 0], rotation: [0, 0, 0, 1], freeMove: true },
+              { instanceId: 'r1', componentId: 'rack-shelf-900', position: null, rotation: null },
+              { instanceId: 'r3', componentId: 'rack-drawer-900', position: null, rotation: null },
+            ],
+            connections: [
+              { fromInstanceId: 'r0', fromSnapId: 'md-snap.shelf-level.level-1', toInstanceId: 'r1', toSnapId: 'md-snap.shelf-level.mount' },
+              { fromInstanceId: 'r0', fromSnapId: 'md-snap.shelf-level.level-3', toInstanceId: 'r3', toSnapId: 'md-snap.shelf-level.mount' },
+            ],
+          });
+          instanceCounter = 3;
+          setSelectedId('r0');
+          return;
+        }
+
+        if (demo && loaded.has('unit-600') && loaded.has('unit-900')) {
           setAssembly({
             instances: [
               { instanceId: 'd1', componentId: 'unit-600', position: [0, 0, 0], rotation: [0, 0, 0, 1], freeMove: true },

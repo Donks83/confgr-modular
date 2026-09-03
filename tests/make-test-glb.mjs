@@ -213,11 +213,22 @@ function buildComponent({ name, widthMm, heightMm, depthMm, snaps, colour }) {
   g.node('body', g.mesh('body', boxGeometry(w, h, d), bodyMat));
 
   for (const s of snaps) {
-    // Snap planes match the face they sit on, so a side snap is depth x height.
-    const [pw, ph] = s.facing === '+x' || s.facing === '-x' ? [d, h] : [w, h];
+    // Plane size defaults to the face the snap sits on, so a side snap is
+    // depth x height. A LEVEL point overrides it with a small square: four
+    // full-face planes stacked up an upright would overlap, and overlapping
+    // snaps weld into nonsense (Mimeeq warn about this explicitly).
+    const [pw, ph] = s.size
+      ? s.size
+      : (s.facing === '+x' || s.facing === '-x' ? [d, h] : [w, h]);
+
+    // Height is absolute millimetres when given, because a shelf level is a
+    // real dimension off the floor, not a fraction of whatever the upright
+    // happens to be. Defaults to mid-height for a plain side snap.
+    const y = s.yMm != null ? s.yMm / 1000 : h / 2;
+
     const mesh = g.mesh(`md-snap.${s.mask}.${s.label}`, planeGeometry(pw, ph), snapMat);
     g.node(`md-snap.${s.mask}.${s.label}`, mesh, {
-      translation: [s.at[0] * w, h / 2, s.at[2] * d],
+      translation: [s.at[0] * w, y, s.at[2] * d],
       rotation: FACING_QUAT[s.facing],
     });
   }
@@ -277,6 +288,48 @@ const COMPONENTS = [
     snaps: [
       { mask: 'wall-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x' },
       { mask: 'wall-side', label: 'right', at: [0.5, 0, 0],  facing: '+x' },
+    ],
+  },
+
+  // ---- Racking: the multi-height case ---------------------------------------
+  // An upright offering FOUR independent shelf levels. Every level shares the
+  // mask `shelf-level`, so any level accepts any part carrying that mask —
+  // which means levels can be filled in any combination, with different SKUs,
+  // and left empty. No height control anywhere: the POINT owns the height.
+  //
+  // Four points are hand-listed here because four is few. A 20-position upright
+  // wants a generated range instead (Roomle's `ranges` with a step), which is
+  // the scaling answer rather than authoring twenty nodes.
+  {
+    name: 'rack-upright-1800',
+    widthMm: 60, heightMm: 1800, depthMm: 400,
+    colour: [0.22, 0.24, 0.27, 1],
+    snaps: [300, 700, 1100, 1500].map((yMm, i) => ({
+      mask: 'shelf-level',
+      label: `level-${i + 1}`,
+      at: [0.5, 0, 0],
+      facing: '+x',
+      yMm,
+      size: [0.06, 0.06],
+    })),
+  },
+  {
+    // SKU A for a level: a plain shelf.
+    name: 'rack-shelf-900',
+    widthMm: 900, heightMm: 30, depthMm: 400,
+    colour: [0.66, 0.52, 0.36, 1],
+    snaps: [
+      { mask: 'shelf-level', label: 'mount', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
+    ],
+  },
+  {
+    // SKU B for the SAME level mask: a drawer box. Interchangeable with a shelf
+    // at any level, which is the whole point of keying on the mask.
+    name: 'rack-drawer-900',
+    widthMm: 900, heightMm: 180, depthMm: 400,
+    colour: [0.45, 0.35, 0.3, 1],
+    snaps: [
+      { mask: 'shelf-level', label: 'mount', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
     ],
   },
 ];
