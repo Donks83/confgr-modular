@@ -46,11 +46,16 @@ $env:CONFGR_CAPTURE_DELAY = '9000'
 # a tray and a hook strip hung on whatever rung faces are still free. After the
 # second frame the app should report 3 parts, 2 joints, 14 open points - 7
 # unused sockets on each frame, the shelf's two plugs both taken.
-# The tray hangs 158.5mm below its hook, so on rung 1 (100mm) it correctly ends
-# up through the floor. Markers 0..6 are the first frame's free rung faces in
-# order, so 4 puts it on a rung someone would actually use.
+# Marker order is per instance then per snap, so with the bay just built markers
+# 0..6 are the first frame's free rung faces and 7..13 the second frame's. Two
+# consequences worth choosing deliberately rather than taking marker 0 each time:
+#   - the clothes rail goes on an INNER face (3), or it attaches to one frame
+#     and its far plug dangles into open space. Correct behaviour, poor picture.
+#   - the tray hangs 158.5mm below its hook, so on rung 1 it ends up through the
+#     floor. Also correct, also a poor picture.
 $env:CONFGR_CLICK = 'dump,part:008563,marker:0,dump,part:236758,marker:0,dump,' +
-                    'part:008543,dump,marker:4,dump,part:008537,marker:8,dump'
+                    'part:008531,marker:3,dump,part:008543,marker:5,dump,' +
+                    'part:008547,marker:2,dump,part:008537,marker:9,dump'
 
 "--- running ---"
 $out = & npx concurrently -k -s first "vite" "wait-on tcp:5174 && electron ." 2>&1 | Out-String

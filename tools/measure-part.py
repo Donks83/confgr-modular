@@ -95,6 +95,26 @@ def report(path, args):
         if not len(sel):
             return
 
+    if args.plot:
+        # Bands answer "where is there material"; a scatter answers "what shape
+        # is it", and some questions only yield to the second. Vertices only -
+        # the same reason the bands work, and it costs no mesh handling.
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        h, v = (AXES[c] for c in args.plane)
+        fig, ax = plt.subplots(figsize=(9, 9))
+        ax.scatter(sel[:, h], sel[:, v], s=8, c="#3a9ec4")
+        ax.set_aspect("equal", adjustable="box")
+        ax.set_xlabel(f"{args.plane[0]} mm")
+        ax.set_ylabel(f"{args.plane[1]} mm")
+        ax.set_title(f"{Path(path).stem}  [{label}]  {len(sel)} verts")
+        ax.grid(alpha=0.3)
+        fig.tight_layout()
+        fig.savefig(args.plot, dpi=140)
+        print(f"  wrote {args.plot}")
+
     for name, i in AXES.items():
         bs = bands(sel[:, i], args.gap)
         head = f"  {name} bands ({len(bs)})"
@@ -121,6 +141,9 @@ def main():
     ap.add_argument("--axis", choices=list(AXES), default="x")
     ap.add_argument("--end", choices=["min", "max"], default="min")
     ap.add_argument("--max-bands", type=int, default=12)
+    ap.add_argument("--plot", default="", help="write a scatter of the selection to this png")
+    ap.add_argument("--plane", default="xy", choices=["xy", "xz", "zy", "yz", "yx", "zx"],
+                    help="which two axes the scatter uses (default xy)")
     args = ap.parse_args()
 
     failures = 0

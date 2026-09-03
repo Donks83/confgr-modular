@@ -193,6 +193,13 @@ def verify(glb_path):
     return names
 
 
+# How many times to re-tessellate a part that busts the triangle budget before
+# giving up and saying so. Each retry doubles the angular tolerance, so three
+# retries covers an 8x reduction - enough for the heaviest part in this range
+# and few enough that a runaway is reported rather than ground through.
+MAX_TESSELLATIONS = 4
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("source", help="a .stp/.step file, or a folder of them")
@@ -201,6 +208,9 @@ def main():
                     help=f"linear tolerance in file units (default {DEFAULT_TOL_LINEAR})")
     ap.add_argument("--angular", type=float, default=DEFAULT_TOL_ANGULAR,
                     help=f"angular tolerance in radians (default {DEFAULT_TOL_ANGULAR})")
+    ap.add_argument("--max-tris", type=int, default=0,
+                    help="triangle budget per part; a part over it is re-tessellated "
+                         "coarser until it fits (0 = no budget)")
     ap.add_argument("--report", help="write a JSON report here")
     ap.add_argument("--limit", type=int, help="convert only the first N (for a trial run)")
     args = ap.parse_args()
@@ -234,8 +244,30 @@ def main():
         record = {"source": step.name, "id": name, "out": target.name}
 
         try:
-            raw = convert_one(step, raw_dir / f"{name}-raw.glb", args.linear, args.angular)
-            record.update(merge_and_normalise(raw, target))
+            # Tessellate, and if the part blows the triangle budget, tessellate
+            # it AGAIN coarser rather than decimating the mesh afterwards. Going
+            # back to the CAD keeps a true surface; decimating approximates an
+            # approximation. The four YouboXx bins are 72k-138k triangles at the
+            # default tolerance and account for most of this range's total, so
+            # without this the budget is a number nobody acts on.
+            linear, angular = args.linear, args.angular
+            for attempt in range(1, MAX_TESSELLATIONS + 1):
+                raw = convert_one(step, raw_dir / f"{name}-raw.glb", linear, angular)
+                record.update(merge_and_normalise(raw, target))
+                if not args.max_tris or record["triangles"] <= args.max_tris:
+                    break
+                if attempt == MAX_TESSELLATIONS:
+                    record["over_budget"] = True
+                    break
+                # Relax BOTH. Doubling only the angular tolerance stalls: past
+                # about 1 radian it no longer constrains anything, and the
+                # YouboXx bins sat at 60k triangles however coarse the angle got
+                # because their count is driven by the linear tolerance and the
+                # sheer number of small features. Angular is capped for the same
+                # reason - beyond a radian it is a no-op, not a lever.
+                linear *= 2.0
+                angular = min(angular * 1.5, 1.0)
+                record["retessellated"] = [round(linear, 4), round(angular, 3)]
             record["nodes"] = verify(target)
             record["bytes"] = target.stat().st_size
             record["ok"] = True
@@ -244,7 +276,11 @@ def main():
                   f"{record['dims_mm'][2]:>6.1f} mm  "
                   f"{record['triangles']:>7} tris"
                   + (f"  ({record['parts_merged']} parts merged)" if record["parts_merged"] > 1 else "")
-                  + (f"  [dropped {len(record['dropped'])}]" if record["dropped"] else ""))
+                  + (f"  [dropped {len(record['dropped'])}]" if record["dropped"] else "")
+                  + (f"  [re-tessellated at linear {record['retessellated'][0]}, "
+                     f"angular {record['retessellated'][1]}]"
+                     if record.get("retessellated") else "")
+                  + ("  [STILL OVER BUDGET]" if record.get("over_budget") else ""))
         except Exception as err:  # noqa: BLE001
             failures += 1
             record["ok"] = False

@@ -73,16 +73,27 @@
     "its end brackets are 29.6mm wide (the frame is 30) centred at x = -460.3,",
     "and half-width minus 15 gives -460.05. Agreement to 0.3mm.",
     "",
-    "The plug sits at y = 0, the part's base, because the bracket bears down on",
-    "the rung's top face - the shelf is dropped in from above per MA 406215.",
-    "Verified: the bracket's lowest material lands at exactly 100.0mm, the rung's",
-    "top face, with nothing below it."
+    "\"bearing\" says WHICH FACE lands on the rung, and it is not the same across",
+    "the family. A shelf is dropped in from above and its bracket's underside is",
+    "the part's own base, so bearing is \"base\" and the plug sits at y = 0 -",
+    "verified, the bracket's lowest material lands at exactly 100.0mm with",
+    "nothing below it. A clothes rail HANGS below the rung: its 1.5mm top sheet",
+    "bears on the same face, so bearing is \"top\". Get this wrong and the part is",
+    "a whole part-height out of place.",
+    "",
+    "The rails' widths agree with the shelves' to within 0.6mm at every size, so",
+    "a rail and a shelf ask for the same bay - which they must, or a bay could",
+    "not carry both."
   ],
   "span": [
-    { "id": "008561-shelf-450mm-for-ladder-depth-320mm", "depth": 320 },
-    { "id": "008562-shelf-600mm-for-ladder-depth-320mm", "depth": 320 },
-    { "id": "008563-shelf-900mm-for-ladder-depth-320mm", "depth": 320 },
-    { "id": "008564-shelf-1200mm-for-ladder-depth-320mm", "depth": 320 }
+    { "id": "008561-shelf-450mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
+    { "id": "008562-shelf-600mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
+    { "id": "008563-shelf-900mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
+    { "id": "008564-shelf-1200mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
+
+    { "id": "008530-clothes-rail-600mm",  "depth": 320, "bearing": "top" },
+    { "id": "008531-clothes-rail-900mm",  "depth": 320, "bearing": "top" },
+    { "id": "008532-clothes-rail-1200mm", "depth": 320, "bearing": "top" }
   ],
 
   "_hang": [
@@ -103,18 +114,40 @@
     { "id": "008537-hook-strip-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 },
     { "id": "008542-rack-for-ladder-depth-200mm",       "depth": 200, "rotateYdeg": 90 },
     { "id": "008543-rack-for-ladder-depth-320mm",       "depth": 320, "rotateYdeg": 90 },
-    { "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 }
+    { "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
+
+    { "id": "008545-youboxx-set-2", "depth": 200, "rotateYdeg": 0 },
+    { "id": "008546-youboxx-set-3", "depth": 320, "rotateYdeg": 0 },
+    { "id": "008547-youboxx-set-4", "depth": 320, "rotateYdeg": 0 },
+    { "id": "008548-youboxx-set-5", "depth": 320, "rotateYdeg": 0 }
+  ],
+
+  "_youboxx": [
+    "The YouboXx sets need NO rotation - they come out of CAD with their length",
+    "already along Z, unlike every other hang part. Left at 90 they would fail",
+    "the slot search rather than silently mount sideways, which is the point of",
+    "deriving the plug from the slot instead of a typed-in number."
+  ],
+
+  "_notThisSystem": [
+    "The SHOE RACKS (008553-008556) are not frame accessories at all. MA 406213",
+    "screws them straight to a wall with plugs and screws - no ladder appears in",
+    "the drawing - and their widths are 448/598/898/1198, the catalogue size",
+    "minus 2 rather than the span family's size plus 50. The 6.5mm holes 50mm in",
+    "from each end are in the mesh exactly where the drawing dimensions them.",
+    "They belong to a wall-fixed product the configurator has no concept of, so",
+    "they stay out rather than being forced into a bay."
   ],
 
   "_notYet": [
     "Deliberately absent:",
-    "  - the four YouboXx sets, which hang the same way but are 72k-138k",
-    "    triangles each and want decimating first",
-    "  - shoe racks and clothes rails, which are span parts but whose bracket",
-    "    geometry has not been measured yet",
+    "  - the clothes rail EXTENSIONS (008533, 008534, 008535). MA 406208 shows a",
+    "    run over two bays as two tubes sharing a middle bracket, and these parts",
+    "    carry a bracket at one end only. That is an accessory-to-accessory joint,",
+    "    a pattern nothing in the engine has needed yet - not just another row.",
     "  - the cabinet brackets, office solution, umbrella stand, top panel",
     "    bracket, the newspaper-rack divider (it sits in the rack, not on a",
     "    frame), the adjustable foot and the wall brackets",
-    "Adding them is more rows here, not more code."
+    "Adding the rest is more rows here, not more code."
   ]
 }

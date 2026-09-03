@@ -49,6 +49,11 @@ from pathlib import Path
 
 SNAP_SIZE_MM = 30.0              # drawn size of a snap plane; cosmetic only
 
+# How far down from a hang part's highest point to look for its mounting slot.
+# Not zero, because a moulded lid can stand proud of the bracket; not the whole
+# part, because a tall accessory has other geometry at the same z.
+SLOT_SEARCH_MM = 25.0
+
 # glTF quaternions are [x, y, z, w]. A snap's facing is its local +Z, so these
 # rotate +Z onto each axis.
 ROOT_HALF = math.sqrt(0.5)
@@ -140,20 +145,43 @@ def frame_snaps(mesh, part, spec):
 
 
 def span_snaps(mesh, part, spec):
-    """A plug at each end, inset by half a frame thickness."""
+    """A plug at each end, inset by half a frame thickness.
+
+    Which FACE bears on the rung differs across the family, and getting it wrong
+    puts the part a whole part-height out of position:
+
+      base  a shelf is dropped in from above and its bracket's underside is the
+            part's own base, so the plug sits at y = 0
+      top   a clothes rail hangs BELOW the rung - its 1.5mm top sheet bears on
+            the rung's top face, exactly like a hang accessory's, so the plug
+            sits at maxY minus that sheet
+
+    The shelf is the odd one out. Every other bracket in this range presents its
+    top sheet to the rung, which is why "top" reuses topSheetMm rather than
+    carrying a number of its own.
+    """
     depth = str(part["depth"])
     inset = float(spec.get("frameThicknessMm", 30.0)) / 2.0
     half_width_mm = float(mesh.extents[0]) * 1000.0 / 2.0
     x = half_width_mm - inset
 
+    bearing = part.get("bearing", "base")
+    if bearing == "base":
+        y = 0.0
+    elif bearing == "top":
+        y = float(mesh.vertices[:, 1].max()) * 1000.0 - float(spec.get("topSheetMm", 1.5))
+    else:
+        raise RuntimeError(f'unknown bearing {bearing!r} - use "base" or "top"')
+
     mask = f"youk-d{depth}"
     snaps = [
         {"name": f"md-snap.{mask}.mount-left",
-         "position_mm": (-x, 0.0, 0.0), "facing": "-x", "role": "plug"},
+         "position_mm": (-x, y, 0.0), "facing": "-x", "role": "plug"},
         {"name": f"md-snap.{mask}.mount-right",
-         "position_mm": (x, 0.0, 0.0), "facing": "+x", "role": "plug"},
+         "position_mm": (x, y, 0.0), "facing": "+x", "role": "plug"},
     ]
-    return snaps, {"plugX_mm": round(x, 2), "spacing_mm": round(2 * x, 2), "mask": mask}
+    return snaps, {"plugX_mm": round(x, 2), "plugY_mm": round(y, 2),
+                   "bearing": bearing, "spacing_mm": round(2 * x, 2), "mask": mask}
 
 
 def hang_snaps(mesh, part, spec):
@@ -179,25 +207,30 @@ def hang_snaps(mesh, part, spec):
     if hole is None:
         raise RuntimeError(f"no mountHoleMm entry for depth {depth}")
     hole = float(hole)
-    sheet = float(spec.get("topSheetMm", 1.5))
 
     v = mesh.vertices * 1000.0
     top_y = float(v[:, 1].max())
-    top = v[v[:, 1] >= top_y - sheet - 0.1]
 
-    # The slot's straight sides run 1.5mm either side of the hole centre along
-    # the part's length, and nothing else in the top sheet is there - so this
-    # window picks out the slot's width and only that.
-    slot = top[np.abs(np.abs(top[:, 2]) - hole) <= 1.6]
+    # Find the slot anywhere in the top of the part, then take BOTH the plug's
+    # x and its y from it. Taking y as maxY minus a sheet thickness was wrong on
+    # two of the four YouboXx sets, where a moulded lid stands a few millimetres
+    # proud of the bracket - "the top 1.5mm" was lid, not sheet, and the search
+    # found nothing. The slot's own lower ring IS the face that bears on the
+    # rung, so measuring it needs no assumption about what sits above.
+    near_top = v[v[:, 1] >= top_y - SLOT_SEARCH_MM]
+    slot = near_top[np.abs(np.abs(near_top[:, 2]) - hole) <= 1.6]
     if len(slot) < 4:
         raise RuntimeError(
-            f"no mounting slot at z = +/-{hole:.0f}mm in the top {sheet}mm "
-            f"({len(slot)} vertices found) - wrong depth, or this part does not "
-            "use the standard hang bracket"
+            f"no mounting slot at z = +/-{hole:.0f}mm within {SLOT_SEARCH_MM}mm "
+            f"of the top ({len(slot)} vertices found) - wrong depth, wrong "
+            "rotation, or this part does not use the standard hang bracket"
         )
+    # One sheet only: a part can have more than one slot down its height.
+    slot = slot[slot[:, 1] >= slot[:, 1].max() - 4.0]
 
     x = float((slot[:, 0].min() + slot[:, 0].max()) / 2.0)
-    y = top_y - sheet
+    y = float(slot[:, 1].min())
+    sheet = float(slot[:, 1].max()) - y
     mask = f"youk-d{depth}"
     snaps = [{
         "name": f"md-snap.{mask}.mount",
@@ -210,6 +243,7 @@ def hang_snaps(mesh, part, spec):
         "mask": mask,
         "plug_mm": (round(x, 2), round(y, 2)),
         "slotWidth_mm": round(float(slot[:, 0].max() - slot[:, 0].min()), 2),
+        "sheet_mm": round(sheet, 2),
         "reach_mm": round(reach, 1),
     }
 
@@ -319,12 +353,14 @@ def main():
                 print(f'  {"":<46}       {detail["rungs"]} rungs at '
                       f'{", ".join(f"{t:.0f}" for t in detail["rungTops"])} mm')
             elif kind == "span":
-                print(f'  {"":<46}       plugs at x = +/-{detail["plugX_mm"]} mm '
+                print(f'  {"":<46}       plugs at x = +/-{detail["plugX_mm"]}, '
+                      f'y {detail["plugY_mm"]} ({detail["bearing"]}) mm '
                       f'-> frames {detail["spacing_mm"]} mm apart')
             else:
                 px, py = detail["plug_mm"]
                 print(f'  {"":<46}       plug at x {px}, y {py} mm from a '
-                      f'{detail["slotWidth_mm"]} mm slot; reaches {detail["reach_mm"]} mm out')
+                      f'{detail["slotWidth_mm"]} mm slot in a {detail["sheet_mm"]} mm '
+                      f'sheet; reaches {detail["reach_mm"]} mm out')
 
             # The roles go in the sidecar, which declare.mjs then applies. Kept
             # separate on purpose: the sidecar is what a human reviews.

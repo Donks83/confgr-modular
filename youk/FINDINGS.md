@@ -349,6 +349,92 @@ since those are inputs rather than candidate components.
 
 ---
 
+## Shoe racks are not part of this system
+
+`MA 406213` screws them **straight to a wall**, with plugs and screws and a
+spirit level. No ladder frame appears anywhere in the drawing. Their widths give
+it away too: 448 / 598 / 898 / 1198 — the catalogue size *minus two*, where every
+span accessory is the catalogue size *plus fifty*. The Ø6.5 mm holes 50 mm in
+from each end are in the mesh exactly where the sheet dimensions them.
+
+So they stay out. Forcing four parts into a bay because their names look like
+the shelves' would have produced a configurator that offers a product
+Kesseböhmer does not sell.
+
+## Clothes rails: same bay, opposite bearing face — and one unresolved millimetre
+
+The three symmetric rails (600, 900, 1200) are span parts. Their widths are
+649.5 / 949.5 / 1249.5 against the shelves' 650.1 / 950.1 / 1250.1, so under the
+same rule they ask for frames 0.6 mm apart from where a shelf does — the same
+bay, which they must be, or a bay could not carry both.
+
+What differs is **which face bears**. A shelf is dropped in from above and its
+bracket's underside is the part's own base. A rail *hangs*: its 1.5 mm top sheet
+bears on the same rung face, so the plug sits at `maxY − 1.5`, not at `y = 0`.
+That is now a `bearing` field in the spec, because getting it wrong puts a part
+a whole part-height out of position and nothing about the model would look
+obviously broken.
+
+**The one thing I could not resolve.** `check-joint` reports 1.00 mm of the
+rail's bracket inside the rung, identically on all three sizes — systematic, not
+noise. Two readings, and the drawings do not settle it:
+
+- the plug's x is right (the flange's outer edge lands at 15.05 mm from the frame
+  centre, against an outer face at 15.00 — the flush signature every other
+  bracket in this range shows), and the bend where the web meets the flange
+  genuinely passes through the rung's hollow interior, meaning I have the
+  bracket's engagement wrong somewhere;
+- or the plug's x is out by a few millimetres, and the flange is meant to centre
+  on the rung — but that implies frames 930 mm apart for a 900 rail against
+  920 mm for a 900 shelf, and the two cannot both be right.
+
+1 mm on a 950 mm part is invisible and does not affect what the configurator is
+for, so the rails are authored and the discrepancy is written down rather than
+smoothed over. It is a question for Kesseböhmer, not a bug to guess at.
+
+## Triangle budget: re-tessellate, do not decimate
+
+The four YouboXx sets were 72k–138k triangles and made up 470k of the range's
+641k. The converter now takes `--max-tris` and, when a part busts it, goes back
+to the **CAD** and tessellates again coarser. Decimating the mesh afterwards
+would approximate an approximation; re-tessellating keeps a true surface.
+
+The first attempt relaxed only the angular tolerance and stalled — three of the
+four sat at ~60k however coarse the angle got, because past about a radian the
+angular tolerance stops constraining anything and their triangle count is driven
+by the linear tolerance and the sheer number of small features. Relaxing both,
+with the angle capped at 1 radian:
+
+```
+                         before      after
+008545 youboxx set 2     72,254     36,316
+008546 youboxx set 3    127,162     33,354
+008547 youboxx set 4    138,184     33,216
+008548 youboxx set 5    133,482     33,064
+range total             641,014    305,876    (average 6,797 per part)
+```
+
+Every part is now inside a 40,000-triangle budget, and nothing else in the range
+was touched, because nothing else was over it.
+
+## The mounting slot, not the top face
+
+Adding the YouboXx sets broke the hang rule and improved it. Two of the four
+have a moulded lid standing a few millimetres proud of the bracket, so "the top
+1.5 mm" was lid rather than sheet and the slot search found nothing — a clean
+failure rather than a silent mis-placement, which is what deriving the plug from
+a real feature buys.
+
+The fix takes **both** the plug's x and its y from the slot itself: its lower
+ring is the face that bears on the rung, so nothing has to be assumed about what
+sits above it. All nine hang parts then report a 1.5 mm sheet — the same pressed
+bracket, measured on each rather than trusted to match.
+
+The YouboXx sets also need no rotation: alone among the hang family they come out
+of CAD with their length already along Z.
+
+---
+
 ## Still open
 
 1. **Which rungs may a span accessory use?** All of them, presumably — the rung
@@ -363,9 +449,17 @@ since those are inputs rather than candidate components.
    geometry behaving correctly and the product being used wrongly, which is
    exactly the kind of thing a configurator should refuse — but refusing it
    needs a rule about what the ground is, which does not exist yet.
+5. **How the clothes rail's bracket really engages the rung** — the unresolved
+   millimetre above. Worth asking Kesseböhmer directly rather than measuring
+   harder; the geometry admits two readings and only they know which.
+6. **The clothes rail extensions** (`008533`, `008534`, `008535`). `MA 406208`
+   builds a two-bay run from two tubes sharing a middle bracket, and these parts
+   carry a bracket at one end only. That is an accessory-to-accessory joint —
+   a pattern the engine has not been asked for yet, not just another spec row.
 
-None of these blocks what is built. All 45 parts convert cleanly; 15 of them —
-six frames, four shelves, five hang accessories — carry snap planes, are
-declared, and load as components with no blocker and one optional warning
-(`NO_COLLISION_BOX`). The remaining 30 sit as `.converted.glb` inputs waiting
-for a row in the spec.
+None of these blocks what is built. All 45 parts convert cleanly and none exceeds
+40,000 triangles; 22 of them — six frames, four shelves, three clothes rails and
+nine hang accessories — carry snap planes, are declared, and load as components
+with no blocker and one optional warning (`NO_COLLISION_BOX`). The remaining 23
+sit as `.converted.glb` inputs waiting for a row in the spec, or, in the shoe
+racks' case, waiting for a product the configurator does not model.

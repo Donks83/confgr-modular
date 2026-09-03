@@ -145,27 +145,37 @@ def main():
         print("     Some of this is legitimate - a hook's leg descends past the "
               "member it wraps. Check the x range clears the member's faces.")
 
-    # Where the child's descending metal sits relative to the parent's, in x.
-    # A hook that grips shows a leg just outside the member; a leg that lands
-    # inside the member's own x range is metal through metal.
-    member = local[np.abs(local[:, 1] - floor) < 8.0]
+    # THE CLASH TEST. Only material inside the member's OWN box counts. An
+    # earlier version flagged anything below the socket face that shared the
+    # member's x span, which condemned every part that hangs beneath a rung -
+    # a clothes rail's web drops straight down under one, by design. "Below the
+    # member" is not "inside the member".
+    # The member is the parent metal AT the bearing face and below it - never
+    # above, because above is where the child is supposed to be. A symmetric
+    # window around the socket picked up a pin on a neighbouring member and
+    # inflated the box by 10mm, which made every correctly seated part look like
+    # it was buried. Same mistake, twice, in two different tools.
+    member = local[(local[:, 1] <= floor + 0.05) & (local[:, 1] > floor - 12.0)]
     if len(member):
-        print(f"  the member at this face spans x {member[:,0].min():.2f}"
-              f"..{member[:,0].max():.2f}")
-        if len(sunk):
-            lo, hi = float(member[:, 0].min()), float(member[:, 0].max())
-            clash = sunk[(sunk[:, 0] > lo) & (sunk[:, 0] < hi)]
-            print(f"  child material both below the face AND inside that span: "
-                  f"{len(clash)} verts")
-            if len(clash):
-                # How far in matters more than how many. A leg designed to hug
-                # the member's face lands ON it, and a tessellated face is only
-                # accurate to a few tenths - so tenths are the mesh, and
-                # millimetres are a wrong number in the spec.
-                depth = float(np.minimum(clash[:, 0] - lo, hi - clash[:, 0]).max())
-                print(f"     deepest {depth:.2f} mm past the face at x {lo:.2f}/{hi:.2f}"
-                      + ("  - tessellation noise on a flush leg"
-                         if depth < 0.5 else "  - INTERPENETRATION, check the spec"))
+        xlo, xhi = float(member[:, 0].min()), float(member[:, 0].max())
+        ylo, yhi = float(member[:, 1].min()), float(member[:, 1].max())
+        print(f"  the member at this face spans x {xlo:.2f}..{xhi:.2f}, "
+              f"y {ylo:.2f}..{yhi:.2f}")
+        clash = near[(near[:, 0] > xlo) & (near[:, 0] < xhi)
+                     & (near[:, 1] > ylo) & (near[:, 1] < yhi)]
+        print(f"  child material inside the member: {len(clash)} verts")
+        if len(clash):
+            # How far in matters more than how many. A leg designed to hug the
+            # member's face lands ON it, and a tessellated face is only accurate
+            # to a few tenths - so tenths are the mesh, and millimetres are a
+            # wrong number in the spec.
+            depth = float(np.minimum(
+                np.minimum(clash[:, 0] - xlo, xhi - clash[:, 0]),
+                np.minimum(clash[:, 1] - ylo, yhi - clash[:, 1]),
+            ).max())
+            print(f"     deepest {depth:.2f} mm inside"
+                  + ("  - tessellation noise on a flush face"
+                     if depth < 0.5 else "  - INTERPENETRATION, check the spec"))
     return 0
 
 

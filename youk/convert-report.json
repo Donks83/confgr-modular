@@ -431,8 +431,8 @@
       "out": "008545-youboxx-set-2.converted.glb",
       "parts_merged": 3,
       "dropped": [],
-      "triangles": 72260,
-      "vertices": 52500,
+      "triangles": 36316,
+      "vertices": 30110,
       "dims_mm": [
         144.9,
         210.0,
@@ -444,10 +444,14 @@
         -0.0
       ],
       "watertight": false,
+      "retessellated": [
+        0.1,
+        0.45
+      ],
       "nodes": [
         "body"
       ],
-      "bytes": 1497892,
+      "bytes": 797884,
       "ok": true
     },
     {
@@ -456,11 +460,11 @@
       "out": "008546-youboxx-set-3.converted.glb",
       "parts_merged": 4,
       "dropped": [],
-      "triangles": 127162,
-      "vertices": 94552,
+      "triangles": 33354,
+      "vertices": 32213,
       "dims_mm": [
         147.8,
-        110.0,
+        109.9,
         315.0
       ],
       "origin_shift_mm": [
@@ -469,10 +473,14 @@
         -0.0
       ],
       "watertight": false,
+      "retessellated": [
+        0.4,
+        1.0
+      ],
       "nodes": [
         "body"
       ],
-      "bytes": 2661340,
+      "bytes": 787572,
       "ok": true
     },
     {
@@ -481,8 +489,8 @@
       "out": "008547-youboxx-set-4.converted.glb",
       "parts_merged": 3,
       "dropped": [],
-      "triangles": 138184,
-      "vertices": 100159,
+      "triangles": 33216,
+      "vertices": 32069,
       "dims_mm": [
         144.9,
         113.8,
@@ -494,10 +502,14 @@
         -0.0
       ],
       "watertight": false,
+      "retessellated": [
+        0.4,
+        1.0
+      ],
       "nodes": [
         "body"
       ],
-      "bytes": 2860892,
+      "bytes": 784188,
       "ok": true
     },
     {
@@ -506,8 +518,8 @@
       "out": "008548-youboxx-set-5.converted.glb",
       "parts_merged": 3,
       "dropped": [],
-      "triangles": 133482,
-      "vertices": 97308,
+      "triangles": 33064,
+      "vertices": 31936,
       "dims_mm": [
         144.8,
         211.0,
@@ -519,10 +531,14 @@
         -0.0
       ],
       "watertight": false,
+      "retessellated": [
+        0.4,
+        1.0
+      ],
       "nodes": [
         "body"
       ],
-      "bytes": 2770252,
+      "bytes": 780768,
       "ok": true
     },
     {
