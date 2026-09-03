@@ -372,7 +372,12 @@ function main(argv) {
   }
 
   const files = targets.flatMap((t) => (statSync(t).isDirectory()
-    ? readdirSync(t).filter((f) => extname(f).toLowerCase() === '.glb').sort().map((f) => join(t, f))
+    // <id>.converted.glb is the converter's raw output, which add-snaps.py
+    // reads and never writes. It is an input, not a candidate component, so a
+    // folder sweep skips it - otherwise every declared part is shadowed by an
+    // undeclarable twin.
+    ? readdirSync(t).filter((f) => extname(f).toLowerCase() === '.glb'
+        && !f.toLowerCase().endsWith('.converted.glb')).sort().map((f) => join(t, f))
     : [t]));
 
   let exit = 0;

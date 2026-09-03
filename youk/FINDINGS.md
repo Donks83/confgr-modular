@@ -248,14 +248,24 @@ surface; a wrong seating would have produced an arbitrary offset, not 100.0.
 
 ### Two things the measurement turned up
 
-**The rungs are hollow sections with locating lugs.** Rung 1's end profile has
-vertices in two bands, 95.0–96.5 and 98.5–100.0 — a 1.5 mm wall, so these are
-rolled tube, not solid bar. And 10 mm above the rung's top face sit two features
-at `z = ±95`, `y = 104.5–110.5`: upstanding lugs, 190 mm apart. The bracket is
-void from 101.5 to 110.0 in the same slab, so the lugs pass up into it. A span
-accessory therefore locates *positively* on a rung rather than merely resting on
-it — a point in favour of the configurator refusing any placement the lugs would
-not allow, once that matters.
+**The rungs are hollow sections.** Rung 1's end profile has vertices in two
+bands, 95.0–96.5 and 98.5–100.0 — a 1.5 mm wall, so these are rolled tube, not
+solid bar. They are also **15 mm wide, not 30**: `x −7.5..7.5`, centred in the
+frame's 30 mm thickness. The 30 mm belongs to the stiles.
+
+> **Correction.** This section first claimed the rungs carried "two upstanding
+> locating lugs 190 mm apart". They do not. That reading came from a `85 < y <
+> 115` window that swept up a *different* feature: a single 6 mm pin on the back
+> stile at `y ≈ 107.5`, `z ≈ −145`. Windowing rung 2 the same way shows nothing
+> above the rung at all. The window was wide enough to include a neighbour and I
+> attributed the neighbour's geometry to the rung — the same failure mode as the
+> area-based rung guess, and worth the same wariness: a clean-looking result
+> from a loose selection.
+>
+> What the rungs *do* carry is better news for the configurator: **two 5×5 mm
+> holes in the top wall**, at `z = ±95` on a 320 frame and `z = ±35` on a 200.
+> Every hang accessory has a 9×6 mm obround slot over each of them, at the same
+> spacing — which is how the joint is pinned down without guessing (below).
 
 **Section slabs are useless on these solids.** Slicing either part at `z = 0`
 returns zero vertices, and this is not a fault: a planar face carries vertices
@@ -267,16 +277,95 @@ list of things that fail on CAD tessellations.
 
 ---
 
+## The hang family, and how its joint was pinned down
+
+Hook strip, tray and newspaper rack all lie *across* one frame's depth and
+cantilever off it. They come out of CAD with their length along X, like the
+frames, and want the same 90° turn.
+
+They share one pressed bracket, and the vertex counts say so before any
+measuring does: the tray's mounting fold and the newspaper rack's are byte-for-byte
+the same shape, 27.3 mm across in five bands at identical offsets, 1428 vertices
+each. The hook strip's is the same bracket with two bands absent.
+
+The joint has three degrees of freedom and each is settled by a measurement
+rather than a judgement:
+
+| | how it is fixed |
+|---|---|
+| **height** | the 1.5 mm top sheet's underside bears on the rung's top face, so the plug sits at `maxY − 1.5` |
+| **along the rung** | the accessory's slots are at `±95` (320) / `±35` (200) and the rung's holes at the same numbers, so the part is centred: plug `z = 0` |
+| **across the rung** | the plug sits at the *centre of the slot*, which puts the slot over the hole |
+
+The last one is the interesting one, because it was the one I could not read off
+a drawing. `add-snaps.py` finds the slot in each part by looking in the top sheet
+at the known hole spacing and takes its centre — so the number is measured from
+every part rather than typed in per part, and a part that does not use this
+bracket fails loudly instead of being placed by a stale constant.
+
+**It is right, and two independent things say so.** `tools/check-joint.py` places
+each accessory on a rung and reports:
+
+```
+shelf 900        lowest material y 100.00, socket y 100.00   flush, 0 sunk
+tray 320/200     hangs 16.50mm past the face, 0 verts inside the rung's x span
+newspaper 200    hangs 41.50mm past the face, 0 verts inside the rung's x span
+hook strip 200   hangs 46.00mm past the face, 0 verts inside the rung's x span
+hook strip 320   hangs 45.93mm past the face, 8 verts inside, deepest 0.33mm
+```
+
+Every descending leg lands *outside* the rung's `x −7.5..7.5`, which is what a
+hook wrapping a member looks like. The hook strip's 8 vertices at 0.33 mm are
+tessellation noise on a leg designed flush to the face — the 200 mm version of
+the same part, whose plug differs by 0.15 mm, reports zero. The tool prints the
+depth rather than just the count precisely so that tenths and millimetres cannot
+be mistaken for each other.
+
+The accessories' ends also clear the stiles, which is not obvious: they are
+315 mm long inside a 320 mm frame, so their ends sit right over the stiles at
+`z ±145..160`. At those `z` the only accessory material is at `x ≥ 15.75` —
+outside the frame's `x −15..15` — and the mounting fold itself stops at `±143.5`,
+1.5 mm short of the stiles' inner faces. The same clearance the shelf uses.
+
+### One mask per depth
+
+`youk-d200` / `youk-d320`, shared by both families, replacing the earlier
+`youk-span-d<n>`. Both families bolt through the same hole in the same rung
+face, so they have to compete for it. Separate masks would have put two snaps at
+the same point on the frame and filling one would not have filled the other — a
+shelf and a tray could then occupy the same rung face. That also answers open
+question 2: two accessories *can* share a rung, one on each face, because the
+faces are separate sockets.
+
+### The converter's output is now `<id>.converted.glb`
+
+Snapping rotates, so it is not idempotent — and it used to read and write the
+same `<id>.glb`. Running it twice turned every frame 90° a second time and
+produced a model that assembled confidently in the wrong orientation. The
+converter now writes `<id>.converted.glb`, `add-snaps.py` reads that and writes
+`<id>.glb`, and it refuses outright if its input already carries snap nodes.
+`declare.mjs` and `inspect-model.mjs` skip `.converted.glb` in a folder sweep,
+since those are inputs rather than candidate components.
+
+---
+
 ## Still open
 
 1. **Which rungs may a span accessory use?** All of them, presumably — the rung
    heights are absolute, so two frames of any heights have aligned rungs.
-2. **Can two accessories share a rung** — a shelf and a hook rail at the same
-   level, one each side?
+2. ~~Can two accessories share a rung?~~ **Answered by the shared mask**: one
+   per rung *face*, so yes, one on each side, and no, not two on the same side.
 3. **Whether a frame needs the adjustable foot** (`237023`) to stand, or the
    floor-standing configuration is wall-fixed only. Page 1 of the general
    instructions shows a wall-mounted pair.
+4. **Should the app stop an accessory hanging below the floor?** A tray on
+   rung 1 drops 158.5 mm and ends up through the ground plane. That is the
+   geometry behaving correctly and the product being used wrongly, which is
+   exactly the kind of thing a configurator should refuse — but refusing it
+   needs a rule about what the ground is, which does not exist yet.
 
-None of these blocks the first bay: frame + 900 shelf + frame is fully
-specified now. All 45 parts convert cleanly, are declared, and report a single
-remaining blocker — `NO_SNAPS`.
+None of these blocks what is built. All 45 parts convert cleanly; 15 of them —
+six frames, four shelves, five hang accessories — carry snap planes, are
+declared, and load as components with no blocker and one optional warning
+(`NO_COLLISION_BOX`). The remaining 30 sit as `.converted.glb` inputs waiting
+for a row in the spec.

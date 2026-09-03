@@ -20,16 +20,22 @@ WHAT A SNAP PLANE IS, and every constraint here comes from the pipeline:
   * Position and rotation must be on the NODE, not baked into the vertices -
     the loader reads node.position and node.quaternion.
 
-THE JOINT, for the record. A frame offers a socket at each rung, on its
-centreline, facing both ways; a shelf presents a plug at each end. Snap centres
-coincide when connected, so:
+THE JOINTS, for the record. A frame offers a socket at each rung, on its
+centreline, facing both ways. Snap centres coincide when connected, so:
 
     frame socket   (0, rungTop, 0) facing +X
     shelf plug     (-(halfWidth - 15), 0, 0) facing -X
+    hang plug      (slotCentre, topY - 1.5, 0) facing -X
 
-puts the shelf's base on the rung's top face and its left edge flush with the
-frame's outer face. The shelf's other plug then accepts the second frame, and
-the bay is a chain rather than a two-point constraint the engine cannot express.
+The shelf's base lands on the rung's top face with its end flush to the frame's
+outer face, and its OTHER plug then accepts a second frame - so a bay is a chain
+rather than a two-point constraint the engine cannot express. A hang accessory's
+top sheet lands on the same rung face, its slot over the rung's hole, and it
+cantilevers off that one frame with nothing attaching to its far side.
+
+Both families share ONE mask per depth, because both bolt to the same hole in
+the same rung face and must therefore compete for it. Separate masks would put
+two snaps at the same point and filling one would not fill the other.
 
 Sockets on BOTH faces of every rung are deliberate: a middle frame in a
 three-bay run carries a shelf on each side.
@@ -84,6 +90,19 @@ def load_body(glb):
     import trimesh
 
     scene = trimesh.load(str(glb), force="scene")
+
+    # Snapping is not idempotent - it rotates - so it must never read its own
+    # output. It used to, and a second run turned every frame 90 degrees again
+    # and produced a model that assembled confidently in the wrong orientation.
+    # The converter now writes <id>.converted.glb and this writes <id>.glb, but
+    # refuse loudly anyway rather than trust the naming.
+    snapped = [n for n in scene.graph.nodes_geometry if n.startswith("md-snap")]
+    if snapped:
+        raise RuntimeError(
+            f"input already has {len(snapped)} snap nodes - this is a snapped "
+            "component, not the converter's output. Re-run youk:convert."
+        )
+
     parts = [
         scene.geometry[scene.graph[n][1]].copy().apply_transform(scene.graph[n][0])
         for n in scene.graph.nodes_geometry
@@ -107,7 +126,7 @@ def frame_snaps(mesh, part, spec):
     if not usable:
         raise RuntimeError(f"no rung fits inside {height_mm:.0f}mm")
 
-    mask = f"youk-span-d{depth}"
+    mask = f"youk-d{depth}"
     snaps = []
     for i, top in enumerate(usable, 1):
         for side, facing in (("right", "+x"), ("left", "-x")):
@@ -127,7 +146,7 @@ def span_snaps(mesh, part, spec):
     half_width_mm = float(mesh.extents[0]) * 1000.0 / 2.0
     x = half_width_mm - inset
 
-    mask = f"youk-span-d{depth}"
+    mask = f"youk-d{depth}"
     snaps = [
         {"name": f"md-snap.{mask}.mount-left",
          "position_mm": (-x, 0.0, 0.0), "facing": "-x", "role": "plug"},
@@ -135,6 +154,64 @@ def span_snaps(mesh, part, spec):
          "position_mm": (x, 0.0, 0.0), "facing": "+x", "role": "plug"},
     ]
     return snaps, {"plugX_mm": round(x, 2), "spacing_mm": round(2 * x, 2), "mask": mask}
+
+
+def hang_snaps(mesh, part, spec):
+    """One plug, taken from the part's own mounting slot.
+
+    A suspended element drops onto a rung from above (MA 406209): the 1.5mm top
+    sheet's underside bears on the rung's top face, and an obround slot in that
+    sheet drops over the 5x5 hole in the rung's top wall. So the joint is fully
+    determined by geometry both parts already carry - find the slot and the plug
+    is its centre. Nothing is typed in per part, which is the point: the same
+    pressed bracket appears on the hook strip, the tray and the newspaper rack,
+    and all three are measured rather than trusted to match.
+
+    Along the rung the plug sits at z = 0. That is not an assumption either: the
+    slots are at +/-95mm on every 320 accessory and the rung holes at +/-95mm on
+    every 320 frame (35 for the 200s), so the part is centred on the frame's
+    depth.
+    """
+    import numpy as np
+
+    depth = str(part["depth"])
+    hole = spec.get("mountHoleMm", {}).get(depth)
+    if hole is None:
+        raise RuntimeError(f"no mountHoleMm entry for depth {depth}")
+    hole = float(hole)
+    sheet = float(spec.get("topSheetMm", 1.5))
+
+    v = mesh.vertices * 1000.0
+    top_y = float(v[:, 1].max())
+    top = v[v[:, 1] >= top_y - sheet - 0.1]
+
+    # The slot's straight sides run 1.5mm either side of the hole centre along
+    # the part's length, and nothing else in the top sheet is there - so this
+    # window picks out the slot's width and only that.
+    slot = top[np.abs(np.abs(top[:, 2]) - hole) <= 1.6]
+    if len(slot) < 4:
+        raise RuntimeError(
+            f"no mounting slot at z = +/-{hole:.0f}mm in the top {sheet}mm "
+            f"({len(slot)} vertices found) - wrong depth, or this part does not "
+            "use the standard hang bracket"
+        )
+
+    x = float((slot[:, 0].min() + slot[:, 0].max()) / 2.0)
+    y = top_y - sheet
+    mask = f"youk-d{depth}"
+    snaps = [{
+        "name": f"md-snap.{mask}.mount",
+        "position_mm": (x, y, 0.0),
+        "facing": "-x",
+        "role": "plug",
+    }]
+    reach = float(v[:, 0].max()) - x
+    return snaps, {
+        "mask": mask,
+        "plug_mm": (round(x, 2), round(y, 2)),
+        "slotWidth_mm": round(float(slot[:, 0].max() - slot[:, 0].min()), 2),
+        "reach_mm": round(reach, 1),
+    }
 
 
 def build(glb, part, spec, kind, out_path):
@@ -156,7 +233,9 @@ def build(glb, part, spec, kind, out_path):
             -(lo[0] + hi[0]) / 2.0, -lo[1], -(lo[2] + hi[2]) / 2.0,
         ])
 
-    snaps, detail = (frame_snaps if kind == "frame" else span_snaps)(mesh, part, spec)
+    snaps, detail = {
+        "frame": frame_snaps, "span": span_snaps, "hang": hang_snaps,
+    }[kind](mesh, part, spec)
 
     scene = trimesh.Scene()
     scene.add_geometry(mesh, node_name="body", geom_name="body")
@@ -213,14 +292,15 @@ def main():
     spec = json.loads(Path(args.spec).read_text(encoding="utf8"))
 
     jobs = ([("frame", p) for p in spec.get("frames", [])]
-            + [("span", p) for p in spec.get("span", [])])
+            + [("span", p) for p in spec.get("span", [])]
+            + [("hang", p) for p in spec.get("hang", [])])
     if not jobs:
         print("spec lists no parts", file=sys.stderr)
         return 1
 
     failures = 0
     for kind, part in jobs:
-        source = folder / f'{part["id"]}.glb'
+        source = folder / f'{part["id"]}.converted.glb'
         target = folder / f'{part["id"]}{args.suffix}.glb'
         if not source.exists():
             print(f'  {part["id"]:<46} MISSING {source.name}')
@@ -238,9 +318,13 @@ def main():
             if kind == "frame":
                 print(f'  {"":<46}       {detail["rungs"]} rungs at '
                       f'{", ".join(f"{t:.0f}" for t in detail["rungTops"])} mm')
-            else:
+            elif kind == "span":
                 print(f'  {"":<46}       plugs at x = +/-{detail["plugX_mm"]} mm '
                       f'-> frames {detail["spacing_mm"]} mm apart')
+            else:
+                px, py = detail["plug_mm"]
+                print(f'  {"":<46}       plug at x {px}, y {py} mm from a '
+                      f'{detail["slotWidth_mm"]} mm slot; reaches {detail["reach_mm"]} mm out')
 
             # The roles go in the sidecar, which declare.mjs then applies. Kept
             # separate on purpose: the sidecar is what a human reviews.

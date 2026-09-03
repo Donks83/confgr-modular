@@ -844,6 +844,11 @@ function expand(target) {
   const stat = statSync(target);
   if (!stat.isDirectory()) return [target];
   return readdirSync(target)
+    // <id>.converted.glb is a converter output that add-snaps.py consumes. It
+    // is an input, not a candidate component, and reporting it as blocked would
+    // bury the parts that genuinely need attention. Name one explicitly to
+    // inspect it anyway.
+    .filter((f) => !f.toLowerCase().endsWith('.converted.glb'))
     .filter((f) => READABLE.has(extname(f).toLowerCase()) || extname(f).toLowerCase() in KNOWN_UNREADABLE)
     .sort()
     .map((f) => join(target, f));

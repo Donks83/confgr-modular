@@ -11,9 +11,18 @@
 
   "frameThicknessMm": 30.0,
 
+  "_mask": [
+    "ONE mask per ladder depth, shared by span and hang accessories, because a",
+    "rung mount is a rung mount: both families bolt through the same hole in the",
+    "same rung face. Giving them separate masks would mean two snaps at the same",
+    "point on the frame, and filling one would not fill the other - a shelf and a",
+    "tray could then occupy the same rung face. Depth is the axis that actually",
+    "gates compatibility, and it is already in the mask."
+  ],
+
   "_rungTops": [
-    "Height above the frame base of each rung member's TOP face, which is what a",
-    "shelf bracket bears down on. Members are 4.9mm thick and start 95.1, 450.1,",
+    "Height above the frame base of each rung member's TOP face, which is what an",
+    "accessory bears down on. Members are 4.9mm thick and start 95.1, 450.1,",
     "805.1 ... above the base. A frame gets every rung whose top fits inside its",
     "height - that rule reproduces the measured rung count on all six frames.",
     "",
@@ -25,6 +34,19 @@
     "200": [100.0, 336.5, 573.0, 809.5],
     "320": [100.0, 455.0, 810.0, 1405.0, 1760.0, 2115.0]
   },
+
+  "_mountHole": [
+    "Every rung carries two 5x5mm holes in its top wall, at these distances",
+    "either side of the frame's depth centre. Each hang accessory carries a 9x6mm",
+    "obround slot over each of them. The two agree on both depths - 320 frames",
+    "and 320 accessories both use 95, 200s both use 35 - which is what proves a",
+    "hang accessory is centred on the frame's depth rather than offset.",
+    "",
+    "add-snaps.py finds the slot by this number and takes the plug from it, so",
+    "the plug is measured from each part rather than typed in per part."
+  ],
+  "mountHoleMm": { "200": 35.0, "320": 95.0 },
+  "topSheetMm": 1.5,
 
   "_frames": [
     "The ladder frames. Converted with their 320mm depth along X, which cannot be",
@@ -52,7 +74,9 @@
     "and half-width minus 15 gives -460.05. Agreement to 0.3mm.",
     "",
     "The plug sits at y = 0, the part's base, because the bracket bears down on",
-    "the rung's top face - the shelf is dropped in from above per MA 406215."
+    "the rung's top face - the shelf is dropped in from above per MA 406215.",
+    "Verified: the bracket's lowest material lands at exactly 100.0mm, the rung's",
+    "top face, with nothing below it."
   ],
   "span": [
     { "id": "008561-shelf-450mm-for-ladder-depth-320mm", "depth": 320 },
@@ -61,13 +85,36 @@
     { "id": "008564-shelf-1200mm-for-ladder-depth-320mm", "depth": 320 }
   ],
 
+  "_hang": [
+    "Accessories that hang on ONE frame and cantilever off it (MA 406209, MA",
+    "406210). They lie across the frame's depth, so like the frames they are",
+    "converted with their length along X and want the same 90 degree turn.",
+    "",
+    "All of them share one pressed bracket: a 1.5mm top sheet whose underside",
+    "bears on the rung's top face, with the obround slot dropping over the rung's",
+    "hole and a leg descending just outside the rung's outer face. add-snaps.py",
+    "derives the single plug from that slot, so there is no per-part number to",
+    "get wrong - only the id, the depth and the turn.",
+    "",
+    "One plug, not two: nothing attaches to the far side of a hung accessory."
+  ],
+  "hang": [
+    { "id": "008536-hook-strip-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
+    { "id": "008537-hook-strip-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 },
+    { "id": "008542-rack-for-ladder-depth-200mm",       "depth": 200, "rotateYdeg": 90 },
+    { "id": "008543-rack-for-ladder-depth-320mm",       "depth": 320, "rotateYdeg": 90 },
+    { "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 }
+  ],
+
   "_notYet": [
-    "Deliberately absent until the first bay is proven in the app:",
-    "  - hang accessories (hook rail by depth, tray, YouboXx, newspaper rack),",
-    "    which cantilever off ONE frame and want their own mask, youk-hang-d<n>",
+    "Deliberately absent:",
+    "  - the four YouboXx sets, which hang the same way but are 72k-138k",
+    "    triangles each and want decimating first",
     "  - shoe racks and clothes rails, which are span parts but whose bracket",
     "    geometry has not been measured yet",
-    "  - the adjustable foot and the wall brackets",
+    "  - the cabinet brackets, office solution, umbrella stand, top panel",
+    "    bracket, the newspaper-rack divider (it sits in the rack, not on a",
+    "    frame), the adjustable foot and the wall brackets",
     "Adding them is more rows here, not more code."
   ]
 }

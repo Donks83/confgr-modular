@@ -11,15 +11,25 @@ supplier file  ->  convert to glTF  ->  fix units, origin, names  ->  add snap
 planes  ->  declare  ->  inspect  ->  component
 ```
 
-Two commands do the mechanical parts:
+The commands that do the mechanical parts:
 
 ```bash
-node tools/inspect-model.mjs <model.glb>     # what is this, and what is wrong with it
-node tools/declare.mjs <model.glb> --measure # write the declaration from the geometry
+node tools/inspect-model.mjs <model.glb>      # what is this, and what is wrong with it
+node tools/declare.mjs <model.glb> --measure  # write the declaration from the geometry
+npm run measure -- <model.glb>                # where the part's features actually are
+npm run joint -- <parent.glb> <child.glb>     # does the metal fit, once they are snapped
 ```
 
-`inspect-model` modifies nothing, ever. Run it first, run it again after every
-change, and run it last.
+`inspect-model` and `measure-part` modify nothing, ever. Run inspect first, run
+it again after every change, and run it last.
+
+**A converter's output and a component are different files.** The YouK route
+writes `<id>.converted.glb` from the STEP file and `<id>.glb` from that, because
+adding snap planes usually means rotating the part and rotating is not
+idempotent. When the two shared a name, running the snap step twice turned every
+frame 90° a second time and produced a model that assembled confidently in the
+wrong orientation. Keep the converter's output pristine and derive from it; a
+folder sweep by `inspect` or `declare` skips `.converted.glb`.
 
 ---
 
@@ -180,6 +190,41 @@ wrong. The inspector checks this.
 
 Columns run along the plane's local +X, rows along local +Y, facing is local +Z.
 Cell (0,0) is the min corner — bottom-left looking at the panel.
+
+### Finding where the snap goes, on a part nobody documented
+
+Deciding *where* two parts join is the one step with no mechanical answer. On
+the YouK range it came down to two tools and one habit.
+
+`npm run measure -- <part.glb>` reports the bands of X, Y and Z at which
+vertices cluster. That clustering is the measurement: a tessellated CAD solid
+puts vertices on feature boundaries and almost nowhere else, so a band is a real
+edge or face and a gap is real void. `--window 90:115 --axis y` narrows it to
+one feature.
+
+Three cautions, each of which cost time:
+
+- **A planar face carries vertices only on its perimeter.** A bar spanning a
+  part's depth has vertices at its two ends and none between, so *sectioning
+  these solids returns nothing at all*. Do not reach for a section.
+- **Make the window tight.** A `85 < y < 115` window meant to isolate a rung
+  swept in a pin on a neighbouring member, and I reported the pin's geometry as
+  the rung's. A loose selection produces a clean-looking wrong answer, which is
+  the worst kind.
+- **Prefer a feature both parts share.** The YouK hang joint was settled by
+  noticing that the rung's holes and the accessory's slots are at the same
+  spacing on both depths. That is a fact about the pair, so it fixes the
+  placement in a way no measurement of either part alone can.
+
+`npm run joint -- <parent.glb> <child.glb> --socket <name>` then places the
+child and reports whether the metal fits: where the child's lowest material sits
+against the socket's face, and whether anything ends up inside the parent's
+member. A designed bearing surface reads as *flush* — the shelf lands on the
+rung's top face at exactly 100.00 mm. Anything else is a seating that was
+guessed. Sub-millimetre overlaps are the tessellation, not an error; the tool
+prints the depth rather than only the count so the two can be told apart.
+
+---
 
 ## 6. Declare it
 

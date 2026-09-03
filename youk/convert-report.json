@@ -9,7 +9,7 @@
     {
       "source": "008530 - YouK clothes rail 600 mm, Garderobenstange 600 mm.stp",
       "id": "008530-clothes-rail-600mm",
-      "out": "008530-clothes-rail-600mm.glb",
+      "out": "008530-clothes-rail-600mm.converted.glb",
       "parts_merged": 7,
       "dropped": [
         {
@@ -59,7 +59,7 @@
     {
       "source": "008531 - YouK clothes rail 900 mm, Garderobenstange 900 mm.stp",
       "id": "008531-clothes-rail-900mm",
-      "out": "008531-clothes-rail-900mm.glb",
+      "out": "008531-clothes-rail-900mm.converted.glb",
       "parts_merged": 4,
       "dropped": [
         {
@@ -93,7 +93,7 @@
     {
       "source": "008532 - clothes rail 1200 mm, YouK Garderobenstange 1200 mm.stp",
       "id": "008532-clothes-rail-1200mm",
-      "out": "008532-clothes-rail-1200mm.glb",
+      "out": "008532-clothes-rail-1200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [],
       "triangles": 4044,
@@ -118,7 +118,7 @@
     {
       "source": "008533 - YouK clothes rail extension 1200 mm, Garderobenstange Verl\u00e4ngerung 600 mm.stp",
       "id": "008533-clothes-rail-extension-1200mm",
-      "out": "008533-clothes-rail-extension-1200mm.glb",
+      "out": "008533-clothes-rail-extension-1200mm.converted.glb",
       "parts_merged": 3,
       "dropped": [
         {
@@ -148,7 +148,7 @@
     {
       "source": "008534 - YouK clothes rail 900 mm, Garderobenstange 900 mm.stp",
       "id": "008534-clothes-rail-900mm",
-      "out": "008534-clothes-rail-900mm.glb",
+      "out": "008534-clothes-rail-900mm.converted.glb",
       "parts_merged": 1,
       "dropped": [],
       "triangles": 3378,
@@ -173,7 +173,7 @@
     {
       "source": "008535 - YouK clothes rail extension 1200 mm, Garderobenstangenverl\u00e4ngerung 1200 mm.stp",
       "id": "008535-clothes-rail-extension-1200mm",
-      "out": "008535-clothes-rail-extension-1200mm.glb",
+      "out": "008535-clothes-rail-extension-1200mm.converted.glb",
       "parts_merged": 2,
       "dropped": [],
       "triangles": 1744,
@@ -198,7 +198,7 @@
     {
       "source": "008536 - YouK hook strip for ladder depth 200 mm, Hakenleiste f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008536-hook-strip-for-ladder-depth-200mm",
-      "out": "008536-hook-strip-for-ladder-depth-200mm.glb",
+      "out": "008536-hook-strip-for-ladder-depth-200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -228,7 +228,7 @@
     {
       "source": "008537 - YouK hook strip for ladder depth 320 mm, Hakenleiste f\u00fcr 320 mm Leitertiefe.stp",
       "id": "008537-hook-strip-for-ladder-depth-320mm",
-      "out": "008537-hook-strip-for-ladder-depth-320mm.glb",
+      "out": "008537-hook-strip-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [],
       "triangles": 2640,
@@ -253,7 +253,7 @@
     {
       "source": "008538 - YouK hook strip for ladder width 450 mm, Hakenleiste f\u00fcr Leiterbreite 450 mm.stp",
       "id": "008538-hook-strip-for-ladder-width-450mm",
-      "out": "008538-hook-strip-for-ladder-width-450mm.glb",
+      "out": "008538-hook-strip-for-ladder-width-450mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -283,7 +283,7 @@
     {
       "source": "008539 - YouK hook strip for ladder width 600 mm, Hakenleiste f\u00fcr Leiterbreite 600 mm.stp",
       "id": "008539-hook-strip-for-ladder-width-600mm",
-      "out": "008539-hook-strip-for-ladder-width-600mm.glb",
+      "out": "008539-hook-strip-for-ladder-width-600mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -313,7 +313,7 @@
     {
       "source": "008540 - YouK hook strip for ladder width 900 mm, Hakenleiste f\u00fcr Leiterbreite 900 mm.stp",
       "id": "008540-hook-strip-for-ladder-width-900mm",
-      "out": "008540-hook-strip-for-ladder-width-900mm.glb",
+      "out": "008540-hook-strip-for-ladder-width-900mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -343,7 +343,7 @@
     {
       "source": "008541 - YouK hook strip for ladder width 1200 mm, Hakenleiste f\u00fcr Leiterbreite 1200 mm.stp",
       "id": "008541-hook-strip-for-ladder-width-1200mm",
-      "out": "008541-hook-strip-for-ladder-width-1200mm.glb",
+      "out": "008541-hook-strip-for-ladder-width-1200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -373,7 +373,7 @@
     {
       "source": "008542 - YouK rack for ladder depth 200 mm, Ablage f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008542-rack-for-ladder-depth-200mm",
-      "out": "008542-rack-for-ladder-depth-200mm.glb",
+      "out": "008542-rack-for-ladder-depth-200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [],
       "triangles": 2088,
@@ -398,7 +398,7 @@
     {
       "source": "008543 - YouK rack for ladder depth 320 mm, Ablage f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008543-rack-for-ladder-depth-320mm",
-      "out": "008543-rack-for-ladder-depth-320mm.glb",
+      "out": "008543-rack-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -428,7 +428,7 @@
     {
       "source": "008545 - YouK YouboXx Set 2.stp",
       "id": "008545-youboxx-set-2",
-      "out": "008545-youboxx-set-2.glb",
+      "out": "008545-youboxx-set-2.converted.glb",
       "parts_merged": 3,
       "dropped": [],
       "triangles": 72260,
@@ -453,7 +453,7 @@
     {
       "source": "008546 - YouK YouboXx Set 3.stp",
       "id": "008546-youboxx-set-3",
-      "out": "008546-youboxx-set-3.glb",
+      "out": "008546-youboxx-set-3.converted.glb",
       "parts_merged": 4,
       "dropped": [],
       "triangles": 127162,
@@ -478,7 +478,7 @@
     {
       "source": "008547 - YouK YouboXx Set 4.stp",
       "id": "008547-youboxx-set-4",
-      "out": "008547-youboxx-set-4.glb",
+      "out": "008547-youboxx-set-4.converted.glb",
       "parts_merged": 3,
       "dropped": [],
       "triangles": 138184,
@@ -503,7 +503,7 @@
     {
       "source": "008548 - YouK YouboXx Set 5.stp",
       "id": "008548-youboxx-set-5",
-      "out": "008548-youboxx-set-5.glb",
+      "out": "008548-youboxx-set-5.converted.glb",
       "parts_merged": 3,
       "dropped": [],
       "triangles": 133482,
@@ -528,7 +528,7 @@
     {
       "source": "008549 - YouK divider for newspaper towel rack set, Fachtrenner f\u00fcr Zeitungs- & Handtuchablage f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008549-divider-for-newspaper-towel-rack-set",
-      "out": "008549-divider-for-newspaper-towel-rack-set.glb",
+      "out": "008549-divider-for-newspaper-towel-rack-set.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -558,7 +558,7 @@
     {
       "source": "008549 - YouK newspaper towel rack set fpr ladder depth 200 mm, Zeitungs- & Handtuchablage f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm",
-      "out": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm.glb",
+      "out": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -588,7 +588,7 @@
     {
       "source": "008551 - YouK base brackets for office solution, Bodentr\u00e4ger f\u00fcr Office-L\u00f6sung.stp",
       "id": "008551-base-brackets-for-office-solution",
-      "out": "008551-base-brackets-for-office-solution.glb",
+      "out": "008551-base-brackets-for-office-solution.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -618,7 +618,7 @@
     {
       "source": "008551 - YouK clamping angles for office solution, Klemmwinkel f\u00fcr Office-L\u00f6sung.stp",
       "id": "008551-clamping-angles-for-office-solution",
-      "out": "008551-clamping-angles-for-office-solution.glb",
+      "out": "008551-clamping-angles-for-office-solution.converted.glb",
       "parts_merged": 2,
       "dropped": [
         {
@@ -648,7 +648,7 @@
     {
       "source": "008551 - YouK Shelf supports for office solution, Grundhalterung f\u00fcr Office-L\u00f6sung.stp",
       "id": "008551-shelf-supports-for-office-solution",
-      "out": "008551-shelf-supports-for-office-solution.glb",
+      "out": "008551-shelf-supports-for-office-solution.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -678,7 +678,7 @@
     {
       "source": "008552 - YouK top panel bracket, Abdeckbodenhalterung.stp",
       "id": "008552-top-panel-bracket",
-      "out": "008552-top-panel-bracket.glb",
+      "out": "008552-top-panel-bracket.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -708,7 +708,7 @@
     {
       "source": "008553 - YouK shoe rack 450 mm, Schuhablage 450 mm.stp",
       "id": "008553-shoe-rack-450mm",
-      "out": "008553-shoe-rack-450mm.glb",
+      "out": "008553-shoe-rack-450mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -738,7 +738,7 @@
     {
       "source": "008554 - YouK shoe rack 600 mm, Schuhablage 600 mm.stp",
       "id": "008554-shoe-rack-600mm",
-      "out": "008554-shoe-rack-600mm.glb",
+      "out": "008554-shoe-rack-600mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -768,7 +768,7 @@
     {
       "source": "008555 - YouK shoe rack 900 mm, Schuhablage 900 mm.stp",
       "id": "008555-shoe-rack-900mm",
-      "out": "008555-shoe-rack-900mm.glb",
+      "out": "008555-shoe-rack-900mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -798,7 +798,7 @@
     {
       "source": "008556 - YouK shoe rack 1200 mm, Schuhablage 1200 mm.stp",
       "id": "008556-shoe-rack-1200mm",
-      "out": "008556-shoe-rack-1200mm.glb",
+      "out": "008556-shoe-rack-1200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -828,7 +828,7 @@
     {
       "source": "008557 - YouK outer cabinet bracket for ladder depth 200 mm, Korpushalterung au\u00dfen f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008557-outer-cabinet-bracket-for-ladder-depth-200mm",
-      "out": "008557-outer-cabinet-bracket-for-ladder-depth-200mm.glb",
+      "out": "008557-outer-cabinet-bracket-for-ladder-depth-200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -858,7 +858,7 @@
     {
       "source": "008558 - YouK outer cabinet bracket for ladder depth 320 mm, Korpushalterung au\u00dfen f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
-      "out": "008558-outer-cabinet-bracket-for-ladder-depth-320mm.glb",
+      "out": "008558-outer-cabinet-bracket-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -888,7 +888,7 @@
     {
       "source": "008559 - YouK cabinet bracket for ladder depth 200 mm, Korpushalterung Erweiterung f\u00fcr Leitertiefe 200 mm.stp",
       "id": "008559-cabinet-bracket-for-ladder-depth-200mm",
-      "out": "008559-cabinet-bracket-for-ladder-depth-200mm.glb",
+      "out": "008559-cabinet-bracket-for-ladder-depth-200mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -918,7 +918,7 @@
     {
       "source": "008560 - YouK cabinet bracket for ladder depth 320 mm, Korpushalterung Erweiterung f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008560-cabinet-bracket-for-ladder-depth-320mm",
-      "out": "008560-cabinet-bracket-for-ladder-depth-320mm.glb",
+      "out": "008560-cabinet-bracket-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -948,7 +948,7 @@
     {
       "source": "008561 - YouK shelf 450 mm for ladder depth 320 mm, Regalboden 450 mm f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008561-shelf-450mm-for-ladder-depth-320mm",
-      "out": "008561-shelf-450mm-for-ladder-depth-320mm.glb",
+      "out": "008561-shelf-450mm-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -978,7 +978,7 @@
     {
       "source": "008562 - YouK shelf 600 mm for ladder depth 320 mm, Regalboden 600 mm f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008562-shelf-600mm-for-ladder-depth-320mm",
-      "out": "008562-shelf-600mm-for-ladder-depth-320mm.glb",
+      "out": "008562-shelf-600mm-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -1008,7 +1008,7 @@
     {
       "source": "008563 - YouK shelf 900 mm for ladder depth 320 mm, Regalboden 900 mm f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008563-shelf-900mm-for-ladder-depth-320mm",
-      "out": "008563-shelf-900mm-for-ladder-depth-320mm.glb",
+      "out": "008563-shelf-900mm-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -1038,7 +1038,7 @@
     {
       "source": "008564 - YouK shelf 1200 mm for ladder depth 320 mm, Regalboden 1200 mm f\u00fcr Leitertiefe 320 mm.stp",
       "id": "008564-shelf-1200mm-for-ladder-depth-320mm",
-      "out": "008564-shelf-1200mm-for-ladder-depth-320mm.glb",
+      "out": "008564-shelf-1200mm-for-ladder-depth-320mm.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -1068,7 +1068,7 @@
     {
       "source": "008565 - YouK lower umbrella stand, untere Wanne f\u00fcr Schirmst\u00e4nder.stp",
       "id": "008565-lower-umbrella-stand",
-      "out": "008565-lower-umbrella-stand.glb",
+      "out": "008565-lower-umbrella-stand.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -1098,7 +1098,7 @@
     {
       "source": "008565 - YouK upper umbrella stand, obere Halterung f\u00fcr Schirmst\u00e4nder.stp",
       "id": "008565-upper-umbrella-stand",
-      "out": "008565-upper-umbrella-stand.glb",
+      "out": "008565-upper-umbrella-stand.converted.glb",
       "parts_merged": 1,
       "dropped": [
         {
@@ -1128,7 +1128,7 @@
     {
       "source": "236746 - YouK Leiterregal ladder depth 200 mm, height 668 mm, Leitertiefe 200 mm, H\u00f6he 668 mm.stp",
       "id": "236746-leiterregal-ladder-depth-200mm",
-      "out": "236746-leiterregal-ladder-depth-200mm.glb",
+      "out": "236746-leiterregal-ladder-depth-200mm.converted.glb",
       "parts_merged": 4,
       "dropped": [
         {
@@ -1158,7 +1158,7 @@
     {
       "source": "236748 - YouK ladder depth 2000 mm, height 905 mm, Leiterregal Leitertiefe 200 mm, H\u00f6he 905 mm.stp",
       "id": "236748-ladder-depth-2000mm",
-      "out": "236748-ladder-depth-2000mm.glb",
+      "out": "236748-ladder-depth-2000mm.converted.glb",
       "parts_merged": 5,
       "dropped": [
         {
@@ -1188,7 +1188,7 @@
     {
       "source": "236750 - YouK ladder depth 320 mm, height 550 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 550 mm.stp",
       "id": "236750-ladder-depth-320mm",
-      "out": "236750-ladder-depth-320mm.glb",
+      "out": "236750-ladder-depth-320mm.converted.glb",
       "parts_merged": 2,
       "dropped": [],
       "triangles": 6368,
@@ -1213,7 +1213,7 @@
     {
       "source": "236754 - YouK ladder depth 320 mm, height 905 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 905 mm.stp",
       "id": "236754-ladder-depth-320mm",
-      "out": "236754-ladder-depth-320mm.glb",
+      "out": "236754-ladder-depth-320mm.converted.glb",
       "parts_merged": 2,
       "dropped": [],
       "triangles": 7020,
@@ -1238,7 +1238,7 @@
     {
       "source": "236758 - YouK ladder depth 320 mm, height 1500 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 1500 mm.stp",
       "id": "236758-ladder-depth-320mm",
-      "out": "236758-ladder-depth-320mm.glb",
+      "out": "236758-ladder-depth-320mm.converted.glb",
       "parts_merged": 2,
       "dropped": [],
       "triangles": 7475,
@@ -1263,7 +1263,7 @@
     {
       "source": "236762 - YouK ladder depth 320 mm, height 1500 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 2210 mm.stp",
       "id": "236762-ladder-depth-320mm",
-      "out": "236762-ladder-depth-320mm.glb",
+      "out": "236762-ladder-depth-320mm.converted.glb",
       "parts_merged": 2,
       "dropped": [],
       "triangles": 8753,
@@ -1288,7 +1288,7 @@
     {
       "source": "237023 - YouK adjustable foot 100 mm, Stellfu\u00df 100 mm.stp",
       "id": "237023-adjustable-foot-100mm",
-      "out": "237023-adjustable-foot-100mm.glb",
+      "out": "237023-adjustable-foot-100mm.converted.glb",
       "parts_merged": 5,
       "dropped": [
         {

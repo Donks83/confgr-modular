@@ -225,7 +225,12 @@ def main():
 
     for i, step in enumerate(sources, 1):
         name = slug(step.name)
-        target = out_dir / f"{name}.glb"
+        # ".converted" keeps the converter's output distinct from the component
+        # add-snaps.py builds from it. They used to share <id>.glb, so snapping
+        # wrote over its own input - and a second run rotated every frame a
+        # second time and produced a confidently wrong model. Pristine input,
+        # derived output, no state.
+        target = out_dir / f"{name}.converted.glb"
         record = {"source": step.name, "id": name, "out": target.name}
 
         try:
