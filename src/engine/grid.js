@@ -110,6 +110,8 @@ export function gridAttachPoint(grid, col, row, span = { cols: 1, rows: 1 }) {
     label: `c${col}r${row}`,
     condition: grid.condition ?? null,
     required: false,
+    // A grid offers places; it never takes one. Always a socket.
+    role: 'socket',
     // The plane's own rotation carries the cell out of plane-local space and
     // into component-local space, so a grid on the side of a pack works the
     // same as one on its front with no special casing.

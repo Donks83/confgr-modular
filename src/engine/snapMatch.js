@@ -32,6 +32,7 @@ export const REASONS = {
   MASK_MISMATCH: 'mask-mismatch',
   CONDITION_FAILED: 'condition-failed',
   ALREADY_OCCUPIED: 'already-occupied',
+  ROLE_CLASH: 'role-clash',
   TOO_FAR: 'too-far',
   FACING_WRONG: 'facing-wrong',
 };
@@ -41,6 +42,7 @@ export const REASON_TEXT = {
   [REASONS.MASK_MISMATCH]: 'These are different kinds of joint and do not fit together.',
   [REASONS.CONDITION_FAILED]: 'This connection point is not available with the current options.',
   [REASONS.ALREADY_OCCUPIED]: 'Something is already connected there.',
+  [REASONS.ROLE_CLASH]: 'These are both the same kind of fitting — one has to be a mount and the other a mounting point.',
   [REASONS.TOO_FAR]: 'Move the parts closer together.',
   [REASONS.FACING_WRONG]: 'These faces point the same way — turn one of the parts around.',
 };
@@ -57,6 +59,22 @@ export function canConnectLogically(a, b, ctx = {}) {
   if (ctx.sameInstance) return { ok: false, reason: REASONS.SAME_INSTANCE };
   if (a.mask !== b.mask) return { ok: false, reason: REASONS.MASK_MISMATCH };
   if (a.occupied || b.occupied) return { ok: false, reason: REASONS.ALREADY_OCCUPIED };
+
+  // ROLES — added 3 Sep after a real bug. A snap either OFFERS a place
+  // (socket) or TAKES one (plug), and two of the same kind must never join.
+  //
+  // Why this and not a facing check, which was the obvious first guess: the
+  // solver ALWAYS succeeds on facing. Given two same-facing snaps it simply
+  // yaws the child 180 degrees to make them oppose. So facing can never fail
+  // at an authored point — it just silently flips the part. That is exactly
+  // what let an upright attach to another upright and pass through a shelf.
+  //
+  // This is Roomle's parentDockings/childDockings distinction, which their docs
+  // describe as sockets a parent offers versus plugs a child presents. A null
+  // role means "either", which is what a plain chain of identical parts wants.
+  if (a.role && b.role && a.role === b.role) {
+    return { ok: false, reason: REASONS.ROLE_CLASH };
+  }
 
   // Conditions are expressions in Phase 1. Until the evaluator exists, a
   // condition with no evaluator supplied is treated as unmet rather than met —

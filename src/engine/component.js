@@ -230,6 +230,17 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     // and names are already carrying enough.
     const span = desc.extras?.confgrSpans?.[node.name] || null;
 
+    // 'socket' offers a place, 'plug' takes one, null means either. Two of the
+    // same kind never join — see canConnectLogically for why this is a role
+    // check rather than a facing check.
+    const role = desc.extras?.confgrRoles?.[node.name] || null;
+    if (role && role !== 'socket' && role !== 'plug') {
+      throw new ComponentError(
+        `Snap "${node.name}" has role "${role}". Must be "socket", "plug", or absent.`,
+        { code: 'SNAP_ROLE_INVALID', detail: { name: node.name, role } },
+      );
+    }
+
     snaps.push({
       id: node.name,
       mask: parsed.mask,
@@ -241,6 +252,7 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       facing: snapFacing(node),
       required: false,   // set in the editor, not in the model
       condition: null,   // an expression, evaluated in Phase 1
+      role,
       // {cols, rows} when this snap occupies a rectangle of grid cells, else
       // null meaning a single point or a single cell.
       span: span ? { cols: span.cols || 1, rows: span.rows || 1 } : null,

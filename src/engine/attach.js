@@ -16,7 +16,7 @@
 // cover may be taken. A 3x2 pouch therefore shows fewer markers than a 1x1 one
 // on the same panel, which is the correct and useful behaviour.
 
-import { worldSnaps } from './assembly.js';
+import { worldSnaps, resolveTransforms } from './assembly.js';
 import { canConnectLogically, REASONS, REASON_TEXT } from './snapMatch.js';
 import { parseGridCellId, cellsCovered, spanFits } from './grid.js';
 
@@ -227,21 +227,9 @@ export function attachAt(assembly, placement, instanceId, selections = {}) {
  * parts to the origin. Cascade rather than orphan.
  */
 export function detach(assembly, instanceId) {
-  const doomed = new Set([instanceId]);
-
-  // Walk outward from the removed part, away from the root.
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const c of assembly.connections) {
-      // A connection's `to` side is the attached child, so anything attached to
-      // a doomed part is doomed too.
-      if (doomed.has(c.fromInstanceId) && !doomed.has(c.toInstanceId)) {
-        doomed.add(c.toInstanceId);
-        grew = true;
-      }
-    }
-  }
+  // A connection's `to` side is the attached child, so the part and everything
+  // it carries goes — see subtreeOf.
+  const doomed = subtreeOf(assembly, instanceId);
 
   return {
     ...assembly,
@@ -250,5 +238,157 @@ export function detach(assembly, instanceId) {
       (c) => !doomed.has(c.fromInstanceId) && !doomed.has(c.toInstanceId),
     ),
     removed: [...doomed],
+  };
+}
+
+/**
+ * The part itself, plus everything hanging off it.
+ *
+ * Shared by detach (which deletes the lot) and moveTo (which carries the lot).
+ * Same walk, two very different intentions, which is why it is now named.
+ */
+export function subtreeOf(assembly, instanceId) {
+  const inSubtree = new Set([instanceId]);
+
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const c of assembly.connections || []) {
+      if (inSubtree.has(c.fromInstanceId) && !inSubtree.has(c.toInstanceId)) {
+        inSubtree.add(c.toInstanceId);
+        grew = true;
+      }
+    }
+  }
+
+  return inSubtree;
+}
+
+/** Snap ids on one instance that already have something in them. */
+function occupiedSnapsOf(assembly, instanceId) {
+  const out = new Set();
+  for (const c of assembly.connections || []) {
+    if (c.fromInstanceId === instanceId) out.add(c.fromSnapId);
+    if (c.toInstanceId === instanceId) out.add(c.toSnapId);
+  }
+  return out;
+}
+
+/** The one connection that holds a part on. Null for a root, or if it is ambiguous. */
+export function mountingConnection(assembly, instanceId) {
+  const incoming = (assembly.connections || []).filter((c) => c.toInstanceId === instanceId);
+  return incoming.length === 1 ? incoming[0] : null;
+}
+
+/**
+ * Can this part be moved at all?
+ *
+ * Only a part that HANGS off something can be re-hung: the move is a rewiring
+ * of one connection, so there has to be exactly one to rewire. The first part
+ * on the product is the anchor and has nothing holding it, which is why picking
+ * it up does nothing — that is the anchored-product model working, not a bug,
+ * and the UI should say so rather than offer a drag that cannot land.
+ */
+export function canMove(assembly, instanceId) {
+  const exists = (assembly.instances || []).some((i) => i.instanceId === instanceId);
+  if (!exists) return { ok: false, reason: 'not-in-assembly' };
+
+  const instance = assembly.instances.find((i) => i.instanceId === instanceId);
+  if (instance.position || instance.freeMove) return { ok: false, reason: 'is-anchor' };
+  if (!mountingConnection(assembly, instanceId)) return { ok: false, reason: 'is-anchor' };
+
+  return { ok: true };
+}
+
+/**
+ * Where an already-placed part could be re-hung.
+ *
+ * Matt asked to "click and drag an object to a different snap point (not to
+ * drag it anywhere in 3d space)". This is that question, and the answer costs
+ * almost nothing because positions are derived: rewire the one connection and
+ * the part AND EVERYTHING IT CARRIES follows. A shelf with three dividers on it
+ * moves as a unit with no extra code, because none of those dividers ever knew
+ * where they were.
+ *
+ * Two exclusions matter and both are about not eating your own tail:
+ *   * No point inside the moving part's own subtree. Hanging a shelf off a
+ *     divider that the shelf is carrying is a cycle, and the resolver would end
+ *     up deriving the shelf's position from itself.
+ *   * No mount snap that the part's own children are using. Its left mount is
+ *     not free if a divider is in it.
+ *
+ * The part's CURRENT point is deliberately left in — a move that puts it back
+ * where it was is a legal no-op, and filtering it out would make the marker it
+ * came from vanish mid-drag.
+ */
+export function moveTargets(assembly, components, transforms, instanceId, ctx = {}) {
+  const allowed = canMove(assembly, instanceId);
+  if (!allowed.ok) return { placements: [], rejected: [], blocked: allowed.reason };
+
+  const moving = assembly.instances.find((i) => i.instanceId === instanceId);
+  if (!components.get(moving.componentId)) {
+    return { placements: [], rejected: [], blocked: 'component-missing' };
+  }
+
+  // Vacate the point it is on before asking what is free, or its own current
+  // point reads as occupied and the no-op move disappears.
+  const held = mountingConnection(assembly, instanceId);
+  const vacated = {
+    ...assembly,
+    connections: (assembly.connections || []).filter((c) => c !== held),
+  };
+
+  // The moving cluster floats to the origin in this hypothetical, which is
+  // harmless: every point it owns is filtered out below, and nothing here does
+  // a proximity test on authored points.
+  const { transforms: vacatedTransforms } = resolveTransforms(vacated, components);
+
+  const matrix = attachMatrix(
+    vacated, components, [moving.componentId], vacatedTransforms, ctx,
+  );
+
+  const ownSubtree = subtreeOf(vacated, instanceId);
+  const busyMounts = occupiedSnapsOf(vacated, instanceId);
+
+  const keep = (row) => !ownSubtree.has(row.point.instanceId)
+    && !busyMounts.has(row.mountSnapId);
+
+  return {
+    placements: matrix.placements.filter(keep).map((p) => ({ ...p, instanceId })),
+    rejected: matrix.rejected.filter((r) => !ownSubtree.has(r.point.instanceId)),
+    blocked: null,
+  };
+}
+
+/**
+ * Re-hang a part at a different point.
+ *
+ * Returns a NEW assembly. Nothing about the part's own record changes — it had
+ * no coordinates to update, which is the whole reason this is four lines rather
+ * than a transform-rebasing exercise across its children.
+ */
+export function moveTo(assembly, instanceId, placement) {
+  const held = mountingConnection(assembly, instanceId);
+  if (!held) {
+    throw new Error(
+      `Part "${instanceId}" is the anchor of this product, so there is no connection to move.`,
+    );
+  }
+
+  if (subtreeOf(assembly, instanceId).has(placement.point.instanceId)) {
+    throw new Error(
+      `Part "${instanceId}" cannot be hung off "${placement.point.instanceId}", which it is `
+      + 'carrying — that would make a loop.',
+    );
+  }
+
+  return {
+    ...assembly,
+    connections: (assembly.connections || []).map((c) => (c === held ? {
+      fromInstanceId: placement.point.instanceId,
+      fromSnapId: placement.point.snapId,
+      toInstanceId: instanceId,
+      toSnapId: placement.mountSnapId,
+    } : c)),
   };
 }

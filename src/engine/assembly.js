@@ -273,6 +273,7 @@ export function worldSnaps(assembly, components, transforms) {
     condition: point.condition,
     required: !!point.required,
     span: point.span || null,
+    role: point.role || null,
     worldPosition: add(transform.translation, rotateVec(transform.rotation, point.position)),
     worldFacing: normalise(rotateVec(transform.rotation, point.facing)),
     ...extra,

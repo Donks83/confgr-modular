@@ -104,15 +104,29 @@ function createWindow() {
     mainWindow.webContents.once('did-finish-load', () => {
       setTimeout(async () => {
         try {
-          // CONFGR_CLICK drives real clicks before capturing, so the
-          // raycast-to-attach path is exercised rather than assumed. Format:
-          // "marker:0,part:pouch-3x2,marker:20" — a script of steps.
+          // CONFGR_CLICK drives real input before capturing, so the
+          // raycast-to-attach path is exercised rather than assumed. Steps:
+          //   marker:N              click attach marker N
+          //   part:NAME             click a palette entry
+          //   drag:instanceId:N     drag that part onto marker N
+          //   pan:X:Y:Z             shove the orbit target there, report the clamp
+          //   dump                  print the status line and the counts
+          // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
             for (const step of process.env.CONFGR_CLICK.split(',')) {
-              const [kind, value] = step.split(':');
+              const [kind, ...rest] = step.split(':');
+              const value = rest[0];
               const js = kind === 'marker'
                 ? `window.__cfgClickMarker(${Number(value) || 0})`
-                : `(document.querySelector('.cfg-palette button strong')
+                : kind === 'drag'
+                  ? `window.__cfgDragToMarker(${JSON.stringify(value)}, ${Number(rest[1]) || 0})`
+                  : kind === 'pan'
+                    ? `window.__cfgPanCheck(${Number(rest[0])}, ${Number(rest[1])}, ${Number(rest[2])})`
+                    : kind === 'dump'
+                    ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
+                         .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())
+                         .filter(Boolean).join(' | ')`
+                    : `(document.querySelector('.cfg-palette button strong')
                      && [...document.querySelectorAll('.cfg-palette button')]
                         .find((b) => b.textContent.startsWith(${JSON.stringify(value)}))
                         ?.click(), 'clicked part ${value}')`;

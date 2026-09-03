@@ -23,6 +23,7 @@ import { resolveTransforms, validateAssembly } from '../engine/assembly.js';
 import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
   whyNothingFits, attachAt, detach, pointKey,
+  canMove, moveTargets, moveTo,
 } from '../engine/attach.js';
 
 let counter = 0;
@@ -34,12 +35,18 @@ export default function Configurator() {
   const mountRef = useRef(null);
   const three = useRef(null);
   const framedFor = useRef('');
+  // Drag state lives in a ref, not React state: pointermove fires at screen
+  // rate and re-rendering the panel on every one of them would make the drag
+  // feel heavy. Only the START and END of a drag touch React.
+  const drag = useRef(null);
+  const live = useRef({});
 
   const [components, setComponents] = useState(new Map());
   const [assembly, setAssembly] = useState(EMPTY);
   const [selectedId, setSelectedId] = useState(null);
   const [pendingPart, setPendingPart] = useState(null);    // part-first
   const [pendingPoint, setPendingPoint] = useState(null);  // point-first
+  const [movingId, setMovingId] = useState(null);          // drag-to-another-point
   const [showMarkers, setShowMarkers] = useState(true);
   const [showGuides, setShowGuides] = useState(false);
   const [status, setStatus] = useState('Loading components.');
@@ -60,14 +67,31 @@ export default function Configurator() {
     }
   }, [assembly, components, catalogue]);
 
+  // Where the part being dragged could be re-hung. Computed only during a drag,
+  // and it is a DIFFERENT question from the add matrix: the part already exists,
+  // so the points on it and on whatever it carries have to come out of the list.
+  const moveMatrix = useMemo(() => {
+    if (!movingId || !components.size) return null;
+    try {
+      return moveTargets(assembly, components, transforms, movingId);
+    } catch {
+      return null;
+    }
+  }, [movingId, assembly, components, transforms]);
+
   const markers = useMemo(() => {
-    const live = livePoints(matrix);
-    if (!pendingPart) return live;
+    // A drag in progress owns the markers: they are the places this part can
+    // land, and showing "where could a new part go" at the same time would be
+    // two different meanings in the same colour.
+    if (moveMatrix) return livePoints(moveMatrix);
+
+    const all = livePoints(matrix);
+    if (!pendingPart) return all;
     // Part-first: show only where THIS part can go. A 3x2 pouch legitimately
     // offers fewer markers than a 1x1 one, which is the useful behaviour.
     const allowed = new Set(pointsForComponent(matrix, pendingPart).map((p) => p.pointKey));
-    return live.filter((p) => allowed.has(pointKey(p)));
-  }, [matrix, pendingPart]);
+    return all.filter((p) => allowed.has(pointKey(p)));
+  }, [matrix, pendingPart, moveMatrix]);
 
   const partsAtPendingPoint = useMemo(
     () => (pendingPoint ? componentsForPoint(matrix, pendingPoint) : []),
@@ -82,6 +106,10 @@ export default function Configurator() {
     if (!components.size || !assembly.instances.length) return { isValid: true, missingRequiredSnaps: [] };
     try { return validateAssembly(assembly, components, transforms); } catch { return { isValid: true, missingRequiredSnaps: [] }; }
   }, [assembly, components, transforms]);
+
+  // The pointer handlers are attached once and must not close over a stale
+  // assembly. A ref updated every render is the cheapest correct answer.
+  live.current = { assembly, components, transforms };
 
   // ------------------------------------------------------------- three setup
   useEffect(() => {
@@ -102,9 +130,22 @@ export default function Configurator() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.maxPolarAngle = Math.PI / 2 - 0.02;
-    // The product is anchored, so panning is the one control that could lose it
-    // off screen. Orbit and zoom only.
-    controls.enablePan = false;
+
+    // PAN, BOUNDED. Matt, 3 Sep: "when I added a few of the kitchen cabs I
+    // could only rotate around a limited section and not view the other areas".
+    // He is right and the original reasoning was wrong: orbit alone pivots about
+    // one fixed point, so on a four-metre run of units you can look at the
+    // middle from any angle and never get a close view of an end.
+    //
+    // The worry that stopped me — losing an anchored product off screen — is
+    // real, but the fix is a LEASH, not a ban. Pan freely inside a box around
+    // the product; the box grows as the product does; step outside and the
+    // target is pulled back to the edge. See clampPan in the render loop.
+    controls.enablePan = true;
+    // Screen-space panning drags the product with the cursor, which is what
+    // "pan" means to everyone who has used a map. The alternative slides along
+    // the ground plane and feels like flying.
+    controls.screenSpacePanning = true;
 
     scene.add(new THREE.HemisphereLight('#cfd6e4', '#3a3128', 1.0));
     const key = new THREE.DirectionalLight('#fff4e6', 1.6);
@@ -128,14 +169,20 @@ export default function Configurator() {
 
     const productRoot = new THREE.Group();
     const markerRoot = new THREE.Group();
-    scene.add(productRoot, markerRoot);
+    // The ghost lives in its own group so the product rebuild effect, which
+    // owns productRoot's children, never has to know it exists.
+    const ghostRoot = new THREE.Group();
+    scene.add(productRoot, markerRoot, ghostRoot);
 
     three.current = {
-      scene, camera, renderer, controls, productRoot, markerRoot,
+      scene, camera, renderer, controls, productRoot, markerRoot, ghostRoot,
       groups: new Map(),
       raycaster: new THREE.Raycaster(),
       pointer: new THREE.Vector2(),
       markerGeo: new THREE.SphereGeometry(1, 12, 10),
+      // The leash. Recomputed from the product's own bounds whenever it
+      // changes, so it is never a guess about how big the thing might get.
+      panBounds: null,
     };
 
     const resize = () => {
@@ -148,30 +195,221 @@ export default function Configurator() {
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
 
-    window.__spikeCapture = () => renderer.domElement.toDataURL('image/png');
+    // Force one frame, then read the buffer. Same reason as `settle` below: an
+    // uncomposited window stops firing rAF, so the tick loop stalls and the
+    // buffer still holds whatever was drawn before the clicks. Rendering on
+    // demand means the capture shows the state the checks just built.
+    window.__spikeRender = () => {
+      controls.update();
+      three.current.clampPan?.();
+      renderer.render(scene, camera);
+      return true;
+    };
+    window.__spikeCapture = () => {
+      window.__spikeRender();
+      return renderer.domElement.toDataURL('image/png');
+    };
 
-    // Spike-only handle so an automated check can drive a REAL click: project a
-    // marker's world position to screen coordinates and dispatch on the canvas.
-    // Unit tests cover the engine; only this covers the raycast-to-attach
-    // wiring, which is exactly where the last two "it doesn't work" rounds came
-    // from.
+    // Spike-only handles so an automated check can drive REAL input: project a
+    // target's world position to screen coordinates and dispatch there. Unit
+    // tests cover the engine; only this covers the raycast-to-attach wiring,
+    // which is exactly where the "it doesn't work" rounds came from.
+    //
+    // Dispatched on the MOUNT, not the canvas. Two reasons, both learned the
+    // hard way: React's handlers live on the mount, and OrbitControls calls
+    // setPointerCapture on the canvas, which throws for a synthetic pointerId
+    // that never existed. Firing one level up reaches our handlers and leaves
+    // the controls out of it.
+    // WORLD MATRICES FIRST. Every projection and raycast below reads
+    // matrixWorld, and three.js only recomputes those during a render. The
+    // React effects set a group's LOCAL position, so between a state change and
+    // the next frame a part's matrixWorld still says where it used to be — and
+    // when the window is not composited that next frame never comes. On 3 Sep
+    // that made the harness press the origin instead of the part and report a
+    // move that had not happened. One explicit update removes the whole class.
+    const freshMatrices = () => scene.updateMatrixWorld(true);
+
+    const toScreen = (worldPosition) => {
+      freshMatrices();
+      const v = worldPosition.clone().project(camera);
+      const rect = renderer.domElement.getBoundingClientRect();
+      return {
+        x: rect.left + ((v.x + 1) / 2) * rect.width,
+        y: rect.top + ((1 - v.y) / 2) * rect.height,
+      };
+    };
+
+    let syntheticPointer = 1000;
+    const firePointer = (type, at, pointerId, buttons) => {
+      mount.dispatchEvent(new PointerEvent(type, {
+        pointerId,
+        pointerType: 'mouse',
+        isPrimary: true,
+        button: type === 'pointermove' ? -1 : 0,
+        buttons,
+        clientX: at.x,
+        clientY: at.y,
+        bubbles: true,
+        cancelable: true,
+      }));
+    };
+
     window.__cfgClickMarker = (index = 0) => {
       const marker = markerRoot.children[index];
       if (!marker) return `no marker at ${index} (have ${markerRoot.children.length})`;
 
-      const v = marker.position.clone().project(camera);
-      const rect = renderer.domElement.getBoundingClientRect();
-      const x = rect.left + ((v.x + 1) / 2) * rect.width;
-      const y = rect.top + ((1 - v.y) / 2) * rect.height;
+      const at = toScreen(marker.position);
+      const id = (syntheticPointer += 1);
+      firePointer('pointerdown', at, id, 1);
+      firePointer('pointerup', at, id, 0);
+      return `clicked marker ${index} of ${markerRoot.children.length} at ${Math.round(at.x)},${Math.round(at.y)}`;
+    };
 
-      renderer.domElement.dispatchEvent(new MouseEvent('click', {
-        clientX: x, clientY: y, bubbles: true,
-      }));
-      return `clicked marker ${index} of ${markerRoot.children.length} at ${Math.round(x)},${Math.round(y)}`;
+    // Drag a placed part onto a marker: down on the part, past the threshold,
+    // across to the marker, up. The same four events a hand would produce.
+    //
+    // ASYNC, and it has to be. Crossing the threshold sets React state, and the
+    // markers do not become move targets until React has rendered and the
+    // effect has run. Reading the marker list in the same synchronous tick
+    // reads the ADD-flow markers — a different list, and the drop would land
+    // somewhere nobody asked for. Hence the awaited settle.
+    //
+    // A TIMER, not requestAnimationFrame. Found the hard way on 3 Sep: an
+    // Electron window that is not composited — behind another window, or
+    // offscreen in a headless check — stops firing rAF entirely, so a harness
+    // awaiting a frame hangs forever and the run produces no capture at all.
+    // React's passive effects are scheduled on a timer, not a frame, so a
+    // timeout is both sufficient and immune to that.
+    const settle = (ms = 80) => new Promise((r) => setTimeout(r, ms));
+
+    // A press point on the part that is NOT under a marker.
+    //
+    // Needed because of a false PASS on 3 Sep: the harness pressed the part's
+    // centre, a marker happened to lie along that ray, so the press was handled
+    // as a marker click, a part was ADDED, and the harness cheerfully reported
+    // "dragged". A verification tool that can report success without doing the
+    // thing is worse than none, so it now checks and moves the press point.
+    const dragRay = new THREE.Raycaster();
+    const pressPointOn = (group) => {
+      freshMatrices();
+      const box = new THREE.Box3().setFromObject(group);
+      const centre = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const rect = renderer.domElement.getBoundingClientRect();
+
+      // The centre first, then points drawn in towards it from each face — all
+      // still on the part, just not on the same ray as a marker.
+      const candidates = [centre];
+      for (const f of [0.3, -0.3, 0.15, -0.15]) {
+        candidates.push(centre.clone().addScaledVector(
+          new THREE.Vector3(size.x, 0, 0), f,
+        ));
+        candidates.push(centre.clone().addScaledVector(
+          new THREE.Vector3(0, 0, size.z), f,
+        ));
+      }
+
+      for (const world of candidates) {
+        const at = toScreen(world);
+        freshMatrices();
+        dragRay.setFromCamera(new THREE.Vector2(
+          ((at.x - rect.left) / rect.width) * 2 - 1,
+          -((at.y - rect.top) / rect.height) * 2 + 1,
+        ), camera);
+
+        if (dragRay.intersectObjects(markerRoot.children, false).length) continue;
+
+        const onPart = dragRay.intersectObjects([group], true)
+          .filter((h) => h.object.visible && !h.object.name.startsWith('md-'));
+        if (onPart.length) return at;
+      }
+      return null;
+    };
+
+    window.__cfgDragToMarker = async (instanceId, markerIndex = 0) => {
+      const group = three.current.groups.get(instanceId);
+      if (!group) return `no part "${instanceId}"`;
+
+      const from = pressPointOn(group);
+      if (!from) return `no clear press point on "${instanceId}" — every candidate was under a marker or off the part`;
+
+      const id = (syntheticPointer += 1);
+
+      firePointer('pointerdown', from, id, 1);
+      firePointer('pointermove', { x: from.x + 24, y: from.y }, id, 1);
+
+      await settle();
+
+      // Did the press actually start a drag? If the markers did not switch to
+      // move targets, something else consumed the press and this run proves
+      // nothing — say so rather than continuing and passing.
+      const markerCount = markerRoot.children.length;
+
+      const target = markerRoot.children[markerIndex];
+      if (!target) {
+        firePointer('pointerup', from, id, 0);
+        return `drag started but there is no marker ${markerIndex} (have ${markerCount})`;
+      }
+
+      const to = toScreen(target.position);
+      firePointer('pointermove', to, id, 1);
+      await settle(40);
+      firePointer('pointerup', to, id, 0);
+      await settle();
+      // Report what the app SAYS happened, not what the harness attempted.
+      // "Moved." is a pass; "Added ..." means the press was taken as a click.
+      const said = document.querySelector('.cfg-status')?.textContent || '(no status)';
+      return `pressed ${instanceId}, dropped on marker ${markerIndex} of ${markerCount} -> ${said}`;
+    };
+
+    // Keep the orbit target inside the leash. The camera is moved by the SAME
+    // correction as the target, so the view direction is untouched — it reads as
+    // the pan running out of room, not as the camera being snatched away.
+    const corrected = new THREE.Vector3();
+    const clampPan = () => {
+      const box = three.current?.panBounds;
+      if (!box) return;
+      corrected.copy(controls.target).clamp(box.min, box.max);
+      if (corrected.distanceToSquared(controls.target) < 1e-12) return;
+      camera.position.add(corrected.clone().sub(controls.target));
+      controls.target.copy(corrected);
+    };
+    three.current.clampPan = clampPan;
+
+    // Prove the leash rather than eyeballing it: shove the orbit target a long
+    // way out, let the clamp run, and report where it actually ended up next to
+    // the bounds it was held inside. A static screenshot cannot show this.
+    window.__cfgPanCheck = (x = 99, y = 99, z = 99) => {
+      const box = three.current.panBounds;
+      if (!box) return 'no pan bounds yet — nothing on the product';
+
+      // Non-destructive: clampPan corrects the CAMERA by the same delta as the
+      // target, so putting the target back is not enough — the first capture
+      // after this check came out looking off-centre because of exactly that.
+      const beforeTarget = controls.target.clone();
+      const beforeCamera = camera.position.clone();
+
+      controls.target.set(x, y, z);
+      clampPan();
+      const held = controls.target.clone();
+      const inside = box.containsPoint(held);
+
+      controls.target.copy(beforeTarget);
+      camera.position.copy(beforeCamera);
+      controls.update();
+
+      const f = (v) => `${v.x.toFixed(2)},${v.y.toFixed(2)},${v.z.toFixed(2)}`;
+      return `asked ${x},${y},${z} -> held at ${f(held)}; `
+        + `bounds ${f(box.min)} to ${f(box.max)}; inside=${inside}`;
     };
 
     let raf = 0;
-    const tick = () => { controls.update(); renderer.render(scene, camera); raf = requestAnimationFrame(tick); };
+    const tick = () => {
+      controls.update();
+      clampPan();
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(tick);
+    };
     tick();
 
     return () => {
@@ -179,6 +417,7 @@ export default function Configurator() {
       observer.disconnect();
       controls.dispose();
       three.current.markerGeo.dispose();
+      ghostRoot.traverse((o) => { if (o.isMesh) o.material?.dispose(); });
       renderer.dispose();
       renderer.forceContextLoss();
       mount.removeChild(renderer.domElement);
@@ -297,11 +536,33 @@ export default function Configurator() {
       });
     }
 
-    // ---- camera: frame the product, only when its shape changes -----------
+    // ---- camera: the leash always, the framing only on a shape change -----
+    //
+    // Two different jobs that both need the product's bounds. The leash is
+    // updated on EVERY rebuild, because adding a part to the end of a run has
+    // to extend how far you may pan even though the camera should not jump.
+    const bounds = new THREE.Box3().setFromObject(ctx.productRoot);
+    if (!bounds.isEmpty()) {
+      const size = bounds.getSize(new THREE.Vector3());
+      // A generous margin — half the product's own extent, and never less than
+      // 300mm — so panning past the end to look back along a run still works.
+      const margin = new THREE.Vector3(
+        Math.max(size.x * 0.5, 0.3),
+        Math.max(size.y * 0.5, 0.3),
+        Math.max(size.z * 0.5, 0.3),
+      );
+      ctx.panBounds = bounds.clone().expandByVector(margin);
+
+      // Zoom limits scale with the product for the same reason: a fixed
+      // maxDistance that suits a 600mm unit leaves a 4m run half off screen.
+      const reach = Math.max(size.length(), 0.4);
+      ctx.controls.minDistance = 0.15;
+      ctx.controls.maxDistance = reach * 4;
+    }
+
     const signature = assembly.instances.map((i) => i.instanceId).join(',');
     if (signature && signature !== framedFor.current) {
       framedFor.current = signature;
-      const bounds = new THREE.Box3().setFromObject(ctx.productRoot);
       if (!bounds.isEmpty()) {
         const centre = bounds.getCenter(new THREE.Vector3());
         const size = bounds.getSize(new THREE.Vector3());
@@ -327,7 +588,11 @@ export default function Configurator() {
       const m = ctx.markerRoot.children.pop();
       m.material.dispose();
     }
+    // The mesh ctx.hovered pointed at has just been thrown away.
+    ctx.hovered = null;
     if (!showMarkers) return;
+
+    const isMoving = !!movingId;
 
     for (const point of markers) {
       const key = pointKey(point);
@@ -335,15 +600,23 @@ export default function Configurator() {
       const isTargeted = !!pendingPart;
 
       const mesh = new THREE.Mesh(ctx.markerGeo, new THREE.MeshBasicMaterial({
-        color: isPending ? '#e0a03c' : isTargeted ? '#3ddc97' : '#4fc3d9',
+        // Amber during a move. A different question deserves a different colour:
+        // green means "a new part can go here", amber means "the thing in your
+        // hand can go here".
+        color: isMoving ? '#f0a53c' : isPending ? '#e0a03c' : isTargeted ? '#3ddc97' : '#4fc3d9',
         transparent: true,
-        opacity: isPending ? 1 : isTargeted ? 0.9 : 0.55,
+        opacity: isMoving ? 0.95 : isPending ? 1 : isTargeted ? 0.9 : 0.55,
       }));
 
       // Grid cells are dense — a MOLLE panel has 84 of them — so their markers
       // are smaller than an authored point's or the panel disappears under dots.
-      const r = (point.isGridCell ? 0.006 : 0.014) * (isPending ? 1.7 : isTargeted ? 1.35 : 1);
+      // During a move they are all enlarged: the cursor is already holding
+      // something, so the target has to be easy to hit.
+      const r = (point.isGridCell ? 0.006 : 0.014)
+        * (isPending ? 1.7 : isTargeted ? 1.35 : 1)
+        * (isMoving ? 1.6 : 1);
       mesh.scale.setScalar(r);
+      mesh.userData.baseRadius = r;
       mesh.position.fromArray(point.worldPosition);
       // Lift off the surface so a marker is never buried in the geometry.
       mesh.position.addScaledVector(new THREE.Vector3().fromArray(point.worldFacing), r * 0.9);
@@ -351,7 +624,7 @@ export default function Configurator() {
       mesh.renderOrder = 2;
       ctx.markerRoot.add(mesh);
     }
-  }, [markers, pendingPoint, pendingPart, showMarkers]);
+  }, [markers, pendingPoint, pendingPart, showMarkers, movingId]);
 
   // ------------------------------------------------------------- attach flows
   const place = useCallback((componentId, key) => {
@@ -440,44 +713,234 @@ export default function Configurator() {
   };
 
   // ------------------------------------------------------------- picking
-  const onClick = (event) => {
-    const ctx = three.current;
-    if (!ctx) return;
+  //
+  // One gesture, three outcomes, decided by what happened between pointerdown
+  // and pointerup:
+  //
+  //   down on a marker            -> choose that point (add flow)
+  //   down on a part, no movement -> select it
+  //   down on a part, then moved  -> pick it up and drop it on another point
+  //
+  // Matt, 3 Sep: "it would be nice for me to be able to click and drag an object
+  // to a different snap point (not to drag it anywhere in 3d space but only to
+  // another snap point". So a drag has exactly as many destinations as there are
+  // markers — it cannot end anywhere else, and that is the whole safety
+  // property. The free-drag spike is not coming back.
 
+  const DRAG_THRESHOLD_PX = 5;
+
+  const castAt = (event) => {
+    const ctx = three.current;
     const rect = ctx.renderer.domElement.getBoundingClientRect();
     ctx.pointer.set(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       -((event.clientY - rect.top) / rect.height) * 2 + 1,
     );
     ctx.raycaster.setFromCamera(ctx.pointer, ctx.camera);
+    return ctx;
+  };
 
-    // Markers first: they are small and sit on top of the geometry they belong
-    // to, so testing the product first would make them almost unclickable.
-    const onMarker = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
-    if (onMarker.length) { choosePoint(onMarker[0].object.userData.pointKey); return; }
+  const markerUnder = (ctx) => {
+    const hits = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
+    return hits.length ? hits[0].object : null;
+  };
 
-    const onProduct = ctx.raycaster.intersectObjects(ctx.productRoot.children, true)
+  const instanceUnder = (ctx) => {
+    const hits = ctx.raycaster.intersectObjects(ctx.productRoot.children, true)
       .filter((h) => h.object.visible && !h.object.name.startsWith('md-'));
-    if (onProduct.length) {
-      let node = onProduct[0].object;
-      while (node && node.userData.instanceId == null) node = node.parent;
-      if (node) {
-        setSelectedId(node.userData.instanceId);
-        setPendingPart(null);
-        setPendingPoint(null);
+    if (!hits.length) return null;
+    let node = hits[0].object;
+    while (node && node.userData.instanceId == null) node = node.parent;
+    return node ? node.userData.instanceId : null;
+  };
+
+  // Clear the drop preview.
+  const clearGhost = (ctx) => {
+    while (ctx.ghostRoot.children.length) {
+      const child = ctx.ghostRoot.children.pop();
+      child.traverse((o) => { if (o.isMesh) o.material?.dispose(); });
+    }
+  };
+
+  /**
+   * Show where the part would land, as a translucent copy.
+   *
+   * The part being dragged does NOT follow the cursor — it cannot, because the
+   * only legal destinations are the markers, and a part sliding through open
+   * space would be promising something the model refuses to deliver. A ghost at
+   * the candidate point says the same thing honestly.
+   *
+   * The hypothetical transform is obtained by asking the engine: rewire the
+   * connection, resolve, read the answer back. No second solver, so the preview
+   * cannot disagree with the drop.
+   */
+  const showGhost = (ctx, instanceId, placement) => {
+    clearGhost(ctx);
+    const { assembly: current, components: loaded } = live.current;
+    const instance = current.instances.find((i) => i.instanceId === instanceId);
+    const component = instance && loaded.get(instance.componentId);
+    if (!component?.template) return;
+
+    let landed;
+    try {
+      const hypothetical = moveTo(current, instanceId, placement);
+      landed = resolveTransforms(hypothetical, loaded).transforms.get(instanceId);
+    } catch {
+      return;
+    }
+    if (!landed) return;
+
+    const ghost = component.template.clone(true);
+    ghost.traverse((o) => {
+      if (!o.isMesh) return;
+      if (o.name.startsWith('md-')) { o.visible = false; return; }
+      o.castShadow = false;
+      o.receiveShadow = false;
+      o.material = o.material.clone();
+      o.material.transparent = true;
+      o.material.opacity = 0.4;
+      o.material.depthWrite = false;
+      o.material.emissive = new THREE.Color('#4a3410');
+    });
+    ghost.position.fromArray(landed.translation);
+    ghost.quaternion.fromArray(landed.rotation);
+    ctx.ghostRoot.add(ghost);
+  };
+
+  // Highlight whatever the cursor is over during a drag, by mutating the mesh
+  // rather than by setting state: this runs on every pointermove.
+  const hoverMarker = (ctx, mesh, instanceId) => {
+    const previous = ctx.hovered;
+    if (previous === mesh) return;
+    if (previous?.parent) previous.scale.setScalar(previous.userData.baseRadius);
+    if (mesh) mesh.scale.setScalar(mesh.userData.baseRadius * 1.8);
+    ctx.hovered = mesh || null;
+
+    if (!mesh || !instanceId) { clearGhost(ctx); return; }
+    const placement = moveTargetAt(instanceId, mesh.userData.pointKey);
+    if (placement) showGhost(ctx, instanceId, placement);
+    else clearGhost(ctx);
+  };
+
+  /**
+   * The placement for dropping a part on a point, computed FRESH.
+   *
+   * Deliberately not read out of the memoised move matrix: the drag can cross
+   * the threshold and finish inside a single frame, before React has rendered
+   * the state that would have filled that memo in. Asking the engine costs
+   * nothing at this scale and removes the race entirely.
+   */
+  const moveTargetAt = (instanceId, key) => {
+    const { assembly: current, components: loaded, transforms: t } = live.current;
+    if (!loaded?.size) return null;
+    try {
+      const targets = moveTargets(current, loaded, t, instanceId);
+      return targets.placements.find((pl) => pl.pointKey === key) || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const onPointerDown = (event) => {
+    const ctx = three.current;
+    if (!ctx || event.button !== 0) return;
+
+    const marker = markerUnder(castAt(event));
+    if (marker) {
+      // Markers are small and sit on top of the geometry they belong to, so
+      // testing the product first would make them almost unclickable.
+      drag.current = null;
+      choosePoint(marker.userData.pointKey);
+      return;
+    }
+
+    const instanceId = instanceUnder(ctx);
+    drag.current = instanceId
+      ? { instanceId, x: event.clientX, y: event.clientY, started: false }
+      : null;
+
+    if (!instanceId) {
+      setSelectedId(null);
+      setPendingPart(null);
+      setPendingPoint(null);
+    }
+  };
+
+  const onPointerMove = (event) => {
+    const ctx = three.current;
+    const d = drag.current;
+    if (!ctx) return;
+
+    if (d?.started) { hoverMarker(ctx, markerUnder(castAt(event)), d.instanceId); return; }
+    if (!d) return;
+
+    const moved = Math.hypot(event.clientX - d.x, event.clientY - d.y);
+    if (moved < DRAG_THRESHOLD_PX) return;
+
+    // Past the threshold: take the gesture off OrbitControls. The camera will
+    // have orbited by those few pixels, which is a small price for keeping
+    // "drag anywhere to orbit" working when the product fills the screen.
+    const allowed = canMove(live.current.assembly, d.instanceId);
+    if (!allowed.ok) {
+      // Not movable — the anchor, usually. Let the orbit continue rather than
+      // interrupting it with a message nobody asked for.
+      drag.current = null;
+      if (allowed.reason === 'is-anchor') {
+        setStatus('That part is the anchor — the rest of the product hangs off it.');
       }
       return;
     }
 
-    setSelectedId(null);
+    d.started = true;
+    ctx.controls.enabled = false;
+    setSelectedId(d.instanceId);
     setPendingPart(null);
     setPendingPoint(null);
+    setMovingId(d.instanceId);
+    setStatus('Drop it on a marker, or release anywhere else to leave it where it was.');
+  };
+
+  const endDrag = (event) => {
+    const ctx = three.current;
+    const d = drag.current;
+    drag.current = null;
+    if (!ctx) return;
+
+    if (!d?.started) {
+      // A click, not a drag.
+      if (d) { setSelectedId(d.instanceId); setPendingPart(null); setPendingPoint(null); }
+      return;
+    }
+
+    ctx.controls.enabled = true;
+    const marker = event ? markerUnder(castAt(event)) : null;
+    hoverMarker(ctx, null, null);
+    setMovingId(null);
+
+    if (!marker) { setStatus('Left where it was.'); return; }
+
+    const placement = moveTargetAt(d.instanceId, marker.userData.pointKey);
+    if (!placement) { setStatus('It cannot go there.'); return; }
+
+    try {
+      setAssembly((a) => moveTo(a, d.instanceId, placement));
+      // The camera must NOT re-frame: the parts are the same, so the framing
+      // signature is unchanged and this is a no-op by construction. Noted
+      // because it is the kind of thing a later refactor quietly breaks.
+      setStatus('Moved.');
+    } catch (err) {
+      setStatus(err.message);
+    }
   };
 
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Delete' || e.key === 'Backspace') removeSelected();
-      if (e.key === 'Escape') { setPendingPart(null); setPendingPoint(null); }
+      if (e.key === 'Escape') {
+        setPendingPart(null);
+        setPendingPoint(null);
+        if (drag.current) { endDrag(null); }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -494,7 +957,12 @@ export default function Configurator() {
         <h1>confgr modular</h1>
         <p className="cfg-note">
           Anchored product. Click a marker to add a part, or pick a part and see
-          where it fits. Both orders work.
+          where it fits. Both orders work. Drag a part onto another marker to
+          move it — it can only land on a marker, never in open space.
+        </p>
+        <p className="cfg-note cfg-dim">
+          Drag the background to orbit · right-drag or two fingers to pan ·
+          scroll to zoom
         </p>
 
         <h2>
@@ -581,7 +1049,15 @@ export default function Configurator() {
       </aside>
 
       <div className="cfg-stage">
-        <div ref={mountRef} className="cfg-canvas" onClick={onClick} />
+        <div
+          ref={mountRef}
+          className="cfg-canvas"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={() => endDrag(null)}
+          onPointerLeave={() => endDrag(null)}
+        />
         <div className="cfg-status">{status}</div>
       </div>
     </div>

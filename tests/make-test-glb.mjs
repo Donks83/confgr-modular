@@ -282,9 +282,12 @@ function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = 
   // Declared in extras because it is a number pair and the node name is
   // already carrying the mask and the label.
   const spanDecls = {};
+  const roleDecls = {};
   for (const sn of snaps) {
-    if (!sn.span) continue;
-    spanDecls[`md-snap.${sn.mask}.${sn.label}`] = sn.span;
+    if (sn.span) spanDecls[`md-snap.${sn.mask}.${sn.label}`] = sn.span;
+    // socket offers a place, plug takes one. Two of the same never join, which
+    // is what stops an upright attaching to another upright.
+    if (sn.role) roleDecls[`md-snap.${sn.mask}.${sn.label}`] = sn.role;
   }
 
   const bytes = g.write(join(OUT, `${name}.glb`), name, {
@@ -294,6 +297,7 @@ function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = 
     confgr: { widthMm, heightMm, depthMm, unitScale: 'metres' },
     ...(Object.keys(gridDecls).length ? { confgrGrids: gridDecls } : {}),
     ...(Object.keys(spanDecls).length ? { confgrSpans: spanDecls } : {}),
+    ...(Object.keys(roleDecls).length ? { confgrRoles: roleDecls } : {}),
     ...(options ? { confgrOptions: options } : {}),
   });
 
@@ -306,8 +310,8 @@ const COMPONENTS = [
     widthMm: 600, heightMm: 720, depthMm: 560,
     colour: [0.62, 0.48, 0.34, 1],
     snaps: [
-      { mask: 'carcass-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x' },
-      { mask: 'carcass-side', label: 'right', at: [0.5, 0, 0],  facing: '+x' },
+      { mask: 'carcass-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x', role: 'plug' },
+      { mask: 'carcass-side', label: 'right', at: [0.5, 0, 0],  facing: '+x', role: 'socket' },
     ],
   },
   {
@@ -315,8 +319,8 @@ const COMPONENTS = [
     widthMm: 900, heightMm: 720, depthMm: 560,
     colour: [0.55, 0.42, 0.3, 1],
     snaps: [
-      { mask: 'carcass-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x' },
-      { mask: 'carcass-side', label: 'right', at: [0.5, 0, 0],  facing: '+x' },
+      { mask: 'carcass-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x', role: 'plug' },
+      { mask: 'carcass-side', label: 'right', at: [0.5, 0, 0],  facing: '+x', role: 'socket' },
     ],
   },
   {
@@ -326,8 +330,8 @@ const COMPONENTS = [
     widthMm: 560, heightMm: 720, depthMm: 560,
     colour: [0.38, 0.4, 0.44, 1],
     snaps: [
-      { mask: 'carcass-side', label: 'left', at: [-0.5, 0, 0], facing: '-x' },
-      { mask: 'carcass-side', label: 'back', at: [0, 0, -0.5], facing: '-z' },
+      { mask: 'carcass-side', label: 'left', at: [-0.5, 0, 0], facing: '-x', role: 'plug' },
+      { mask: 'carcass-side', label: 'back', at: [0, 0, -0.5], facing: '-z', role: 'socket' },
     ],
   },
   {
@@ -337,8 +341,8 @@ const COMPONENTS = [
     widthMm: 720, heightMm: 600, depthMm: 330,
     colour: [0.7, 0.7, 0.68, 1],
     snaps: [
-      { mask: 'wall-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x' },
-      { mask: 'wall-side', label: 'right', at: [0.5, 0, 0],  facing: '+x' },
+      { mask: 'wall-side', label: 'left',  at: [-0.5, 0, 0], facing: '-x', role: 'plug' },
+      { mask: 'wall-side', label: 'right', at: [0.5, 0, 0],  facing: '+x', role: 'socket' },
     ],
   },
 
@@ -355,22 +359,31 @@ const COMPONENTS = [
     name: 'rack-upright-1800',
     widthMm: 60, heightMm: 1800, depthMm: 400,
     colour: [0.22, 0.24, 0.27, 1],
-    snaps: [300, 700, 1100, 1500].map((yMm, i) => ({
-      mask: 'shelf-level',
-      label: `level-${i + 1}`,
-      at: [0.5, 0, 0],
-      facing: '+x',
-      yMm,
-      size: [0.06, 0.06],
-    })),
+    // Sockets on BOTH faces, at every level. Found by Matt on 3 Sep: with
+    // sockets on one face only, a shelf could be hung off an upright but a
+    // SECOND upright could not be added at the shelf's far end — there was
+    // nothing there to attach to. A real upright carries shelves on both
+    // sides anyway, because a middle upright in a three-bay run has to.
+    snaps: [300, 700, 1100, 1500].flatMap((yMm, i) => [
+      {
+        mask: 'shelf-level', label: `level-${i + 1}-right`, role: 'socket',
+        at: [0.5, 0, 0], facing: '+x', yMm, size: [0.06, 0.06],
+      },
+      {
+        mask: 'shelf-level', label: `level-${i + 1}-left`, role: 'socket',
+        at: [-0.5, 0, 0], facing: '-x', yMm, size: [0.06, 0.06],
+      },
+    ]),
   },
   {
     // SKU A for a level: a plain shelf.
     name: 'rack-shelf-900',
     widthMm: 900, heightMm: 30, depthMm: 400,
     colour: [0.66, 0.52, 0.36, 1],
+    // Plugs at BOTH ends, so an upright can be added at either side.
     snaps: [
-      { mask: 'shelf-level', label: 'mount', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
+      { mask: 'shelf-level', label: 'mount-left',  role: 'plug', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
+      { mask: 'shelf-level', label: 'mount-right', role: 'plug', at: [0.5, 0, 0],  facing: '+x', yMm: 15, size: [0.06, 0.06] },
     ],
   },
   {
@@ -380,7 +393,8 @@ const COMPONENTS = [
     widthMm: 900, heightMm: 180, depthMm: 400,
     colour: [0.45, 0.35, 0.3, 1],
     snaps: [
-      { mask: 'shelf-level', label: 'mount', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
+      { mask: 'shelf-level', label: 'mount-left',  role: 'plug', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
+      { mask: 'shelf-level', label: 'mount-right', role: 'plug', at: [0.5, 0, 0],  facing: '+x', yMm: 15, size: [0.06, 0.06] },
     ],
   },
 
@@ -412,7 +426,7 @@ const COMPONENTS = [
     options: { finish: FINISHES },
     snaps: [
       {
-        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',
+        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z', role: 'plug',
         span: { cols: 2, rows: 3 },
       },
     ],
@@ -427,7 +441,7 @@ const COMPONENTS = [
     options: { finish: FINISHES },
     snaps: [
       {
-        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',
+        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z', role: 'plug',
         span: { cols: 3, rows: 2 },
       },
     ],
