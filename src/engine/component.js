@@ -17,15 +17,17 @@
 // for the adapter. That keeps this testable and renderer-agnostic.
 
 import { rotateVec, normalise, EPS } from './vec.js';
+import { validateGrid } from './grid.js';
 
 /** Local facing of an unrotated snap plane. The node's rotation turns it outward. */
 const SNAP_LOCAL_FACING = [0, 0, 1];
 
 export const SNAP_PREFIX = 'md-snap';
+export const GRID_PREFIX = 'md-grid';
 const BODY_NODE = 'body';
 
 /** Node-name prefixes that are structure, not visible geometry. */
-const NON_VISIBLE_PREFIXES = [SNAP_PREFIX, 'col-', 'dim'];
+const NON_VISIBLE_PREFIXES = [SNAP_PREFIX, GRID_PREFIX, 'col-', 'dim'];
 
 export class ComponentError extends Error {
   constructor(message, { code, detail } = {}) {
@@ -47,15 +49,30 @@ export class ComponentError extends Error {
  * Returns null for anything that is not a snap node.
  */
 export function parseSnapName(name) {
-  if (typeof name !== 'string' || !name.startsWith(`${SNAP_PREFIX}.`)) return null;
+  return parsePrefixedName(name, SNAP_PREFIX);
+}
 
-  // md-snap.<mask>.<label> — the label may itself contain dots (Blender appends
+/**
+ * Same convention for a grid: md-grid.<mask>.<label>.
+ *
+ * A grid is a separate node type from a snap because the validation differs —
+ * a snap plane is small and single, a grid plane spans a whole field of cells —
+ * and because only grids read a pitch declaration.
+ */
+export function parseGridName(name) {
+  return parsePrefixedName(name, GRID_PREFIX);
+}
+
+function parsePrefixedName(name, prefix) {
+  if (typeof name !== 'string' || !name.startsWith(`${prefix}.`)) return null;
+
+  // <prefix>.<mask>.<label> — the label may itself contain dots (Blender appends
   // .001 to duplicates), so mask is the first segment and label is the rest.
-  const rest = name.slice(SNAP_PREFIX.length + 1);
+  const rest = name.slice(prefix.length + 1);
   const firstDot = rest.indexOf('.');
   if (firstDot <= 0) {
     throw new ComponentError(
-      `Snap "${name}" is missing a label. Expected ${SNAP_PREFIX}.<mask>.<label>.`,
+      `"${name}" is missing a label. Expected ${prefix}.<mask>.<label>.`,
       { code: 'SNAP_NAME_MALFORMED', detail: { name } },
     );
   }
@@ -64,7 +81,7 @@ export function parseSnapName(name) {
   const label = rest.slice(firstDot + 1);
   if (!label) {
     throw new ComponentError(
-      `Snap "${name}" has an empty label.`,
+      `"${name}" has an empty label.`,
       { code: 'SNAP_NAME_MALFORMED', detail: { name } },
     );
   }
@@ -207,6 +224,12 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     }
     seen.add(node.name);
 
+    // A SPAN says this snap covers more than one cell of whatever grid it
+    // mounts to — a 3x2 MOLLE pouch, a divider crossing three slots. Declared
+    // in scene extras rather than in the node name, because it is a number pair
+    // and names are already carrying enough.
+    const span = desc.extras?.confgrSpans?.[node.name] || null;
+
     snaps.push({
       id: node.name,
       mask: parsed.mask,
@@ -218,12 +241,57 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       facing: snapFacing(node),
       required: false,   // set in the editor, not in the model
       condition: null,   // an expression, evaluated in Phase 1
+      // {cols, rows} when this snap occupies a rectangle of grid cells, else
+      // null meaning a single point or a single cell.
+      span: span ? { cols: span.cols || 1, rows: span.rows || 1 } : null,
     });
   }
 
-  if (!snaps.length) {
+  // ---- Grids: a field of attach points, generated ------------------------
+  const grids = [];
+
+  for (const node of desc.nodes) {
+    const parsed = parseGridName(node.name);
+    if (!parsed) continue;
+
+    validateSnapGeometry(node);   // a grid plane is a flat quad too
+
+    const declared_ = desc.extras?.confgrGrids?.[node.name];
+    if (!declared_) {
+      throw new ComponentError(
+        `Grid "${node.name}" has no declaration. Add confgrGrids["${node.name}"] `
+        + '{ cols, rows, pitchXMm, pitchYMm } to the scene extras.',
+        { code: 'GRID_NOT_DECLARED', detail: { name: node.name } },
+      );
+    }
+
+    const grid = {
+      id: node.name,
+      mask: parsed.mask,
+      label: parsed.label,
+      cols: declared_.cols,
+      rows: declared_.rows,
+      pitchX: (declared_.pitchXMm || 0) / 1000,
+      pitchY: (declared_.pitchYMm || 0) / 1000,
+      position: node.translation,
+      rotation: node.rotation,
+      facing: snapFacing(node),
+      condition: null,
+    };
+
+    // The drawn plane must agree with cols x pitch, for the same reason
+    // declared millimetres must agree with geometry: if they disagree the
+    // markers a person clicks are not where the webbing is, and nothing about
+    // the render looks wrong.
+    validateGrid(grid, [node.max[0] - node.min[0], node.max[1] - node.min[1]]);
+
+    grids.push(grid);
+  }
+
+  if (!snaps.length && !grids.length) {
     throw new ComponentError(
-      `No snap planes found. Add at least one node named ${SNAP_PREFIX}.<mask>.<label>.`,
+      `No attach points found. Add at least one node named ${SNAP_PREFIX}.<mask>.<label> `
+      + `or ${GRID_PREFIX}.<mask>.<label>.`,
       { code: 'NO_SNAPS' },
     );
   }
@@ -238,6 +306,7 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     name: desc.name,
     dimsMm: { ...measured },
     snaps,
+    grids,
     meshNames,
     // ---- Rule 9: budget recorded now, enforced later --------------------
     triangleCount: visibleNodes.reduce((sum, n) => sum + (n.triangleCount || 0), 0),

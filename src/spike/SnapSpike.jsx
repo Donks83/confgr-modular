@@ -194,6 +194,30 @@ export default function SnapSpike() {
         const RIGHT = 'md-snap.carcass-side.right';
         const demo = new URLSearchParams(window.location.search).get('demo');
 
+        // ?demo=molle is the GRID case. One 7x12 PALS declaration becomes 84
+        // attach points, and pouches occupy rectangles of them rather than
+        // single points. Three pouches of two different footprints, placed so
+        // that spans, mixed sizes and empty cells are all visible at once.
+        if (demo === 'molle' && loaded.has('molle-panel')) {
+          const cell = (c, r) => `md-grid.pals.front#c${c}r${r}`;
+          setAssembly({
+            instances: [
+              { instanceId: 'm0', componentId: 'molle-panel', position: [0, 0, 0], rotation: [0, 0, 0, 1], freeMove: true },
+              { instanceId: 'm1', componentId: 'pouch-2x3', position: null, rotation: null },
+              { instanceId: 'm2', componentId: 'pouch-3x2', position: null, rotation: null },
+              { instanceId: 'm3', componentId: 'pouch-2x3', position: null, rotation: null },
+            ],
+            connections: [
+              { fromInstanceId: 'm0', fromSnapId: cell(0, 0), toInstanceId: 'm1', toSnapId: 'md-snap.pals.mount' },
+              { fromInstanceId: 'm0', fromSnapId: cell(2, 0), toInstanceId: 'm2', toSnapId: 'md-snap.pals.mount' },
+              { fromInstanceId: 'm0', fromSnapId: cell(5, 6), toInstanceId: 'm3', toSnapId: 'md-snap.pals.mount' },
+            ],
+          });
+          instanceCounter = 4;
+          setSelectedId('m0');
+          return;
+        }
+
         // ?demo=rack answers the multi-height question directly. One upright
         // offering four levels; two filled with DIFFERENT SKUs, two left empty.
         // Nothing chooses a height — each level point already is one.
@@ -307,7 +331,10 @@ export default function SnapSpike() {
       // eslint-disable-next-line no-loop-func
       group.traverse((o) => {
         if (!o.isMesh) return;
-        const isSnap = o.name.startsWith('md-snap');
+        // Grid planes toggle with snap planes. Note both prefixes survive
+        // three.js's name sanitisation (it strips dots, not hyphens), which is
+        // the only reason matching on the mangled name works at all here.
+        const isSnap = o.name.startsWith('md-snap') || o.name.startsWith('md-grid');
         const isBox = o.name.startsWith('col-') || o.name === 'dim';
 
         o.visible = isSnap ? showSnaps : isBox ? showBoxes : true;

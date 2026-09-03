@@ -200,12 +200,13 @@ class GlbBuilder {
 
 // A snap spec is where it sits on the box and which way it looks. Positions are
 // given as fractions of the box so the same spec works at any width.
-function buildComponent({ name, widthMm, heightMm, depthMm, snaps, colour }) {
+function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = [], colour }) {
   const w = widthMm / 1000, h = heightMm / 1000, d = depthMm / 1000;
   const g = new GlbBuilder();
 
   const bodyMat = g.material('body', colour, { roughness: 0.55 });
   const snapMat = g.material('snap-debug', [0.1, 0.85, 0.9, 0.35]);
+  const gridMat = g.material('grid-debug', [0.95, 0.7, 0.15, 0.22]);
   const boxMat = g.material('box-debug', [0.9, 0.2, 0.6, 0.15]);
 
   // The visible geometry. Deliberately named 'body' and never renamed by the
@@ -233,20 +234,56 @@ function buildComponent({ name, widthMm, heightMm, depthMm, snaps, colour }) {
     });
   }
 
+  // GRIDS. One plane covering the whole field; the cells are generated from the
+  // pitch at load time rather than authored. A PALS panel is 7 x 12 cells,
+  // which is 84 attach points nobody is going to place by hand.
+  const gridDecls = {};
+
+  for (const gr of grids) {
+    // The plane must be exactly cols x pitch, because the engine cross-checks
+    // it. Same discipline as declared millimetres versus geometry: if the drawn
+    // region and the declaration disagree, the markers land off the webbing and
+    // nothing about the render looks wrong.
+    const gw = (gr.cols * gr.pitchXMm) / 1000;
+    const gh = (gr.rows * gr.pitchYMm) / 1000;
+    const y = gr.yMm != null ? gr.yMm / 1000 : h / 2;
+
+    const nodeName = `md-grid.${gr.mask}.${gr.label}`;
+    g.node(nodeName, g.mesh(nodeName, planeGeometry(gw, gh), gridMat), {
+      translation: [gr.at[0] * w, y, gr.at[2] * d],
+      rotation: FACING_QUAT[gr.facing],
+    });
+
+    gridDecls[nodeName] = {
+      cols: gr.cols, rows: gr.rows, pitchXMm: gr.pitchXMm, pitchYMm: gr.pitchYMm,
+    };
+  }
+
   // Collision and dimension boxes are cubic by rule, and here they are the same
   // size as the body. On a real component with an overhanging worktop or puffed
   // upholstery they would differ, which is exactly why they are separate objects.
   g.node('col-body', g.mesh('col-body', boxGeometry(w, h, d), boxMat));
   g.node('dim', g.mesh('dim', boxGeometry(w, h, d), boxMat));
 
+  // A SPAN says a snap covers a rectangle of grid cells rather than a point.
+  // Declared in extras because it is a number pair and the node name is
+  // already carrying the mask and the label.
+  const spanDecls = {};
+  for (const sn of snaps) {
+    if (!sn.span) continue;
+    spanDecls[`md-snap.${sn.mask}.${sn.label}`] = sn.span;
+  }
+
   const bytes = g.write(join(OUT, `${name}.glb`), name, {
     // Declared real-world size, in millimetres. The loader compares this against
     // the measured bounding box and refuses the file on a mismatch. This is the
     // whole defence against a stray scale factor.
     confgr: { widthMm, heightMm, depthMm, unitScale: 'metres' },
+    ...(Object.keys(gridDecls).length ? { confgrGrids: gridDecls } : {}),
+    ...(Object.keys(spanDecls).length ? { confgrSpans: spanDecls } : {}),
   });
 
-  return { name, bytes, snaps: snaps.length };
+  return { name, bytes, snaps: snaps.length, grids: grids.length };
 }
 
 const COMPONENTS = [
@@ -332,10 +369,57 @@ const COMPONENTS = [
       { mask: 'shelf-level', label: 'mount', at: [-0.5, 0, 0], facing: '-x', yMm: 15, size: [0.06, 0.06] },
     ],
   },
+
+  // ---- MOLLE / PALS: the GRID case ----------------------------------------
+  // PALS is published as 1-inch webbing rows spaced 1 inch apart, stitched at
+  // 1.5-inch intervals. So a cell is 38.1 x 25.4mm and pouches are sold by how
+  // many columns and rows they cover — which is exactly a span.
+  //
+  // 7 x 12 = 84 attach points from ONE declaration. This is the case that
+  // hand-authored points cannot serve.
+  {
+    name: 'molle-panel',
+    widthMm: 280, heightMm: 330, depthMm: 40,
+    colour: [0.28, 0.30, 0.24, 1],
+    grids: [
+      {
+        mask: 'pals', label: 'front',
+        at: [0, 0, 0.5], facing: '+z',
+        cols: 7, rows: 12, pitchXMm: 38.1, pitchYMm: 25.4,
+      },
+    ],
+  },
+  {
+    // 2 wide x 3 tall of PALS: 76.2 x 76.2mm.
+    name: 'pouch-2x3',
+    widthMm: 76.2, heightMm: 76.2, depthMm: 60,
+    colour: [0.42, 0.36, 0.24, 1],
+    snaps: [
+      {
+        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',
+        span: { cols: 2, rows: 3 },
+      },
+    ],
+  },
+  {
+    // 3 wide x 2 tall: 114.3 x 50.8mm. A different footprint on the SAME mask,
+    // so it competes for the same cells and must be refused where one will not
+    // fit or another pouch already sits.
+    name: 'pouch-3x2',
+    widthMm: 114.3, heightMm: 50.8, depthMm: 50,
+    colour: [0.55, 0.30, 0.20, 1],
+    snaps: [
+      {
+        mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',
+        span: { cols: 3, rows: 2 },
+      },
+    ],
+  },
 ];
 
 const results = COMPONENTS.map(buildComponent);
 console.log('Wrote to', OUT);
 for (const r of results) {
-  console.log(`  ${r.name}.glb  ${String(r.bytes).padStart(6)} bytes  ${r.snaps} snaps`);
+  const grids = r.grids ? `  ${r.grids} grid${r.grids === 1 ? '' : 's'}` : '';
+  console.log(`  ${r.name}.glb  ${String(r.bytes).padStart(6)} bytes  ${r.snaps} snaps${grids}`);
 }

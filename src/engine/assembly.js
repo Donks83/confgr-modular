@@ -15,6 +15,9 @@
 import {
   add, sub, rotateVec, multiplyQuat, quatFromYaw, yawOf, normalise, scale,
 } from './vec.js';
+import {
+  isGridCellId, parseGridCellId, gridAttachPoint, expandGridCells, cellsCovered,
+} from './grid.js';
 
 export class AssemblyError extends Error {
   constructor(message, { code, detail } = {}) {
@@ -106,7 +109,15 @@ export function resolveTransforms(assembly, components) {
     neighbours.get(c.toInstanceId).push({ other: c.fromInstanceId, ownSnap: c.toSnapId, otherSnap: c.fromSnapId });
   }
 
-  const snapOf = (instanceId, snapId) => {
+  /**
+   * An attach point by id, whether authored or generated from a grid.
+   *
+   * `span` matters only for a grid cell: a 3x2 pouch glues by the centre of its
+   * FOOTPRINT, not the centre of its anchor cell, so the grid has to be told
+   * how big the thing landing on it is. Conflating those two is the single
+   * likeliest bug in this file.
+   */
+  const attachPointOf = (instanceId, snapId, span = null) => {
     const instance = instances.get(instanceId);
     const component = components.get(instance.componentId);
     if (!component) {
@@ -115,6 +126,19 @@ export function resolveTransforms(assembly, components) {
         { code: 'COMPONENT_MISSING', detail: { instanceId, componentId: instance.componentId } },
       );
     }
+
+    const cell = parseGridCellId(snapId);
+    if (cell) {
+      const grid = (component.grids || []).find((g) => g.id === cell.gridId);
+      if (!grid) {
+        throw new AssemblyError(
+          `Component "${instance.componentId}" has no grid "${cell.gridId}".`,
+          { code: 'GRID_MISSING', detail: { instanceId, snapId } },
+        );
+      }
+      return gridAttachPoint(grid, cell.col, cell.row, span || { cols: 1, rows: 1 });
+    }
+
     const snap = component.snaps.find((s) => s.id === snapId);
     if (!snap) {
       throw new AssemblyError(
@@ -165,8 +189,21 @@ export function resolveTransforms(assembly, components) {
       // and silently re-solving it would make the layout depend on walk order.
       if (visited.has(edge.other)) continue;
 
-      const parentSnap = snapOf(currentId, edge.ownSnap);
-      const childSnap = snapOf(edge.other, edge.otherSnap);
+      // Resolve the NON-grid side first, because its span is what the grid
+      // side needs in order to place a footprint rather than a cell.
+      let parentSnap;
+      let childSnap;
+
+      if (isGridCellId(edge.ownSnap)) {
+        childSnap = attachPointOf(edge.other, edge.otherSnap);
+        parentSnap = attachPointOf(currentId, edge.ownSnap, childSnap.span);
+      } else if (isGridCellId(edge.otherSnap)) {
+        parentSnap = attachPointOf(currentId, edge.ownSnap);
+        childSnap = attachPointOf(edge.other, edge.otherSnap, parentSnap.span);
+      } else {
+        parentSnap = attachPointOf(currentId, edge.ownSnap);
+        childSnap = attachPointOf(edge.other, edge.otherSnap);
+      }
 
       transforms.set(edge.other, solveChildTransform(currentTransform, parentSnap, childSnap));
       visited.add(edge.other);
@@ -180,40 +217,116 @@ export function resolveTransforms(assembly, components) {
 }
 
 /**
- * Every snap in the assembly, expressed in world space, tagged with whether
+ * Every attach point in the assembly, in world space, tagged with whether
  * something is already plugged into it.
  *
- * This is what the snap matcher consumes, and what "show me where this could
- * go" is computed from.
+ * Authored snaps and generated grid cells come out in one list and look
+ * identical to callers. Grid cells are emitted at 1x1 granularity because that
+ * is what a person sees as a marker — you cannot draw a marker for a span
+ * nobody has chosen yet. Validity for a specific part comes from
+ * placementsFor in grid.js.
  */
 export function worldSnaps(assembly, components, transforms) {
-  const occupied = new Set();
+  const spanOf = (instanceId, snapId) => {
+    const instance = (assembly.instances || []).find((i) => i.instanceId === instanceId);
+    const component = instance && components.get(instance.componentId);
+    const snap = component && component.snaps.find((sn) => sn.id === snapId);
+    return snap?.span || { cols: 1, rows: 1 };
+  };
+
+  const occupiedSnaps = new Set();
+  // `${instanceId}::${gridId}` -> Set of covered cell keys.
+  const occupiedCells = new Map();
+
+  const occupyCells = (instanceId, cell, span) => {
+    const key = `${instanceId}::${cell.gridId}`;
+    if (!occupiedCells.has(key)) occupiedCells.set(key, new Set());
+    const set = occupiedCells.get(key);
+    // A 3x2 pouch takes SIX cells out of circulation, not one. Getting this
+    // wrong lets two pouches overlap and nothing looks wrong until you count
+    // the parts list.
+    for (const c of cellsCovered(cell.col, cell.row, span)) set.add(c);
+  };
+
   for (const c of assembly.connections || []) {
-    occupied.add(`${c.fromInstanceId}::${c.fromSnapId}`);
-    occupied.add(`${c.toInstanceId}::${c.toSnapId}`);
+    const fromCell = parseGridCellId(c.fromSnapId);
+    const toCell = parseGridCellId(c.toSnapId);
+
+    if (fromCell) {
+      occupyCells(c.fromInstanceId, fromCell, spanOf(c.toInstanceId, c.toSnapId));
+    } else {
+      occupiedSnaps.add(`${c.fromInstanceId}::${c.fromSnapId}`);
+    }
+
+    if (toCell) {
+      occupyCells(c.toInstanceId, toCell, spanOf(c.fromInstanceId, c.fromSnapId));
+    } else {
+      occupiedSnaps.add(`${c.toInstanceId}::${c.toSnapId}`);
+    }
   }
 
+  const toWorld = (instanceId, transform, point, extra = {}) => ({
+    instanceId,
+    snapId: point.id,
+    mask: point.mask,
+    label: point.label,
+    condition: point.condition,
+    required: !!point.required,
+    span: point.span || null,
+    worldPosition: add(transform.translation, rotateVec(transform.rotation, point.position)),
+    worldFacing: normalise(rotateVec(transform.rotation, point.facing)),
+    ...extra,
+  });
+
   const out = [];
+
   for (const instance of assembly.instances || []) {
     const transform = transforms.get(instance.instanceId);
     const component = components.get(instance.componentId);
     if (!transform || !component) continue;
 
     for (const snap of component.snaps) {
-      out.push({
-        instanceId: instance.instanceId,
-        snapId: snap.id,
-        mask: snap.mask,
-        label: snap.label,
-        condition: snap.condition,
-        required: snap.required,
-        occupied: occupied.has(`${instance.instanceId}::${snap.id}`),
-        worldPosition: add(transform.translation, rotateVec(transform.rotation, snap.position)),
-        worldFacing: normalise(rotateVec(transform.rotation, snap.facing)),
-      });
+      out.push(toWorld(instance.instanceId, transform, snap, {
+        occupied: occupiedSnaps.has(`${instance.instanceId}::${snap.id}`),
+        isGridCell: false,
+      }));
+    }
+
+    for (const grid of component.grids || []) {
+      const taken = occupiedCells.get(`${instance.instanceId}::${grid.id}`) || new Set();
+      for (const cell of expandGridCells(grid)) {
+        out.push(toWorld(instance.instanceId, transform, cell, {
+          occupied: taken.has(`c${cell.col}r${cell.row}`),
+          isGridCell: true,
+          gridId: grid.id,
+          col: cell.col,
+          row: cell.row,
+        }));
+      }
     }
   }
+
   return out;
+}
+
+/**
+ * Which cells of one instance's grid are taken.
+ *
+ * Exported because placementsFor in grid.js needs exactly this set to answer
+ * "where could a 3x2 pouch go", and both attach flows are built on that query.
+ */
+export function occupiedCellsFor(assembly, components, instanceId, gridId) {
+  const all = worldSnaps(assembly, components, new Map(
+    (assembly.instances || []).map((i) => [i.instanceId, IDENTITY]),
+  ));
+
+  const set = new Set();
+  for (const p of all) {
+    if (p.instanceId === instanceId && p.gridId === gridId && p.occupied) {
+      set.add(`c${p.col}r${p.row}`);
+    }
+  }
+  return set;
 }
 
 /**

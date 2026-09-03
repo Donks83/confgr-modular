@@ -133,10 +133,16 @@ describe('extractComponent — the AR-safe rules', () => {
     expect(() => extractComponent(desc)).toThrow(/straight up or down/);
   });
 
-  it('refuses a component with no snaps', () => {
+  // A component needs SOME attach point, but a grid counts — a MOLLE panel has
+  // no authored snaps at all, only a generated field of them.
+  it('refuses a component with no attach points of any kind', () => {
     const desc = describeUnit();
     desc.nodes = desc.nodes.filter((n) => !n.name.startsWith('md-snap'));
-    expect(() => extractComponent(desc)).toThrow(/No snap planes found/);
+    expect(() => extractComponent(desc)).toThrow(/No attach points found/);
+  });
+
+  it('reports no grids on a component that has none', () => {
+    expect(extractComponent(describeUnit()).grids).toEqual([]);
   });
 
   it('computes outward facings from node rotation', () => {
