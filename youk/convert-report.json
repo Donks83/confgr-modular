@@ -1,0 +1,1319 @@
+{
+  "tolerances": {
+    "linear": 0.05,
+    "angular": 0.3
+  },
+  "converted": 45,
+  "failed": 0,
+  "parts": [
+    {
+      "source": "008530 - YouK clothes rail 600 mm, Garderobenstange 600 mm.stp",
+      "id": "008530-clothes-rail-600mm",
+      "out": "008530-clothes-rail-600mm.glb",
+      "parts_merged": 7,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:11]_3",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:11]_2",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:11]_1",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:11]",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:8]",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:5]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 6816,
+      "vertices": 6806,
+      "dims_mm": [
+        649.5,
+        75.0,
+        55.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        15.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 164232,
+      "ok": true
+    },
+    {
+      "source": "008531 - YouK clothes rail 900 mm, Garderobenstange 900 mm.stp",
+      "id": "008531-clothes-rail-900mm",
+      "out": "008531-clothes-rail-900mm.glb",
+      "parts_merged": 4,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:10]",
+          "kind": "Path3D"
+        },
+        {
+          "node": "=>[0:1:1:7]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4724,
+      "vertices": 4974,
+      "dims_mm": [
+        949.5,
+        75.0,
+        55.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        15.0,
+        -0.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 117144,
+      "ok": true
+    },
+    {
+      "source": "008532 - clothes rail 1200 mm, YouK Garderobenstange 1200 mm.stp",
+      "id": "008532-clothes-rail-1200mm",
+      "out": "008532-clothes-rail-1200mm.glb",
+      "parts_merged": 1,
+      "dropped": [],
+      "triangles": 4044,
+      "vertices": 4304,
+      "dims_mm": [
+        1249.5,
+        75.0,
+        55.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        15.0,
+        -0.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 100952,
+      "ok": true
+    },
+    {
+      "source": "008533 - YouK clothes rail extension 1200 mm, Garderobenstange Verl\u00e4ngerung 600 mm.stp",
+      "id": "008533-clothes-rail-extension-1200mm",
+      "out": "008533-clothes-rail-extension-1200mm.glb",
+      "parts_merged": 3,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:7]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4060,
+      "vertices": 4242,
+      "dims_mm": [
+        643.5,
+        75.0,
+        55.0
+      ],
+      "origin_shift_mm": [
+        16.5,
+        15.0,
+        -0.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 100388,
+      "ok": true
+    },
+    {
+      "source": "008534 - YouK clothes rail 900 mm, Garderobenstange 900 mm.stp",
+      "id": "008534-clothes-rail-900mm",
+      "out": "008534-clothes-rail-900mm.glb",
+      "parts_merged": 1,
+      "dropped": [],
+      "triangles": 3378,
+      "vertices": 3558,
+      "dims_mm": [
+        943.5,
+        75.0,
+        55.0
+      ],
+      "origin_shift_mm": [
+        16.5,
+        15.0,
+        -0.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 84012,
+      "ok": true
+    },
+    {
+      "source": "008535 - YouK clothes rail extension 1200 mm, Garderobenstangenverl\u00e4ngerung 1200 mm.stp",
+      "id": "008535-clothes-rail-extension-1200mm",
+      "out": "008535-clothes-rail-extension-1200mm.glb",
+      "parts_merged": 2,
+      "dropped": [],
+      "triangles": 1744,
+      "vertices": 1792,
+      "dims_mm": [
+        1210.5,
+        30.0,
+        15.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        15.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 43196,
+      "ok": true
+    },
+    {
+      "source": "008536 - YouK hook strip for ladder depth 200 mm, Hakenleiste f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008536-hook-strip-for-ladder-depth-200mm",
+      "out": "008536-hook-strip-for-ladder-depth-200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 3036,
+      "vertices": 3290,
+      "dims_mm": [
+        195.0,
+        50.0,
+        43.6
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        4.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 76692,
+      "ok": true
+    },
+    {
+      "source": "008537 - YouK hook strip for ladder depth 320 mm, Hakenleiste f\u00fcr 320 mm Leitertiefe.stp",
+      "id": "008537-hook-strip-for-ladder-depth-320mm",
+      "out": "008537-hook-strip-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [],
+      "triangles": 2640,
+      "vertices": 2858,
+      "dims_mm": [
+        315.0,
+        50.0,
+        43.3
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        3.9
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 66752,
+      "ok": true
+    },
+    {
+      "source": "008538 - YouK hook strip for ladder width 450 mm, Hakenleiste f\u00fcr Leiterbreite 450 mm.stp",
+      "id": "008538-hook-strip-for-ladder-width-450mm",
+      "out": "008538-hook-strip-for-ladder-width-450mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4636,
+      "vertices": 4998,
+      "dims_mm": [
+        500.1,
+        50.0,
+        72.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        -1.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 116388,
+      "ok": true
+    },
+    {
+      "source": "008539 - YouK hook strip for ladder width 600 mm, Hakenleiste f\u00fcr Leiterbreite 600 mm.stp",
+      "id": "008539-hook-strip-for-ladder-width-600mm",
+      "out": "008539-hook-strip-for-ladder-width-600mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 5024,
+      "vertices": 5288,
+      "dims_mm": [
+        649.5,
+        50.0,
+        72.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        -1.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 124524,
+      "ok": true
+    },
+    {
+      "source": "008540 - YouK hook strip for ladder width 900 mm, Hakenleiste f\u00fcr Leiterbreite 900 mm.stp",
+      "id": "008540-hook-strip-for-ladder-width-900mm",
+      "out": "008540-hook-strip-for-ladder-width-900mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 7398,
+      "vertices": 7927,
+      "dims_mm": [
+        950.1,
+        50.0,
+        72.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        -1.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 184680,
+      "ok": true
+    },
+    {
+      "source": "008541 - YouK hook strip for ladder width 1200 mm, Hakenleiste f\u00fcr Leiterbreite 1200 mm.stp",
+      "id": "008541-hook-strip-for-ladder-width-1200mm",
+      "out": "008541-hook-strip-for-ladder-width-1200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 9064,
+      "vertices": 9696,
+      "dims_mm": [
+        1250.1,
+        50.0,
+        72.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        -1.5
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 225904,
+      "ok": true
+    },
+    {
+      "source": "008542 - YouK rack for ladder depth 200 mm, Ablage f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008542-rack-for-ladder-depth-200mm",
+      "out": "008542-rack-for-ladder-depth-200mm.glb",
+      "parts_merged": 1,
+      "dropped": [],
+      "triangles": 2088,
+      "vertices": 2276,
+      "dims_mm": [
+        195.0,
+        160.0,
+        135.8
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        158.5,
+        -42.1
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 53144,
+      "ok": true
+    },
+    {
+      "source": "008543 - YouK rack for ladder depth 320 mm, Ablage f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008543-rack-for-ladder-depth-320mm",
+      "out": "008543-rack-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 2088,
+      "vertices": 2276,
+      "dims_mm": [
+        315.0,
+        160.0,
+        135.8
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        158.5,
+        -42.1
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 53144,
+      "ok": true
+    },
+    {
+      "source": "008545 - YouK YouboXx Set 2.stp",
+      "id": "008545-youboxx-set-2",
+      "out": "008545-youboxx-set-2.glb",
+      "parts_merged": 3,
+      "dropped": [],
+      "triangles": 72260,
+      "vertices": 52500,
+      "dims_mm": [
+        144.9,
+        210.0,
+        195.0
+      ],
+      "origin_shift_mm": [
+        -58.8,
+        204.7,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 1497892,
+      "ok": true
+    },
+    {
+      "source": "008546 - YouK YouboXx Set 3.stp",
+      "id": "008546-youboxx-set-3",
+      "out": "008546-youboxx-set-3.glb",
+      "parts_merged": 4,
+      "dropped": [],
+      "triangles": 127162,
+      "vertices": 94552,
+      "dims_mm": [
+        147.8,
+        110.0,
+        315.0
+      ],
+      "origin_shift_mm": [
+        -60.3,
+        106.8,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 2661340,
+      "ok": true
+    },
+    {
+      "source": "008547 - YouK YouboXx Set 4.stp",
+      "id": "008547-youboxx-set-4",
+      "out": "008547-youboxx-set-4.glb",
+      "parts_merged": 3,
+      "dropped": [],
+      "triangles": 138184,
+      "vertices": 100159,
+      "dims_mm": [
+        144.9,
+        113.8,
+        315.0
+      ],
+      "origin_shift_mm": [
+        -58.8,
+        112.3,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 2860892,
+      "ok": true
+    },
+    {
+      "source": "008548 - YouK YouboXx Set 5.stp",
+      "id": "008548-youboxx-set-5",
+      "out": "008548-youboxx-set-5.glb",
+      "parts_merged": 3,
+      "dropped": [],
+      "triangles": 133482,
+      "vertices": 97308,
+      "dims_mm": [
+        144.8,
+        211.0,
+        315.0
+      ],
+      "origin_shift_mm": [
+        -58.8,
+        209.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 2770252,
+      "ok": true
+    },
+    {
+      "source": "008549 - YouK divider for newspaper towel rack set, Fachtrenner f\u00fcr Zeitungs- & Handtuchablage f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008549-divider-for-newspaper-towel-rack-set",
+      "out": "008549-divider-for-newspaper-towel-rack-set.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 2616,
+      "vertices": 2848,
+      "dims_mm": [
+        201.0,
+        21.5,
+        60.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        6.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 66348,
+      "ok": true
+    },
+    {
+      "source": "008549 - YouK newspaper towel rack set fpr ladder depth 200 mm, Zeitungs- & Handtuchablage f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm",
+      "out": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 2676,
+      "vertices": 2900,
+      "dims_mm": [
+        195.0,
+        240.0,
+        100.4
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        238.5,
+        -24.4
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 67688,
+      "ok": true
+    },
+    {
+      "source": "008551 - YouK base brackets for office solution, Bodentr\u00e4ger f\u00fcr Office-L\u00f6sung.stp",
+      "id": "008551-base-brackets-for-office-solution",
+      "out": "008551-base-brackets-for-office-solution.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 3468,
+      "vertices": 3636,
+      "dims_mm": [
+        315.0,
+        300.0,
+        27.3
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        298.5,
+        12.2
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 86028,
+      "ok": true
+    },
+    {
+      "source": "008551 - YouK clamping angles for office solution, Klemmwinkel f\u00fcr Office-L\u00f6sung.stp",
+      "id": "008551-clamping-angles-for-office-solution",
+      "out": "008551-clamping-angles-for-office-solution.glb",
+      "parts_merged": 2,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:4]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 528,
+      "vertices": 560,
+      "dims_mm": [
+        20.0,
+        60.0,
+        20.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        60.0,
+        -10.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 13820,
+      "ok": true
+    },
+    {
+      "source": "008551 - YouK Shelf supports for office solution, Grundhalterung f\u00fcr Office-L\u00f6sung.stp",
+      "id": "008551-shelf-supports-for-office-solution",
+      "out": "008551-shelf-supports-for-office-solution.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4140,
+      "vertices": 4240,
+      "dims_mm": [
+        50.0,
+        50.0,
+        310.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        48.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 101336,
+      "ok": true
+    },
+    {
+      "source": "008552 - YouK top panel bracket, Abdeckbodenhalterung.stp",
+      "id": "008552-top-panel-bracket",
+      "out": "008552-top-panel-bracket.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 800,
+      "vertices": 844,
+      "dims_mm": [
+        60.0,
+        18.0,
+        20.0
+      ],
+      "origin_shift_mm": [
+        -18.5,
+        18.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 20504,
+      "ok": true
+    },
+    {
+      "source": "008553 - YouK shoe rack 450 mm, Schuhablage 450 mm.stp",
+      "id": "008553-shoe-rack-450mm",
+      "out": "008553-shoe-rack-450mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 984,
+      "vertices": 1068,
+      "dims_mm": [
+        448.0,
+        76.6,
+        110.1
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        -1.0,
+        -55.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 25400,
+      "ok": true
+    },
+    {
+      "source": "008554 - YouK shoe rack 600 mm, Schuhablage 600 mm.stp",
+      "id": "008554-shoe-rack-600mm",
+      "out": "008554-shoe-rack-600mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 984,
+      "vertices": 1068,
+      "dims_mm": [
+        598.0,
+        76.6,
+        110.1
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        -1.0,
+        -55.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 25400,
+      "ok": true
+    },
+    {
+      "source": "008555 - YouK shoe rack 900 mm, Schuhablage 900 mm.stp",
+      "id": "008555-shoe-rack-900mm",
+      "out": "008555-shoe-rack-900mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 984,
+      "vertices": 1068,
+      "dims_mm": [
+        898.0,
+        76.6,
+        110.1
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        -1.0,
+        -55.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 25400,
+      "ok": true
+    },
+    {
+      "source": "008556 - YouK shoe rack 1200 mm, Schuhablage 1200 mm.stp",
+      "id": "008556-shoe-rack-1200mm",
+      "out": "008556-shoe-rack-1200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 984,
+      "vertices": 1068,
+      "dims_mm": [
+        1198.0,
+        76.6,
+        110.1
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        -1.0,
+        -55.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 25400,
+      "ok": true
+    },
+    {
+      "source": "008557 - YouK outer cabinet bracket for ladder depth 200 mm, Korpushalterung au\u00dfen f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008557-outer-cabinet-bracket-for-ladder-depth-200mm",
+      "out": "008557-outer-cabinet-bracket-for-ladder-depth-200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 2952,
+      "vertices": 3132,
+      "dims_mm": [
+        195.0,
+        8.0,
+        50.3
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        8.0,
+        -25.1
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 73784,
+      "ok": true
+    },
+    {
+      "source": "008558 - YouK outer cabinet bracket for ladder depth 320 mm, Korpushalterung au\u00dfen f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
+      "out": "008558-outer-cabinet-bracket-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 3296,
+      "vertices": 3476,
+      "dims_mm": [
+        315.0,
+        8.0,
+        50.3
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        8.0,
+        -25.1
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 82036,
+      "ok": true
+    },
+    {
+      "source": "008559 - YouK cabinet bracket for ladder depth 200 mm, Korpushalterung Erweiterung f\u00fcr Leitertiefe 200 mm.stp",
+      "id": "008559-cabinet-bracket-for-ladder-depth-200mm",
+      "out": "008559-cabinet-bracket-for-ladder-depth-200mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 4380,
+      "vertices": 4632,
+      "dims_mm": [
+        195.0,
+        8.0,
+        80.5
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        8.0,
+        -40.2
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 108924,
+      "ok": true
+    },
+    {
+      "source": "008560 - YouK cabinet bracket for ladder depth 320 mm, Korpushalterung Erweiterung f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008560-cabinet-bracket-for-ladder-depth-320mm",
+      "out": "008560-cabinet-bracket-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 5068,
+      "vertices": 5320,
+      "dims_mm": [
+        315.0,
+        8.0,
+        80.5
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        8.0,
+        -40.2
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 125432,
+      "ok": true
+    },
+    {
+      "source": "008561 - YouK shelf 450 mm for ladder depth 320 mm, Regalboden 450 mm f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008561-shelf-450mm-for-ladder-depth-320mm",
+      "out": "008561-shelf-450mm-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4028,
+      "vertices": 4216,
+      "dims_mm": [
+        500.1,
+        68.5,
+        287.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        20.0,
+        156.7
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 99708,
+      "ok": true
+    },
+    {
+      "source": "008562 - YouK shelf 600 mm for ladder depth 320 mm, Regalboden 600 mm f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008562-shelf-600mm-for-ladder-depth-320mm",
+      "out": "008562-shelf-600mm-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4052,
+      "vertices": 4232,
+      "dims_mm": [
+        650.1,
+        68.5,
+        287.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        20.0,
+        156.7
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 100184,
+      "ok": true
+    },
+    {
+      "source": "008563 - YouK shelf 900 mm for ladder depth 320 mm, Regalboden 900 mm f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008563-shelf-900mm-for-ladder-depth-320mm",
+      "out": "008563-shelf-900mm-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4060,
+      "vertices": 4232,
+      "dims_mm": [
+        950.1,
+        68.5,
+        287.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        20.0,
+        156.7
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 100280,
+      "ok": true
+    },
+    {
+      "source": "008564 - YouK shelf 1200 mm for ladder depth 320 mm, Regalboden 1200 mm f\u00fcr Leitertiefe 320 mm.stp",
+      "id": "008564-shelf-1200mm-for-ladder-depth-320mm",
+      "out": "008564-shelf-1200mm-for-ladder-depth-320mm.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4092,
+      "vertices": 4248,
+      "dims_mm": [
+        1250.1,
+        68.5,
+        287.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        20.0,
+        156.7
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 100856,
+      "ok": true
+    },
+    {
+      "source": "008565 - YouK lower umbrella stand, untere Wanne f\u00fcr Schirmst\u00e4nder.stp",
+      "id": "008565-lower-umbrella-stand",
+      "out": "008565-lower-umbrella-stand.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 4148,
+      "vertices": 4324,
+      "dims_mm": [
+        149.0,
+        94.0,
+        315.0
+      ],
+      "origin_shift_mm": [
+        60.9,
+        92.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 102440,
+      "ok": true
+    },
+    {
+      "source": "008565 - YouK upper umbrella stand, obere Halterung f\u00fcr Schirmst\u00e4nder.stp",
+      "id": "008565-upper-umbrella-stand",
+      "out": "008565-upper-umbrella-stand.glb",
+      "parts_merged": 1,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:3]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 3804,
+      "vertices": 4240,
+      "dims_mm": [
+        168.3,
+        48.0,
+        315.0
+      ],
+      "origin_shift_mm": [
+        70.5,
+        46.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 97304,
+      "ok": true
+    },
+    {
+      "source": "236746 - YouK Leiterregal ladder depth 200 mm, height 668 mm, Leitertiefe 200 mm, H\u00f6he 668 mm.stp",
+      "id": "236746-leiterregal-ladder-depth-200mm",
+      "out": "236746-leiterregal-ladder-depth-200mm.glb",
+      "parts_merged": 4,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:4]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 6690,
+      "vertices": 6437,
+      "dims_mm": [
+        200.0,
+        668.0,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        334.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 158288,
+      "ok": true
+    },
+    {
+      "source": "236748 - YouK ladder depth 2000 mm, height 905 mm, Leiterregal Leitertiefe 200 mm, H\u00f6he 905 mm.stp",
+      "id": "236748-ladder-depth-2000mm",
+      "out": "236748-ladder-depth-2000mm.glb",
+      "parts_merged": 5,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:4]",
+          "kind": "PointCloud"
+        }
+      ],
+      "triangles": 7288,
+      "vertices": 7310,
+      "dims_mm": [
+        200.0,
+        904.5,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        452.3,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 175940,
+      "ok": true
+    },
+    {
+      "source": "236750 - YouK ladder depth 320 mm, height 550 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 550 mm.stp",
+      "id": "236750-ladder-depth-320mm",
+      "out": "236750-ladder-depth-320mm.glb",
+      "parts_merged": 2,
+      "dropped": [],
+      "triangles": 6368,
+      "vertices": 6263,
+      "dims_mm": [
+        320.0,
+        550.0,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        275.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 152336,
+      "ok": true
+    },
+    {
+      "source": "236754 - YouK ladder depth 320 mm, height 905 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 905 mm.stp",
+      "id": "236754-ladder-depth-320mm",
+      "out": "236754-ladder-depth-320mm.glb",
+      "parts_merged": 2,
+      "dropped": [],
+      "triangles": 7020,
+      "vertices": 6890,
+      "dims_mm": [
+        320.0,
+        905.0,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        452.5,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 167684,
+      "ok": true
+    },
+    {
+      "source": "236758 - YouK ladder depth 320 mm, height 1500 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 1500 mm.stp",
+      "id": "236758-ladder-depth-320mm",
+      "out": "236758-ladder-depth-320mm.glb",
+      "parts_merged": 2,
+      "dropped": [],
+      "triangles": 7475,
+      "vertices": 7426,
+      "dims_mm": [
+        320.0,
+        1500.0,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        750.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 179560,
+      "ok": true
+    },
+    {
+      "source": "236762 - YouK ladder depth 320 mm, height 1500 mm, Leiterregal Leitertiefe 320 mm, H\u00f6he 2210 mm.stp",
+      "id": "236762-ladder-depth-320mm",
+      "out": "236762-ladder-depth-320mm.glb",
+      "parts_merged": 2,
+      "dropped": [],
+      "triangles": 8753,
+      "vertices": 8529,
+      "dims_mm": [
+        320.0,
+        2210.0,
+        30.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        1105.0,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 208152,
+      "ok": true
+    },
+    {
+      "source": "237023 - YouK adjustable foot 100 mm, Stellfu\u00df 100 mm.stp",
+      "id": "237023-adjustable-foot-100mm",
+      "out": "237023-adjustable-foot-100mm.glb",
+      "parts_merged": 5,
+      "dropped": [
+        {
+          "node": "=>[0:1:1:5]",
+          "kind": "Path3D"
+        }
+      ],
+      "triangles": 7548,
+      "vertices": 6046,
+      "dims_mm": [
+        50.0,
+        99.8,
+        20.0
+      ],
+      "origin_shift_mm": [
+        -0.0,
+        99.8,
+        -0.0
+      ],
+      "watertight": false,
+      "nodes": [
+        "body"
+      ],
+      "bytes": 163892,
+      "ok": true
+    }
+  ]
+}

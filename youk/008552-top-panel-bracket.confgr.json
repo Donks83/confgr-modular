@@ -1,0 +1,8 @@
+{
+  "confgr": {
+    "widthMm": 60,
+    "heightMm": 18,
+    "depthMm": 20,
+    "unitScale": "metres"
+  }
+}

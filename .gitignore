@@ -6,3 +6,10 @@ dist-electron/
 .DS_Store
 Thumbs.db
 test-assets-broken/
+
+# CAD conversion: the venv is 100MB+ of OpenCASCADE and reinstalls in one
+# command; the converted GLBs regenerate from the STEP files, which are
+# Kesseboehmer's and live outside the repo. The .confgr.json sidecars ARE
+# committed - those hold decisions, not derived geometry.
+tools/.venv-step/
+youk/*.glb
