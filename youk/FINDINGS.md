@@ -213,6 +213,60 @@ attach to its far side — the frame → shelf → frame chain.
 
 ---
 
+## The bay is built, and the seating is exact
+
+`tools/probe-bay.ps1` builds frame → 900 shelf → frame through real clicks and
+captures it (`youk/bay.png`). The app's own report:
+
+```
+1 part,  0 joints,  8 open points     <- anchored 1500 frame, 4 rungs x 2 faces
+2 parts, 1 joint,   8 open points     <- + 900 shelf
+2 parts, 1 joint,   1 open point      <- a frame fits in exactly one place
+3 parts, 2 joints, 14 open points     <- + second frame
+```
+
+That last count is worth keeping as an invariant: 7 unused sockets on each
+frame plus the shelf's two plugs, both taken. It comes out right only if the
+chain resolved as intended.
+
+### Bracket against rung, measured
+
+The seating choice — shelf `y=0` at the rung's **top** face, 100.0 mm — was an
+engineering reading of `MA 406215` ("dropped in from above"), not a measurement.
+It is now measured. Putting both parts in the frame's coordinates via the joint
+(`shelf (x,y,z) → frame (x+460.05, y+100, z)`) and taking the shelf material
+that shares the frame's 30 mm X slab — i.e. the end bracket:
+
+```
+bracket y  100.0 .. 168.5 mm      lowest material at exactly 100.0
+rung 1      95.0 .. 100.0 mm      top face at exactly 100.0
+```
+
+**Flush, to the tessellation's resolution, with nothing below 100.0.** Zero
+clearance and zero interpenetration is the signature of a designed bearing
+surface; a wrong seating would have produced an arbitrary offset, not 100.0.
+
+### Two things the measurement turned up
+
+**The rungs are hollow sections with locating lugs.** Rung 1's end profile has
+vertices in two bands, 95.0–96.5 and 98.5–100.0 — a 1.5 mm wall, so these are
+rolled tube, not solid bar. And 10 mm above the rung's top face sit two features
+at `z = ±95`, `y = 104.5–110.5`: upstanding lugs, 190 mm apart. The bracket is
+void from 101.5 to 110.0 in the same slab, so the lugs pass up into it. A span
+accessory therefore locates *positively* on a rung rather than merely resting on
+it — a point in favour of the configurator refusing any placement the lugs would
+not allow, once that matters.
+
+**Section slabs are useless on these solids.** Slicing either part at `z = 0`
+returns zero vertices, and this is not a fault: a planar face carries vertices
+only on its perimeter, so a bar spanning the depth has them at its ends and
+nowhere between. The 900 shelf's deck likewise has no vertex with `|x| < 300`.
+Anything measured here has to be read as feature boundaries — which is also why
+the rung heights only fell out to vertex clustering. One more method for the
+list of things that fail on CAD tessellations.
+
+---
+
 ## Still open
 
 1. **Which rungs may a span accessory use?** All of them, presumably — the rung

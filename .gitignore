@@ -13,3 +13,11 @@ test-assets-broken/
 # committed - those hold decisions, not derived geometry.
 tools/.venv-step/
 youk/*.glb
+
+# tools/probe-bay.ps1 copies the converted YouK components into test-assets so
+# the app can load them. Those are the same derived supplier geometry as
+# youk/*.glb - the synthetic test-assets/*.glb ARE committed, these are not.
+# Every YouK id starts with a 6-digit Kesseboehmer article number.
+test-assets/[0-9][0-9][0-9][0-9][0-9][0-9]-*.glb
+youk/bay-run.txt
+youk/declare-log.txt

@@ -1,8 +1,18 @@
 {
   "confgr": {
-    "widthMm": 200,
+    "widthMm": 30.0,
     "heightMm": 904.5,
-    "depthMm": 30,
+    "depthMm": 200.0,
     "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-span-d200.rung-1-right": "socket",
+    "md-snap.youk-span-d200.rung-1-left": "socket",
+    "md-snap.youk-span-d200.rung-2-right": "socket",
+    "md-snap.youk-span-d200.rung-2-left": "socket",
+    "md-snap.youk-span-d200.rung-3-right": "socket",
+    "md-snap.youk-span-d200.rung-3-left": "socket",
+    "md-snap.youk-span-d200.rung-4-right": "socket",
+    "md-snap.youk-span-d200.rung-4-left": "socket"
   }
 }
