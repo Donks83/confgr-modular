@@ -115,11 +115,17 @@ else is comfortable as-is.
 
 ---
 
-## Unresolved — needed before snaps can be authored
+## Rung positions — RESOLVED, from Kesseböhmer's own drawings
 
-**Where does a shelf actually engage the frame?** This is the one thing the
-geometry would not give up. Four different measurements were tried on the frames
-and none was trustworthy:
+The folder contains **ten mounting-instruction PDFs** alongside the STEP files.
+I missed them: my first command filtered to `*.stp` and I never listed the
+folder again. They answer every open question, and page 5 of the general
+instructions (`MA 405462 0000`) carries a dimensioned rung chain for both
+depths.
+
+Before finding them, four geometry measurements were tried and none was
+trustworthy. Recorded because three failed the same way — a metric that cannot
+distinguish the two cases:
 
 | method | result | why it failed |
 |---|---|---|
@@ -129,23 +135,94 @@ and none was trustworthy:
 | exact cross-sections, span across depth | one band per frame, the whole height | span is max−min, which for two rails 320 mm apart is still 320 mm — blind by construction |
 | exact cross-sections, count closed loops | 4–184 loops per section | the tessellation is not watertight, so sections come out as dozens of open fragments |
 
-The consistent 1/3 and 2/3 answer from the first method is suspicious rather
-than reassuring: it is what you would get from *any* symmetric frame, because
-the metric is dominated by the rails.
+The drawing's chain for depth 320, bottom to top:
 
-This is feature recognition on a fragmented triangle soup, which is the wrong
-tool. The right sources are Kesseböhmer's technical drawing, the physical
-product, or the named features inside the STEP file itself (Creo exports datum
-planes with names — `A_RECHTS`, `A_OBEN` appear in the headers).
+```
+15 | 80 | 5 | 350 | 5 | 350 | 5 | 590 | 5 | 350 | 5 | 350 | 5 | 80 | 15  =  2210
+```
 
-Specifically needed:
+The `5`s are rung members; the rest are clear gaps. **Verified against the
+meshes** by listing the heights at which vertices cluster — a tessellated CAD
+solid puts vertices on feature boundaries and almost nowhere else, which is the
+measurement that finally worked. Drawing and geometry agree to 0.1 mm:
 
-1. **Rung or hole positions** on each frame height, as dimensions.
-2. **How each accessory family attaches** — hooks over a rung, clamps to a rail,
-   or bolts through a hole pattern. This decides where the snap plane sits and
-   which way it faces.
-3. **Whether the depth-200 and depth-320 frames share a rung pitch**, or each
-   height has its own.
+### Depth 320 — rung members, height above base
 
-Everything else is ready: all 45 parts convert cleanly, are declared, and report
-a single remaining blocker — `NO_SNAPS`.
+| | 550 | 905 | 1500 | 2210 |
+|---|---|---|---|---|
+| rung 1 | 95.1–100.0 | 95.1–100.0 | 95.1–100.0 | 95.1–100.0 |
+| rung 2 | 450.1–455.0 | 450.1–455.0 | 450.1–455.0 | 450.1–455.0 |
+| rung 3 | — | 805.1–810.0 | 805.1–810.0 | 805.1–810.0 |
+| rung 4 | — | — | 1400.1–1405.0 | 1400.1–1405.0 |
+| rung 5 | — | — | — | 1755.1–1760.0 |
+| rung 6 | — | — | — | 2110.1–2115.0 |
+
+**One pattern truncated at four heights.** Every frame shares the same absolute
+rung heights measured from its base — the taller ones simply have more. Clear
+gaps between members run 350, 350, 590, 350, 350, matching the drawing exactly.
+
+### Depth 200 — pitch 236.5 mm
+
+| | 668 | 905 |
+|---|---|---|
+| rung 1 | 95.1–100.0 | 95.1–100.0 |
+| rung 2 | 331.6–336.5 | 331.6–336.5 |
+| rung 3 | 568.1–573.0 | 568.1–573.0 |
+| rung 4 | — | 804.6–809.5 |
+
+The drawing says 232 for this family, which is the *clear gap*: 236.5 − 4.9 =
+231.6. Consistent with the 350 and 590 also being clear gaps.
+
+Both depths also carry a bottom member at 13–15 mm and a top member 15 mm below
+the frame top. Those are the frame's own end caps, not attach points.
+
+### The earlier guess was wrong, and by a lot
+
+The area-based method had put the 2210 frame's rungs at 740 and 1470. The real
+ones are at 95, 450, 805, 1400, 1755 and 2110. Not a near miss — a different
+answer with a different count. Worth remembering that it was the *most
+plausible-looking* of the failed attempts, because it produced a clean
+symmetric result.
+
+## How each family attaches
+
+From the instruction sheets:
+
+- **Shelf** (`MA 406215`) — spans two frames, dropped in from above; the end
+  brackets hook over the frame profile. Fixed with one screw each side and a
+  1.5 mm packer. Load by width: 450 → 30 kg, 600 → 25 kg, 900 → 20 kg,
+  1200 → 17.5 kg.
+- **Suspended elements** (`MA 406209`) — hook rail, tray, YouboXx bins,
+  newspaper/towel rack. These hang on a **single** frame and cantilever off it,
+  at any rung. Depth-specific: separate parts for 200 and 320.
+- **Frame** (`MA 405462`) — wall-mounted, two wall brackets per frame, fixing
+  holes 55 mm below the frame top. Customer supplies plugs and screws.
+- Shelf usable depth is 169 mm on a 200 frame and 289 mm on a 320 frame — the
+  289 matches the converted shelf's measured 287 mm depth.
+
+So there are two joint kinds, and they want different masks:
+
+| | connects to | mask |
+|---|---|---|
+| shelf, shoe rack, clothes rail, hook rail *by width* | two frames, chained | `youk-span-d200` / `youk-span-d320` |
+| hook rail *by depth*, tray, YouboXx, newspaper rack | one frame | `youk-hang-d200` / `youk-hang-d320` |
+
+Frames offer **sockets** at every rung on both faces; accessories present
+**plugs**. A span accessory carries a plug at each end so a second frame can
+attach to its far side — the frame → shelf → frame chain.
+
+---
+
+## Still open
+
+1. **Which rungs may a span accessory use?** All of them, presumably — the rung
+   heights are absolute, so two frames of any heights have aligned rungs.
+2. **Can two accessories share a rung** — a shelf and a hook rail at the same
+   level, one each side?
+3. **Whether a frame needs the adjustable foot** (`237023`) to stand, or the
+   floor-standing configuration is wall-fixed only. Page 1 of the general
+   instructions shows a wall-mounted pair.
+
+None of these blocks the first bay: frame + 900 shelf + frame is fully
+specified now. All 45 parts convert cleanly, are declared, and report a single
+remaining blocker — `NO_SNAPS`.
