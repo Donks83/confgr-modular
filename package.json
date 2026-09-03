@@ -14,6 +14,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:assets": "node tests/make-test-glb.mjs test-assets",
+    "test:broken": "node tests/make-broken-glb.mjs test-assets-broken",
+    "inspect": "node tools/inspect-model.mjs",
+    "declare": "node tools/declare.mjs",
     "verify": "vitest run"
   },
   "dependencies": {
