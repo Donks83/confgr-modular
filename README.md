@@ -64,6 +64,55 @@ Scene extras must carry `confgr: { widthMm, heightMm, depthMm }`.
 Regenerate the test components with `npm run test:assets`. That script
 (`tests/make-test-glb.mjs`) is also the reference for the Blender validator.
 
+## Running it
+
+```
+npm install            # .npmrc forces include=dev — see below
+npm test               # 59 tests, no browser needed
+npm run electron:dev   # the spike
+```
+
+### Environment flags
+
+| Flag | Effect |
+|---|---|
+| `CONFGR_DEMO=1` | Seeds a pre-connected run of 600 + 900 + 600 on startup, so the derived-position path can be checked without dragging anything by hand. |
+| `CONFGR_CAPTURE=<path>` | Screenshots the canvas once the scene settles, writes a PNG, then quits. Reads the WebGL buffer from inside the page — Electron's `capturePage()` returns an empty image on Windows when the window is not composited. |
+| `CONFGR_CAPTURE_DELAY=<ms>` | How long to wait before capturing. Default 6000. |
+
+```
+set CONFGR_DEMO=1
+set CONFGR_CAPTURE=C:\temp\spike.png
+npm run electron:dev
+```
+
+### Dev gotchas, all of which have already cost time
+
+**Vite runs on 5174, not 5173.** confgr-studio owns 5173. `electron:dev` waits on
+`tcp:5174` — if that ever gets edited back to 5173 it will be satisfied by
+confgr-studio's dev server, Electron will race ahead of Vite, and you will get a
+window pointed at nothing.
+
+**A stale Vite holds the port and serves stale code.** If `Ctrl+C` does not kill
+it cleanly, the next run fails with "Port 5174 is already in use", Electron
+attaches to the OLD server, and your changes appear not to have applied. Check
+and clear it:
+
+```powershell
+(Get-NetTCPConnection -LocalPort 5174 -State Listen).OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }
+```
+
+**`NODE_ENV=production` is set globally on this machine**, which makes npm
+default to `omit=dev` and silently skip every devDependency — vite, vitest,
+electron. `npm install` reports success and leaves the repo unbuildable. The
+`.npmrc` here pins `include=dev` to neutralise it. confgr-studio has no such
+file.
+
+**The renderer console is forwarded to the terminal.** Anything logged in the
+page appears as `[renderer:log]` in `npm run electron:dev` output. Added because
+a renderer-side error was otherwise invisible without DevTools open, and an
+empty scene looked identical to a working one.
+
 ## Not built yet, and deliberately not blocked
 
 AR ("View in your room") and the PDF tear sheet are Phase 2. The nine

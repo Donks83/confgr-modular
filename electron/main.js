@@ -64,10 +64,72 @@ function createWindow() {
     },
   });
 
+  // Forward the renderer's console to this process's stdout. Without it a
+  // renderer-side error is invisible unless DevTools happens to be open, which
+  // is how an empty scene looked identical to a working one on 3 Sep.
+  const LEVELS = ['log', 'warn', 'error'];
+  mainWindow.webContents.on('console-message', (_e, level, message, line, sourceId) => {
+    const where = sourceId ? ` (${sourceId.split('/').pop()}:${line})` : '';
+    process.stdout.write(`[renderer:${LEVELS[level] || level}] ${message}${where}\n`);
+  });
+
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    process.stdout.write(`[renderer GONE] ${JSON.stringify(details)}\n`);
+  });
+
+  mainWindow.webContents.on('preload-error', (_e, preloadPath, error) => {
+    process.stdout.write(`[preload ERROR] ${preloadPath}: ${error?.message}\n`);
+  });
+
+  // CONFGR_DEMO seeds a pre-connected run on startup. Passed as a query param
+  // because the renderer cannot see the main process's environment, and it
+  // makes the visual check repeatable rather than depending on someone dragging
+  // parts by hand the same way twice.
+  const query = process.env.CONFGR_DEMO ? '?demo=1' : '';
+
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5174');
+    mainWindow.loadURL(`http://localhost:5174${query}`);
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { search: query });
+  }
+
+  // Set CONFGR_CAPTURE to a file path and the window screenshots itself once the
+  // scene has settled, then quits. Lets a headless check confirm the renderer
+  // actually drew something rather than inferring it from logs — "objects are in
+  // the scene graph" and "objects are on screen" are different claims.
+  if (process.env.CONFGR_CAPTURE) {
+    const target = process.env.CONFGR_CAPTURE;
+    const delay = Number(process.env.CONFGR_CAPTURE_DELAY || 6000);
+
+    mainWindow.webContents.once('did-finish-load', () => {
+      setTimeout(async () => {
+        try {
+          // Read the WebGL buffer from inside the page first. capturePage()
+          // returns an empty image on Windows when the window is not composited,
+          // and a blank canvas in an OS screenshot cannot be told apart from a
+          // canvas that legitimately drew nothing.
+          const dataUrl = await mainWindow.webContents.executeJavaScript(
+            'window.__spikeCapture ? window.__spikeCapture() : null',
+          );
+
+          if (dataUrl && dataUrl.length > 1000) {
+            fs.writeFileSync(target, Buffer.from(dataUrl.split(',')[1], 'base64'));
+            process.stdout.write(`[capture] canvas readback -> ${target}\n`);
+          } else {
+            const image = await mainWindow.webContents.capturePage();
+            const png = image.toPNG();
+            fs.writeFileSync(target, png);
+            process.stdout.write(
+              `[capture] capturePage -> ${target} (${png.length} bytes`
+              + `${png.length ? '' : ' — EMPTY, window probably not composited'})\n`,
+            );
+          }
+        } catch (err) {
+          process.stdout.write(`[capture] failed: ${err.message}\n`);
+        }
+        app.quit();
+      }, delay);
+    });
   }
 }
 

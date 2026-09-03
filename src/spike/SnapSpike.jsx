@@ -24,6 +24,7 @@ export default function SnapSpike() {
   const mountRef = useRef(null);
   const three = useRef(null);          // three.js objects, outside React state
   const live = useRef(null);           // latest assembly, readable from the render loop
+  const framedCount = useRef(-1);      // last part count the camera was fitted to
 
   const [components, setComponents] = useState(new Map());
   const [assembly, setAssembly] = useState({ instances: [], connections: [] });
@@ -43,9 +44,19 @@ export default function SnapSpike() {
     const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 100);
     camera.position.set(2.6, 2.0, 3.2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    // preserveDrawingBuffer costs a little performance and is spike-only: it is
+    // what lets the buffer be read back after compositing, so a headless check
+    // can prove three.js actually drew pixels. Electron's capturePage() returned
+    // an empty image on Windows, and a blank canvas in an OS screenshot is
+    // ambiguous anyway — reading the GL buffer is the stronger evidence.
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
+    // PBR Neutral, which is what plan section 3.5 argues for on a configurator
+    // canvas: it is designed to minimise colour shift away from the source
+    // texture. Accuracy over mood — a finish shown here has to be the finish.
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    renderer.toneMappingExposure = 1.0;
     mount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -97,6 +108,14 @@ export default function SnapSpike() {
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
 
+    // Phase 0 diagnostics. A zero-sized canvas and a canvas with nothing in it
+    // look identical, so the size gets stated rather than assumed.
+    console.log(`[spike] canvas ${mount.clientWidth}x${mount.clientHeight}, `
+      + `webgl2=${renderer.capabilities.isWebGL2}, scene children=${scene.children.length}`);
+
+    // Spike-only readback hook, used by the CONFGR_CAPTURE path in main.js.
+    window.__spikeCapture = () => renderer.domElement.toDataURL('image/png');
+
     let raf = 0;
     const tick = () => {
       controls.update();
@@ -135,7 +154,9 @@ export default function SnapSpike() {
         }
 
         const dir = await window.confgr.app.testAssetsDir();
+        console.log(`[spike] test assets dir: ${dir}`);
         const listed = await window.confgr.fs.listModels(dir);
+        console.log(`[spike] listModels -> ${JSON.stringify(listed).slice(0, 400)}`);
         if (!listed.ok) { setStatus(`Could not read ${dir}: ${listed.error}`); return; }
         if (!listed.files.length) { setStatus(`No .glb files in ${dir}. Run: npm run test:assets`); return; }
 
@@ -153,6 +174,9 @@ export default function SnapSpike() {
         }
       }
 
+        console.log(`[spike] loaded ${loaded.size} components: [${[...loaded.keys()].join(', ')}]`
+          + `  rejected ${errors.length}: ${errors.map((e) => `${e.file}: ${e.message}`).join(' | ')}`);
+
         if (cancelled) return;
         setComponents(loaded);
         setLoadErrors(errors);
@@ -161,6 +185,46 @@ export default function SnapSpike() {
             ? `${loaded.size} components ready. Click one to add it, then drag it near another.`
             : `No components loaded — all ${listed.files.length} files were rejected. See the list on the left.`,
         );
+
+        // ?demo=1 seeds a run that is already joined up, so the derived-position
+        // path can be eyeballed without anyone dragging anything. The widths
+        // differ deliberately: equal widths would hide an off-by-half-a-unit
+        // error, since every part would land in the right place by luck.
+        const LEFT = 'md-snap.carcass-side.left';
+        const RIGHT = 'md-snap.carcass-side.right';
+
+        if (new URLSearchParams(window.location.search).has('demo')
+            && loaded.has('unit-600') && loaded.has('unit-900')) {
+          setAssembly({
+            instances: [
+              { instanceId: 'd1', componentId: 'unit-600', position: [0, 0, 0], rotation: [0, 0, 0, 1], freeMove: true },
+              { instanceId: 'd2', componentId: 'unit-900', position: null, rotation: null },
+              { instanceId: 'd3', componentId: 'unit-600', position: null, rotation: null },
+            ],
+            connections: [
+              { fromInstanceId: 'd1', fromSnapId: RIGHT, toInstanceId: 'd2', toSnapId: LEFT },
+              { fromInstanceId: 'd2', fromSnapId: RIGHT, toInstanceId: 'd3', toSnapId: LEFT },
+            ],
+          });
+          instanceCounter = 3;
+          setSelectedId('d1');
+          return;
+        }
+
+        // Otherwise put one part on the floor straight away. An empty stage on
+        // startup is indistinguishable from a broken one, and the first thing
+        // anyone wants to know is whether the renderer works at all.
+        const first = [...loaded.keys()][0];
+        if (first) {
+          instanceCounter += 1;
+          setAssembly({
+            instances: [{
+              instanceId: `i${instanceCounter}`, componentId: first,
+              position: [0, 0, 0], rotation: [0, 0, 0, 1], freeMove: true,
+            }],
+            connections: [],
+          });
+        }
       } catch (err) {
         if (cancelled) return;
         setStatus(`Could not load components: ${err.message}`);
@@ -214,6 +278,13 @@ export default function SnapSpike() {
         group.quaternion.fromArray(t.rotation);
       }
 
+      let meshes = 0;
+      group.traverse((o) => { if (o.isMesh) meshes += 1; });
+      console.log(`[spike] ${instance.instanceId} (${instance.componentId}) `
+        + `at [${(t?.translation || []).map((v) => +v.toFixed(2))}] meshes=${meshes} `
+        + `groupChildren=${group.children.length}`);
+
+      // eslint-disable-next-line no-loop-func
       group.traverse((o) => {
         if (!o.isMesh) return;
         const isSnap = o.name.startsWith('md-snap');
@@ -232,6 +303,34 @@ export default function SnapSpike() {
           o.material.emissive = new THREE.Color(selected ? '#5a3a12' : '#000000');
         }
       });
+    }
+    // Frame the camera on whatever is actually there — but only when the number
+    // of parts changes, never mid-drag, or the view would lurch under the mouse.
+    //
+    // This matters more than it sounds. The first render put a 560mm box in the
+    // corner of a twelve-metre grid, which reads as an empty scene. A part you
+    // cannot see is indistinguishable from a part that was never added.
+    if (assembly.instances.length !== framedCount.current && assembly.instances.length > 0) {
+      framedCount.current = assembly.instances.length;
+
+      const bounds = new THREE.Box3().setFromObject(ctx.instanceRoot);
+      if (!bounds.isEmpty()) {
+        const centre = bounds.getCenter(new THREE.Vector3());
+        const size = bounds.getSize(new THREE.Vector3());
+        const radius = Math.max(size.length() / 2, 0.4);
+
+        // Distance that fits the bounding sphere in the vertical field of view,
+        // with a little margin so nothing sits against the edge of the frame.
+        const fov = (ctx.camera.fov * Math.PI) / 180;
+        const distance = (radius / Math.sin(fov / 2)) * 1.5;
+
+        // Hold the viewing ANGLE and change only the distance, so repeated adds
+        // do not spin the scene around while someone is working.
+        const direction = new THREE.Vector3(0.62, 0.5, 0.75).normalize();
+        ctx.camera.position.copy(centre).addScaledVector(direction, distance);
+        ctx.controls.target.copy(centre);
+        ctx.controls.update();
+      }
     }
   }, [assembly, components, selectedId, showSnaps, showBoxes]);
 

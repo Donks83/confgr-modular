@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "electron": "electron .",
-    "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5174 && electron .\"",
     "dist": "vite build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest",
