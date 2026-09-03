@@ -11,10 +11,66 @@ import { extractComponent } from '../engine/component.js';
 
 const loader = new GLTFLoader();
 
+// PHASE 0 FINDING, 3 Sep 2026 - three.js RENAMES nodes on load.
+//
+// GLTFLoader runs every node name through PropertyBinding.sanitizeNodeName,
+// which strips the characters reserved by three.js's animation property paths.
+// So `md-snap.carcass-side.left` arrives as `md-snapcarcass-sideleft`, and the
+// snap convention silently stops matching - no error, just zero snaps found.
+//
+// We do NOT change the convention to dodge this. Dots are what Blender and
+// 3ds Max produce (Blender appends .001 to duplicates whether we like it or
+// not) and dots are what Mimeeq's own `md-snap.front` examples use. Artists
+// will type dots. So instead we read the AUTHORITATIVE names from the raw glTF
+// JSON, which three.js leaves untouched, and match them to the loaded objects
+// by applying the same sanitisation ourselves.
+//
+// Mirrors three/src/animation/PropertyBinding.js. If three.js ever changes the
+// rule, tests/loadGlb.test.js fails loudly against a real GLB rather than the
+// spike quietly loading nothing.
+const THREE_RESERVED = /[[\].:/]/g;
+
+export function sanitiseThreeName(name) {
+  return String(name).replace(/\s/g, '_').replace(THREE_RESERVED, '');
+}
+
+/**
+ * Map from the name three.js gives an object back to the name the artist typed.
+ *
+ * Built from gltf.parser.json, the unmodified source JSON. A collision - two
+ * different real names sanitising to the same string - is reported rather than
+ * silently resolved, because picking one at random would attach a snap to the
+ * wrong face.
+ */
+export function buildNameMap(gltfJson) {
+  const map = new Map();
+  const collisions = [];
+
+  for (const node of gltfJson?.nodes || []) {
+    if (!node.name) continue;
+    const key = sanitiseThreeName(node.name);
+    if (map.has(key) && map.get(key) !== node.name) {
+      collisions.push([map.get(key), node.name]);
+      continue;
+    }
+    map.set(key, node.name);
+  }
+
+  if (collisions.length) {
+    const pairs = collisions.map(([a, b]) => `"${a}" and "${b}"`).join(', ');
+    throw new Error(
+      `Two nodes have names three.js cannot tell apart: ${pairs}. `
+      + 'Rename one - three.js strips . : / [ ] from node names on load.',
+    );
+  }
+
+  return map;
+}
+
 /**
  * Describe a loaded glTF in engine terms.
  *
- * Node transforms are read as authored — LOCAL translation and rotation, not
+ * Node transforms are read as authored - LOCAL translation and rotation, not
  * world. Every generated component is a flat scene, and a nested snap would have
  * its position silently misread, so nesting is refused rather than flattened.
  */
@@ -22,13 +78,18 @@ export function describeGltf(gltf, name) {
   const scene = gltf.scene || gltf.scenes?.[0];
   if (!scene) throw new Error('This file contains no scene.');
 
+  // parser.json is the raw glTF document. Present for anything GLTFLoader
+  // parsed; the fallback keeps this working if a caller hands us a scene it
+  // built some other way.
+  const nameMap = buildNameMap(gltf.parser?.json);
+
   const nodes = [];
 
   for (const child of scene.children) {
     if (child.children?.length) {
       throw new Error(
         `Node "${child.name}" has children. Components must be a flat list of `
-        + 'objects — nesting would make snap positions ambiguous.',
+        + 'objects - nesting would make snap positions ambiguous.',
       );
     }
     if (!child.isMesh) continue;
@@ -36,16 +97,19 @@ export function describeGltf(gltf, name) {
     const geometry = child.geometry;
     geometry.computeBoundingBox();
     const box = geometry.boundingBox || new Box3();
-    const min = new Vector3(), max = new Vector3();
-    box.getCenter(new Vector3());
-    min.copy(box.min);
-    max.copy(box.max);
+    const min = new Vector3().copy(box.min);
+    const max = new Vector3().copy(box.max);
 
     const position = geometry.getAttribute('position');
     const index = geometry.getIndex();
 
     nodes.push({
-      name: child.name,
+      // The artist's name, recovered. Falls back to whatever three.js produced
+      // so a file with unnamed nodes still describes rather than throwing.
+      name: nameMap.get(child.name) ?? child.name,
+      // Kept so the renderer can find this object again - the spike toggles
+      // visibility by the sanitised name it actually sees in the scene graph.
+      threeName: child.name,
       translation: child.position.toArray(),
       // three.js quaternions serialise as [x, y, z, w], the same order glTF
       // uses for node.rotation, so this passes straight through.

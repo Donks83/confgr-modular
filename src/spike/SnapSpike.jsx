@@ -123,14 +123,21 @@ export default function SnapSpike() {
     let cancelled = false;
 
     (async () => {
-      if (!window.confgr) {
-        setStatus('Run this inside the desktop app — it needs file access.');
-        return;
-      }
+      // Everything here is wrapped, because an unhandled rejection in this
+      // block renders as an empty panel with no message at all. That cost a
+      // whole round trip on 3 Sep: three.js was mangling the snap node names,
+      // the promise rejected, and the UI just sat there looking finished.
+      // A failure must always be visible.
+      try {
+        if (!window.confgr) {
+          setStatus('Run this inside the desktop app — it needs file access.');
+          return;
+        }
 
-      const dir = await window.confgr.app.testAssetsDir();
-      const listed = await window.confgr.fs.listModels(dir);
-      if (!listed.ok) { setStatus(`Could not read test-assets: ${listed.error}`); return; }
+        const dir = await window.confgr.app.testAssetsDir();
+        const listed = await window.confgr.fs.listModels(dir);
+        if (!listed.ok) { setStatus(`Could not read ${dir}: ${listed.error}`); return; }
+        if (!listed.files.length) { setStatus(`No .glb files in ${dir}. Run: npm run test:assets`); return; }
 
       const loaded = new Map();
       const errors = [];
@@ -146,14 +153,19 @@ export default function SnapSpike() {
         }
       }
 
-      if (cancelled) return;
-      setComponents(loaded);
-      setLoadErrors(errors);
-      setStatus(
-        loaded.size
-          ? `${loaded.size} components ready. Click one to add it, then drag it near another.`
-          : 'No components loaded.',
-      );
+        if (cancelled) return;
+        setComponents(loaded);
+        setLoadErrors(errors);
+        setStatus(
+          loaded.size
+            ? `${loaded.size} components ready. Click one to add it, then drag it near another.`
+            : `No components loaded — all ${listed.files.length} files were rejected. See the list on the left.`,
+        );
+      } catch (err) {
+        if (cancelled) return;
+        setStatus(`Could not load components: ${err.message}`);
+        setLoadErrors([{ file: 'startup', message: err.stack || err.message }]);
+      }
     })();
 
     return () => { cancelled = true; };
