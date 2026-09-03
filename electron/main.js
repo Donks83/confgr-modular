@@ -104,6 +104,26 @@ function createWindow() {
     mainWindow.webContents.once('did-finish-load', () => {
       setTimeout(async () => {
         try {
+          // CONFGR_CLICK drives real clicks before capturing, so the
+          // raycast-to-attach path is exercised rather than assumed. Format:
+          // "marker:0,part:pouch-3x2,marker:20" — a script of steps.
+          if (process.env.CONFGR_CLICK) {
+            for (const step of process.env.CONFGR_CLICK.split(',')) {
+              const [kind, value] = step.split(':');
+              const js = kind === 'marker'
+                ? `window.__cfgClickMarker(${Number(value) || 0})`
+                : `(document.querySelector('.cfg-palette button strong')
+                     && [...document.querySelectorAll('.cfg-palette button')]
+                        .find((b) => b.textContent.startsWith(${JSON.stringify(value)}))
+                        ?.click(), 'clicked part ${value}')`;
+              // eslint-disable-next-line no-await-in-loop
+              const r = await mainWindow.webContents.executeJavaScript(js);
+              process.stdout.write(`[click] ${step} -> ${r}\n`);
+              // eslint-disable-next-line no-await-in-loop
+              await new Promise((r2) => setTimeout(r2, 900));
+            }
+          }
+
           // Read the WebGL buffer from inside the page first. capturePage()
           // returns an empty image on Windows when the window is not composited,
           // and a blank canvas in an OS screenshot cannot be told apart from a

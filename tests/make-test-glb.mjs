@@ -200,7 +200,20 @@ class GlbBuilder {
 
 // A snap spec is where it sits on the box and which way it looks. Positions are
 // given as fractions of the box so the same spec works at any width.
-function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = [], colour }) {
+// A small shared finish palette. Real finishes would be KHR_materials_variants
+// baked into the GLB; for the spike the option only needs to EXIST so that
+// per-instance selections can be proven, and the renderer tints by hex.
+const FINISHES = {
+  label: 'Finish',
+  values: [
+    { id: 'olive', label: 'Olive Drab', hex: '4a4b32' },
+    { id: 'coyote', label: 'Coyote', hex: '8a7350' },
+    { id: 'black', label: 'Black', hex: '26262a' },
+    { id: 'wolf', label: 'Wolf Grey', hex: '77787c' },
+  ],
+};
+
+function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = [], colour, options }) {
   const w = widthMm / 1000, h = heightMm / 1000, d = depthMm / 1000;
   const g = new GlbBuilder();
 
@@ -281,6 +294,7 @@ function buildComponent({ name, widthMm, heightMm, depthMm, snaps = [], grids = 
     confgr: { widthMm, heightMm, depthMm, unitScale: 'metres' },
     ...(Object.keys(gridDecls).length ? { confgrGrids: gridDecls } : {}),
     ...(Object.keys(spanDecls).length ? { confgrSpans: spanDecls } : {}),
+    ...(options ? { confgrOptions: options } : {}),
   });
 
   return { name, bytes, snaps: snaps.length, grids: grids.length };
@@ -381,6 +395,7 @@ const COMPONENTS = [
     name: 'molle-panel',
     widthMm: 280, heightMm: 330, depthMm: 40,
     colour: [0.28, 0.30, 0.24, 1],
+    options: { finish: FINISHES },
     grids: [
       {
         mask: 'pals', label: 'front',
@@ -394,6 +409,7 @@ const COMPONENTS = [
     name: 'pouch-2x3',
     widthMm: 76.2, heightMm: 76.2, depthMm: 60,
     colour: [0.42, 0.36, 0.24, 1],
+    options: { finish: FINISHES },
     snaps: [
       {
         mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',
@@ -408,6 +424,7 @@ const COMPONENTS = [
     name: 'pouch-3x2',
     widthMm: 114.3, heightMm: 50.8, depthMm: 50,
     colour: [0.55, 0.30, 0.20, 1],
+    options: { finish: FINISHES },
     snaps: [
       {
         mask: 'pals', label: 'mount', at: [0, 0, -0.5], facing: '-z',

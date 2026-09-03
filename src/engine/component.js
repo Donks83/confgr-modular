@@ -296,6 +296,33 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     );
   }
 
+  // ---- Options: choices that belong to an INSTANCE, not the product ------
+  // Every part carries its own finish. A military pack with eight pouches is
+  // eight instances, each independently coloured — which is why selections live
+  // on the instance (see createInstance) and the option DEFINITIONS live here.
+  // Atom Packs do exactly this: Left Panel, Centre Panel and Right Panel each
+  // get their own full palette.
+  const options = [];
+  const declaredOptions = desc.extras?.confgrOptions || {};
+
+  for (const [id, def] of Object.entries(declaredOptions)) {
+    if (!def?.values?.length) {
+      throw new ComponentError(
+        `Option "${id}" has no values. Remove it or give it at least one choice.`,
+        { code: 'OPTION_EMPTY', detail: { id } },
+      );
+    }
+    options.push({
+      id,
+      label: def.label || id,
+      // The first value is the default. Explicit rather than "whatever the
+      // renderer happens to show", so a configuration id always resolves to the
+      // same appearance — plan 7.6 rule 7.
+      defaultValueId: def.values[0].id,
+      values: def.values.map((v) => ({ id: v.id, label: v.label || v.id, hex: v.hex || null })),
+    });
+  }
+
   // ---- Rule 3: record mesh names so a test can pin them ------------------
   const meshNames = desc.nodes.map((n) => n.name).sort();
   const visibleNodes = desc.nodes.filter(
@@ -307,6 +334,7 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     dimsMm: { ...measured },
     snaps,
     grids,
+    options,
     meshNames,
     // ---- Rule 9: budget recorded now, enforced later --------------------
     triangleCount: visibleNodes.reduce((sum, n) => sum + (n.triangleCount || 0), 0),

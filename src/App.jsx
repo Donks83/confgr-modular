@@ -1,9 +1,8 @@
-// Phase 0 shows the spike and nothing else. Phase 1 replaces this with the
-// project screen / component editor shell, at which point the spike route
-// becomes a scratch tab rather than the whole app.
+// Phase 0 shows the configurator and nothing else. Phase 1 adds the project
+// screen and the component editor around it.
 import React from 'react';
-import SnapSpike from './spike/SnapSpike.jsx';
+import Configurator from './spike/Configurator.jsx';
 
 export default function App() {
-  return <SnapSpike />;
+  return <Configurator />;
 }
