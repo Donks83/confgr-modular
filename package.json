@@ -1,0 +1,49 @@
+{
+  "name": "confgr-modular",
+  "productName": "Confgr Modular",
+  "version": "0.1.0",
+  "description": "Modular 3D product configurator authoring tool",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron": "electron .",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "dist": "vite build && electron-builder",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:assets": "node tests/make-test-glb.mjs test-assets",
+    "verify": "vitest run"
+  },
+  "dependencies": {
+    "immer": "^10.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.183.0",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.9",
+    "electron-builder": "^24.13.3",
+    "jsdom": "^29.1.1",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.9",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "uk.confgr.modular",
+    "productName": "Confgr Modular",
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

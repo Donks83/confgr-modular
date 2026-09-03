@@ -1,0 +1,7 @@
+# confgr-studio is CRLF throughout and tooling that string-matches source
+# depends on it. Keep this repo consistent with that.
+* text=auto eol=crlf
+*.glb binary
+*.ktx2 binary
+*.png binary
+*.jpg binary
