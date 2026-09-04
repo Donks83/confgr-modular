@@ -19,6 +19,8 @@
     "youk:snap": "tools\\.venv-step\\Scripts\\python tools/add-snaps.py youk --spec youk/snap-spec.json",
     "youk:sheet": "tools\\.venv-step\\Scripts\\python tools/contact-sheet.py youk -o youk/contact-sheet.png",
     "youk:bay": "powershell -ExecutionPolicy Bypass -File tools/probe-bay.ps1",
+    "youk:catalogue": "node tools/make-catalogue.mjs youk",
+    "youk:prices:example": "node tools/make-example-prices.mjs",
     "measure": "tools\\.venv-step\\Scripts\\python tools/measure-part.py",
     "joint": "tools\\.venv-step\\Scripts\\python tools/check-joint.py",
     "joints": "powershell -ExecutionPolicy Bypass -File tools/check-joints.ps1",

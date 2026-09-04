@@ -477,6 +477,56 @@ deciding about before this is in front of a customer.
 
 ---
 
+## The commercial layer, and two supplier description errors
+
+`youk/catalogue.json` carries the article number, the supplier's own English
+description and the measured size for each of the 22 configurable parts, plus
+three price tiers — retailer, trade, retail. **Every price is `null`, and null
+means unknown, not free.** `src/engine/quote.js` refuses to treat a missing
+price as zero: the line reports `null`, the total says how much of the product
+it could price, and when *nothing* prices there is no total at all.
+
+That last rule came from running it. A seven-part bill of materials against the
+real (priceless) catalogue printed `Net (PARTIAL): GBP 0.00` — the exact failure
+the module exists to prevent, wearing a label. A zero is a price; the absence of
+every price is not, however carefully the heading is worded.
+
+Descriptions are derived from the STEP filenames rather than retyped, because
+retyping 22 article numbers into a document somebody quotes from is 22 chances
+to transpose a digit. Doing so surfaced two errors in Kesseböhmer's own
+filenames, both now overridden in the catalogue (`descriptionOverride`, which
+survives regeneration):
+
+| Article | Filename says | Actually |
+|---|---|---|
+| `236748` | "ladder depth **2000** mm" | 200 mm deep, 904.5 tall — and the German half agrees |
+| `236762` | English half: "height **1500** mm" | **2210 mm** — the German half says 2210 and so does the geometry |
+
+The second one matters commercially. `236758` and `236762` are different frames
+at different prices, and without the override **both appear on a quote as "YouK
+ladder depth 320 mm, height 1500 mm"**. Worth raising with Kesseböhmer: if their
+filenames feed anything downstream, that error is not confined to us.
+
+Splitting the filename at the first comma also silently dropped the frames'
+heights — four frames of different heights sharing one description — because
+some filenames carry two English segments before the German begins. Fixed, and
+the reason is in the code.
+
+### What is not modelled yet
+
+- **Consumables.** The instructions have the customer supply plugs and screws,
+  and the shelf and hook rail each want a 1.5 mm packer. None of that is a
+  configurable part, so none of it is in the bill of materials — a real quote
+  needs a line for it.
+- **A price list format.** The catalogue takes either an explicit
+  `priceEach: { tier: value }` — a real list, loaded verbatim — or `costEach`
+  plus the tier's markup. Explicit wins, because a markup is a stand-in for the
+  price list and stops being an authority the moment the real number arrives.
+- **Discounts, carriage, lead times, minimum order.** All quote-shaped concerns
+  that need somebody's commercial policy, not more code.
+
+---
+
 ## Still open
 
 1. **Which rungs may a span accessory use?** All of them, presumably — the rung

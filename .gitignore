@@ -21,4 +21,12 @@ youk/*.glb
 test-assets/[0-9][0-9][0-9][0-9][0-9][0-9]-*.glb
 youk/bay-run.txt
 youk/declare-log.txt
+youk/probe-out.txt
+
+# Invented prices, generated on demand by tools/make-example-prices.mjs for
+# demos. Deliberately NOT committed: fictional money in a repo is
+# indistinguishable from the real thing once nobody remembers which is which,
+# and regenerating it takes a second. youk/catalogue.json - the real one, with
+# its prices still null - IS committed.
+youk/catalogue.example.json
 youk/run.png

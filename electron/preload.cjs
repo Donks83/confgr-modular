@@ -22,5 +22,6 @@ contextBridge.exposeInMainWorld('confgr', {
   },
   app: {
     testAssetsDir: () => ipcRenderer.invoke('app:testAssetsDir'),
+    catalogue: () => ipcRenderer.invoke('app:catalogue'),
   },
 });

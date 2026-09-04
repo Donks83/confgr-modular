@@ -25,6 +25,7 @@ import {
   whyNothingFits, attachAt, detach, pointKey,
   canMove, moveTargets, moveTo,
 } from '../engine/attach.js';
+import { quote, formatQuote } from '../engine/quote.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -51,6 +52,13 @@ export default function Configurator() {
   const [showGuides, setShowGuides] = useState(false);
   const [status, setStatus] = useState('Loading components.');
   const [loadErrors, setLoadErrors] = useState([]);
+  // "priceBook", not "catalogue" - `catalogue` below already means the palette
+  // of loadable components, and two different catalogues in one file is how a
+  // quote ends up pricing the wrong list.
+  const [priceBook, setPriceBook] = useState(null);
+  const [priceBookError, setPriceBookError] = useState(null);
+  const [tierId, setTierId] = useState(null);
+  const [showQuote, setShowQuote] = useState(true);
 
   const catalogue = useMemo(() => [...components.keys()], [components]);
 
@@ -477,6 +485,42 @@ export default function Configurator() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // -------------------------------------------------------- load the prices
+  //
+  // Separate from the model load and allowed to fail on its own: a price list
+  // that is missing or malformed must not stop somebody configuring a product.
+  // The quote panel then says why it cannot price rather than showing zeroes.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!window.confgr?.app?.catalogue) return;
+      const res = await window.confgr.app.catalogue();
+      if (cancelled) return;
+      if (res.ok) {
+        setPriceBook(res.catalogue);
+        setTierId(res.catalogue.tiers?.[0]?.id || null);
+      } else {
+        setPriceBookError(`${res.error} (${res.path})`);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const priced = useMemo(
+    () => (priceBook ? quote(assembly, priceBook, { tierId }) : null),
+    [assembly, priceBook, tierId],
+  );
+
+  // The quote, for the verification harness. Same numbers the panel shows,
+  // rendered as text - so a probe can assert on a bill of materials without
+  // reading pixels, and a wrong quantity shows up as a wrong line rather than
+  // as a picture nobody checks.
+  useEffect(() => {
+    window.__cfgQuote = () => (priced
+      ? formatQuote(priced)
+      : `no price book loaded${priceBookError ? `: ${priceBookError}` : ''}`);
+  }, [priced, priceBookError]);
 
   // ------------------------------------------- rebuild the product from state
   useEffect(() => {
@@ -1073,6 +1117,88 @@ export default function Configurator() {
             {loadErrors.map((e) => <p key={e.file}><strong>{e.file}</strong><br />{e.message}</p>)}
           </div>
         )}
+
+        {/* The running total sticks to the bottom of the panel. A quoting tool
+            whose total is below the fold is a quoting tool where somebody
+            configures six parts and never sees what it costs - the palette is
+            long enough that the total was off screen entirely. */}
+        <div className="cfg-basket">
+        <h2>
+          Bill of materials
+          <button className="cfg-clear" onClick={() => setShowQuote(!showQuote)}>
+            {showQuote ? 'hide' : 'show'}
+          </button>
+        </h2>
+        {priceBookError && <p className="cfg-invalid">No price list: {priceBookError}</p>}
+        {showQuote && priced && (
+          <>
+            {priced.tier && (
+              <div className="cfg-option">
+                <label>Price for</label>
+                <select value={tierId || ''} onChange={(e) => setTierId(e.target.value)}>
+                  {priceBook.tiers.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name || t.id}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {priced.lineCount === 0 && <p className="cfg-note cfg-dim">Nothing configured yet.</p>}
+
+            {priced.lineCount > 0 && (
+              <table className="cfg-bom">
+                <tbody>
+                  {priced.lines.map((l) => (
+                    <tr key={l.componentId} className={l.lineTotal == null ? 'unpriced' : ''}>
+                      <td className="qty">{l.qty}</td>
+                      <td>
+                        {l.description}
+                        {l.article && <span className="cfg-meta"> {l.article}</span>}
+                      </td>
+                      {/* An unpriced line shows an em dash, never 0.00 - see
+                          src/engine/quote.js for why that is the whole point. */}
+                      <td className="num">{l.lineTotal == null ? '—' : l.lineTotal.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {priced.lineCount > 0 && (
+              <p className="cfg-note">
+                <strong>
+                  {/* No priced line at all means no total - not zero. */}
+                  {priced.net == null
+                    ? 'No prices on file yet'
+                    : `${priced.complete ? 'Net' : 'Net so far'}: ${priced.currency} ${priced.net.toFixed(2)}`}
+                </strong>
+                {priced.vat != null && (
+                  <>
+                    <br />VAT @ {priced.vatRatePercent}%: {priced.currency} {priced.vat.toFixed(2)}
+                    <br />Gross: {priced.currency} {priced.gross.toFixed(2)}
+                  </>
+                )}
+                {priced.margin != null && (
+                  <><br /><span className="cfg-meta">
+                    Margin {priced.currency} {priced.margin.toFixed(2)} ({priced.marginPercent}%)
+                  </span></>
+                )}
+              </p>
+            )}
+
+            {priced.unpriced.length > 0 && (
+              <p className="cfg-invalid">
+                Not a quote yet — {priced.unpriced.length} line
+                {priced.unpriced.length === 1 ? '' : 's'} with no price on file:
+                {' '}{priced.unpriced.map((u) => u.description).join(', ')}.
+              </p>
+            )}
+            {priced.priceList?.ref && (
+              <p className="cfg-note cfg-dim">Price list: {priced.priceList.ref}</p>
+            )}
+          </>
+        )}
+        </div>
       </aside>
 
       <div className="cfg-stage">

@@ -15,7 +15,16 @@
 # must be up before electron starts. concurrently -k also kills vite on exit -
 # a vite left listening on 5174 is what broke this twice.
 
-param([ValidateSet('bay', 'run')] [string]$Scenario = 'bay')
+param(
+  [ValidateSet('bay', 'run')] [string]$Scenario = 'bay',
+  # Price the bill of materials from the FICTIONAL example list, so a demo shows
+  # the maths working. Off by default: the real catalogue has no prices yet and
+  # the panel should say so rather than show invented ones.
+  [switch]$ExamplePrices,
+  # Capture the whole window rather than just the 3D canvas, so the bill of
+  # materials panel is in the picture too.
+  [switch]$WholeWindow
+)
 
 Set-Location (Join-Path $PSScriptRoot '..')
 
@@ -68,9 +77,22 @@ $clicks = @{
         'part:008547,marker:2,dump,part:008537,marker:9,dump'
   run = 'part:008563,marker:0,part:236758,marker:0,dump,' +
         'part:008563,marker:7,part:236758,marker:0,dump,' +
-        'part:008563,marker:3,part:008563,marker:10,dump,layout'
+        'part:008563,marker:3,part:008563,marker:10,dump,layout,quote'
 }
 $env:CONFGR_CLICK = $clicks[$Scenario]
+
+if ($ExamplePrices) {
+  # Generated on demand rather than committed. Invented prices in git are
+  # indistinguishable from real ones a year later, and this takes a second.
+  if (-not (Test-Path 'youk\catalogue.example.json')) { node tools/make-example-prices.mjs }
+  $env:CONFGR_CATALOGUE = (Join-Path (Get-Location) 'youk\catalogue.example.json')
+  "--- pricing from FICTIONAL example list: $($env:CONFGR_CATALOGUE) ---"
+} else {
+  Remove-Item Env:\CONFGR_CATALOGUE -ErrorAction SilentlyContinue
+}
+
+if ($WholeWindow) { $env:CONFGR_CAPTURE_WINDOW = '1' }
+else { Remove-Item Env:\CONFGR_CAPTURE_WINDOW -ErrorAction SilentlyContinue }
 
 "--- running ---"
 $out = & npx concurrently -k -s first "vite" "wait-on tcp:5174 && electron ." 2>&1 | Out-String

@@ -133,6 +133,55 @@ label {
   margin: 6px 0;
 }
 
+/* The running total, stuck to the bottom of the panel so it is never scrolled
+   out of sight. Opaque and top-bordered because the palette scrolls underneath
+   it, and a total with part names showing through is unreadable. */
+.cfg-basket {
+  position: sticky;
+  bottom: -14px;            /* cancels the panel's own bottom padding */
+  margin: 10px -14px -14px; /* full-bleed to the panel edges */
+  padding: 2px 14px 14px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  z-index: 1;
+}
+
+/* Bill of materials. Tabular numbers so the column of totals lines up on the
+   decimal point - a price column that jitters is a price column nobody trusts. */
+.cfg-bom {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-xs);
+  margin: 4px 0 8px;
+}
+.cfg-bom td {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.cfg-bom .qty { width: 2.2em; color: var(--text-dim); }
+.cfg-bom .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  padding-left: 8px;
+}
+/* An unpriced line is dimmed and its dash is amber, so a missing price reads as
+   a gap rather than as a small number. */
+.cfg-bom tr.unpriced td { color: var(--text-dim); }
+.cfg-bom tr.unpriced .num { color: var(--amber); }
+
+.cfg-option select {
+  width: 100%;
+  font: inherit;
+  font-size: var(--fs-xs);
+  padding: 4px 6px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
 .cfg-errors {
   margin-top: 14px;
   padding: 8px 10px;

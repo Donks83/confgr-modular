@@ -111,6 +111,7 @@ function createWindow() {
           //   drag:instanceId:N     drag that part onto marker N
           //   pan:X:Y:Z             shove the orbit target there, report the clamp
           //   layout                print every part's resolved world position
+          //   quote                 print the bill of materials and the totals
           //   dump                  print the status line and the counts
           // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
@@ -125,6 +126,8 @@ function createWindow() {
                     ? `window.__cfgPanCheck(${Number(rest[0])}, ${Number(rest[1])}, ${Number(rest[2])})`
                     : kind === 'layout'
                     ? 'window.__cfgLayout ? window.__cfgLayout() : "no layout dump"'
+                    : kind === 'quote'
+                    ? 'window.__cfgQuote ? window.__cfgQuote() : "no quote"'
                     : kind === 'dump'
                     ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
                          .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())
@@ -145,14 +148,28 @@ function createWindow() {
           // returns an empty image on Windows when the window is not composited,
           // and a blank canvas in an OS screenshot cannot be told apart from a
           // canvas that legitimately drew nothing.
-          const dataUrl = await mainWindow.webContents.executeJavaScript(
-            'window.__spikeCapture ? window.__spikeCapture() : null',
-          );
+          // CONFGR_CAPTURE_WINDOW captures the whole window instead, panel and
+          // all - the canvas readback shows the product but not the bill of
+          // materials beside it, and the panel is half of what there is to look
+          // at now. Still falls through to the readback if capturePage returns
+          // nothing, which it does when Windows has not composited the window.
+          const dataUrl = process.env.CONFGR_CAPTURE_WINDOW
+            ? null
+            : await mainWindow.webContents.executeJavaScript(
+              'window.__spikeCapture ? window.__spikeCapture() : null',
+            );
 
           if (dataUrl && dataUrl.length > 1000) {
             fs.writeFileSync(target, Buffer.from(dataUrl.split(',')[1], 'base64'));
             process.stdout.write(`[capture] canvas readback -> ${target}\n`);
           } else {
+            // Draw a fresh frame before the OS screenshot. capturePage takes
+            // whatever the compositor last got, which after a resize is a stale
+            // frame - the first whole-window capture showed the product half
+            // out of view purely because of that.
+            await mainWindow.webContents.executeJavaScript(
+              'window.__spikeRender && window.__spikeRender(), 1',
+            ).catch(() => {});
             const image = await mainWindow.webContents.capturePage();
             const png = image.toPNG();
             fs.writeFileSync(target, png);
@@ -288,6 +305,28 @@ ipcMain.handle('fs:listModels', (_e, dirPath) => {
 });
 
 ipcMain.handle('shell:showInFolder', (_e, p) => { shell.showItemInFolder(p); });
+
+// The commercial catalogue: article numbers, descriptions and prices. Read from
+// disk on request rather than bundled, because a price list changes on a
+// different schedule from the app and nobody should need a rebuild to correct a
+// price. A missing file is not an error worth crashing over - the configurator
+// still works, it just cannot quote, and it says so.
+ipcMain.handle('app:catalogue', () => {
+  // CONFGR_CATALOGUE points at a different price list. That exists so a demo or
+  // a probe can run against example numbers WITHOUT editing the real
+  // catalogue - the alternative is typing prices into the committed file and
+  // hoping to remember to take them out, which is how fictional money ends up
+  // in a repo looking exactly like the real thing.
+  const file = process.env.CONFGR_CATALOGUE
+    || (isDev
+      ? path.join(__dirname, '..', 'youk', 'catalogue.json')
+      : path.join(process.resourcesPath, 'catalogue.json'));
+  try {
+    return { ok: true, catalogue: JSON.parse(fs.readFileSync(file, 'utf8')), path: file };
+  } catch (err) {
+    return { ok: false, error: err.message, path: file };
+  }
+});
 
 // Where the bundled test components live, so the spike can load them without a
 // file dialog. In a packaged build they sit beside the app resources.
