@@ -26,6 +26,7 @@ import {
   canMove, moveTargets, moveTo,
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
+import { MOUNTING, arReadiness } from '../engine/ar.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -59,6 +60,11 @@ export default function Configurator() {
   const [priceBookError, setPriceBookError] = useState(null);
   const [tierId, setTierId] = useState(null);
   const [showQuote, setShowQuote] = useState(true);
+  // Floor-standing or wall-mounted. Two options and no height: every YouK frame
+  // is wall-fixed in reality, and the height it hangs at is chosen when the
+  // customer places it in AR, so a height here would be a number nothing reads.
+  // What this DOES decide is whether the AR handoff offers vertical surfaces.
+  const [mounting, setMounting] = useState(MOUNTING.FLOOR);
 
   const catalogue = useMemo(() => [...components.keys()], [components]);
 
@@ -168,7 +174,12 @@ export default function Configurator() {
     fill.position.set(-2, 1.5, -1.5);
     scene.add(fill);
 
-    scene.add(new THREE.GridHelper(4, 40, '#463c33', '#2c2721'));
+    // Ground: a grid to read scale from and a shadow catcher. Both are held on
+    // `three.current` because a wall-mounted product has no floor under it —
+    // leaving them visible draws a floor the product is not standing on, and
+    // the shadow lands somewhere the real thing would never cast one.
+    const grid = new THREE.GridHelper(4, 40, '#463c33', '#2c2721');
+    scene.add(grid);
 
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.ShadowMaterial({ opacity: 0.32 }));
     floor.rotation.x = -Math.PI / 2;
@@ -184,6 +195,7 @@ export default function Configurator() {
 
     three.current = {
       scene, camera, renderer, controls, productRoot, markerRoot, ghostRoot,
+      grid, floor,
       groups: new Map(),
       raycaster: new THREE.Raycaster(),
       pointer: new THREE.Vector2(),
@@ -511,6 +523,25 @@ export default function Configurator() {
     () => (priceBook ? quote(assembly, priceBook, { tierId }) : null),
     [assembly, priceBook, tierId],
   );
+
+  const ar = useMemo(
+    () => arReadiness(assembly, components, { mounting }),
+    [assembly, components, mounting],
+  );
+
+  // A floating product does not stand on anything. Drawing a grid and a cast
+  // shadow under it says otherwise, and that is the one thing the view is for:
+  // showing whether this thing reaches the floor. So the ground goes away when
+  // the mounting says wall. The lights keep casting; only the catcher is gone,
+  // which is what makes the shadow disappear rather than move.
+  useEffect(() => {
+    const ctx = three.current;
+    if (!ctx) return;
+    const grounded = mounting !== MOUNTING.WALL;
+    ctx.grid.visible = grounded;
+    ctx.floor.visible = grounded;
+    window.__spikeRender?.();
+  }, [mounting]);
 
   // The quote, for the verification harness. Same numbers the panel shows,
   // rendered as text - so a probe can assert on a bill of materials without
@@ -1105,6 +1136,29 @@ export default function Configurator() {
           </p>
         )}
         {resolveError && <p className="cfg-invalid">{resolveError}</p>}
+
+        <h2>Mounting</h2>
+        <div className="cfg-option">
+          {/* Two options, no height. The height a wall-mounted product hangs at
+              is chosen when the customer places it in AR, so asking for it here
+              would be asking for a number nothing downstream reads. */}
+          <select value={mounting} onChange={(e) => setMounting(e.target.value)}>
+            <option value={MOUNTING.FLOOR}>Floor standing</option>
+            <option value={MOUNTING.WALL}>Wall mounted</option>
+          </select>
+        </div>
+        {ar.parts > 0 && (
+          <p className="cfg-note cfg-dim">
+            {ar.triangles.toLocaleString()} triangles across {ar.parts} part
+            {ar.parts === 1 ? '' : 's'} · in AR this goes on{' '}
+            {ar.placement.vertical ? 'a wall' : 'the floor'}
+          </p>
+        )}
+        {ar.warnings
+          .filter((w) => w.code !== 'EMPTY')
+          .map((w) => (
+            <p key={w.code} className="cfg-invalid">{w.message}</p>
+          ))}
 
         <h2>View</h2>
         <label><input type="checkbox" checked={showMarkers} onChange={(e) => setShowMarkers(e.target.checked)} /> Attach markers</label>
