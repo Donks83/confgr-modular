@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount')] [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -78,6 +78,12 @@ $clicks = @{
   run = 'part:008563,marker:0,part:236758,marker:0,dump,' +
         'part:008563,marker:7,part:236758,marker:0,dump,' +
         'part:008563,marker:3,part:008563,marker:10,dump,layout,quote'
+  # Floor standing vs floating. Builds a two-part product, reads the ground out
+  # of the SCENE, drives the real dropdown, then reads it back. The `ground`
+  # step reports grid and shadow-catcher visibility from three.js rather than
+  # from React state, so a dropdown that changed and did nothing else shows up
+  # as grid=true after mount:wall instead of as a pass.
+  mount = 'part:008563,marker:0,ground,mount:wall,ground,mount:floor,ground'
 }
 $env:CONFGR_CLICK = $clicks[$Scenario]
 

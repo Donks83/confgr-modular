@@ -112,6 +112,8 @@ function createWindow() {
           //   pan:X:Y:Z             shove the orbit target there, report the clamp
           //   layout                print every part's resolved world position
           //   quote                 print the bill of materials and the totals
+          //   mount:floor|wall      drive the mounting dropdown for real
+          //   ground                print the ground and AR state FROM THE SCENE
           //   dump                  print the status line and the counts
           // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
@@ -128,6 +130,20 @@ function createWindow() {
                     ? 'window.__cfgLayout ? window.__cfgLayout() : "no layout dump"'
                     : kind === 'quote'
                     ? 'window.__cfgQuote ? window.__cfgQuote() : "no quote"'
+                    // Set the select's value and fire the event React listens
+                    // for, rather than calling setMounting - so this exercises
+                    // the same path a hand takes. `ground` then reads the scene
+                    // back, which is what makes a no-op impossible to miss.
+                    : kind === 'mount'
+                    ? `(() => {
+                         const el = document.querySelector('.cfg-mounting');
+                         if (!el) return 'no mounting control';
+                         el.value = ${JSON.stringify(value)};
+                         el.dispatchEvent(new Event('change', { bubbles: true }));
+                         return 'mounting set to ' + el.value;
+                       })()`
+                    : kind === 'ground'
+                    ? 'window.__cfgGround ? window.__cfgGround() : "no ground dump"'
                     : kind === 'dump'
                     ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
                          .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())

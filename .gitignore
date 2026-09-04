@@ -30,3 +30,13 @@ youk/probe-out.txt
 # its prices still null - IS committed.
 youk/catalogue.example.json
 youk/run.png
+
+# Scratch file for `git commit -F`. Nested PowerShell quoting eats backticks,
+# `<` and `$env:`, so commit messages are written to a file rather than passed
+# on a command line. The file is a means, not a record - git has the message.
+.commitmsg
+
+# The whole-window capture (-WholeWindow) returns 0 bytes on this machine when
+# the window is not composited. The mount scenario proves itself from the scene
+# readback instead, so its capture is not evidence and is not committed.
+youk/mount.png

@@ -543,6 +543,19 @@ export default function Configurator() {
     window.__spikeRender?.();
   }, [mounting]);
 
+  // For the harness. Reports the ground out of the SCENE, not out of React
+  // state, so a `mount:wall` step that changed the dropdown and nothing else
+  // reports the grid still visible rather than reporting success.
+  useEffect(() => {
+    window.__cfgGround = () => {
+      const ctx = three.current;
+      if (!ctx) return 'no scene';
+      return `mounting=${mounting} grid=${ctx.grid.visible} floor=${ctx.floor.visible} `
+        + `ar=${ar.placement.vertical ? 'wall' : 'floor'} tris=${ar.triangles} `
+        + `ready=${ar.ready} warnings=[${ar.warnings.map((w) => w.code).join(' ')}]`;
+    };
+  }, [mounting, ar]);
+
   // The quote, for the verification harness. Same numbers the panel shows,
   // rendered as text - so a probe can assert on a bill of materials without
   // reading pixels, and a wrong quantity shows up as a wrong line rather than
@@ -1142,7 +1155,7 @@ export default function Configurator() {
           {/* Two options, no height. The height a wall-mounted product hangs at
               is chosen when the customer places it in AR, so asking for it here
               would be asking for a number nothing downstream reads. */}
-          <select value={mounting} onChange={(e) => setMounting(e.target.value)}>
+          <select className="cfg-mounting" value={mounting} onChange={(e) => setMounting(e.target.value)}>
             <option value={MOUNTING.FLOOR}>Floor standing</option>
             <option value={MOUNTING.WALL}>Wall mounted</option>
           </select>
