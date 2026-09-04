@@ -208,8 +208,10 @@ configuration, no QR handoff, no landing route. §4.5 is the plan.
 The thing that has caught the most mistakes. `CONFGR_CLICK` drives real pointer
 events through the same raycast path a hand takes, then the app reports on
 itself: `dump` (status line), `layout` (every part's resolved world position),
-`quote` (the bill of materials as text), `pan`, `drag`. Plus `tools/probe-bay.ps1`
-(`-Scenario bay|run`) and `tools/check-joints.ps1`.
+`quote` (the bill of materials as text), `mount:floor|wall` (drives the real
+dropdown), `ground` (grid, shadow catcher and AR state read **out of three.js**,
+not out of React), `pan`, `drag`. Plus `tools/probe-bay.ps1`
+(`-Scenario bay|run|mount`) and `tools/check-joints.ps1`.
 
 The design rule: **it must not be able to report success without having done the
 thing.** An earlier version pressed a part's centre, hit a marker on that ray,
