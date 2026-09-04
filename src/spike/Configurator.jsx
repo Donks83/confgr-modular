@@ -536,6 +536,33 @@ export default function Configurator() {
       });
     }
 
+    // Where everything actually ENDED UP. A screenshot cannot answer this: one
+    // perspective view of a run of frames cannot tell you whether they are
+    // evenly spaced and colinear, and a chain that resolves slightly wrong
+    // compounds down the run rather than looking obviously broken. So report
+    // the resolved world positions and let the numbers say it.
+    //
+    // Registered here rather than beside the other harness globals because
+    // this is the effect that holds the assembly and the resolved transforms.
+    // It is re-assigned on every rebuild, which is what keeps it honest.
+    window.__cfgLayout = () => {
+      ctx.productRoot.updateMatrixWorld(true);
+      const rows = assembly.instances.map((instance) => {
+        const group = ctx.groups.get(instance.instanceId);
+        if (!group) return `${instance.instanceId} ${instance.componentId} NOT IN SCENE`;
+        const p = new THREE.Vector3();
+        group.getWorldPosition(p);
+        const mm = (v) => (v * 1000).toFixed(1);
+        return `${instance.instanceId} ${instance.componentId} `
+          + `@ ${mm(p.x)},${mm(p.y)},${mm(p.z)}`;
+      });
+      const conns = (assembly.connections || []).map(
+        (c) => `${c.fromInstanceId}:${c.fromSnapId} -> ${c.toInstanceId}:${c.toSnapId}`,
+      );
+      return `${rows.length} instances\n${rows.join('\n')}\n`
+        + `${conns.length} connections\n${conns.join('\n')}`;
+    };
+
     // ---- camera: the leash always, the framing only on a shape change -----
     //
     // Two different jobs that both need the product's bounds. The leash is

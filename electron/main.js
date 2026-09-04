@@ -110,6 +110,7 @@ function createWindow() {
           //   part:NAME             click a palette entry
           //   drag:instanceId:N     drag that part onto marker N
           //   pan:X:Y:Z             shove the orbit target there, report the clamp
+          //   layout                print every part's resolved world position
           //   dump                  print the status line and the counts
           // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
@@ -122,6 +123,8 @@ function createWindow() {
                   ? `window.__cfgDragToMarker(${JSON.stringify(value)}, ${Number(rest[1]) || 0})`
                   : kind === 'pan'
                     ? `window.__cfgPanCheck(${Number(rest[0])}, ${Number(rest[1])}, ${Number(rest[2])})`
+                    : kind === 'layout'
+                    ? 'window.__cfgLayout ? window.__cfgLayout() : "no layout dump"'
                     : kind === 'dump'
                     ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
                          .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())

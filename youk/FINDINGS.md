@@ -435,6 +435,48 @@ of CAD with their length already along Z.
 
 ---
 
+## A multi-bay run needs no new engine work
+
+A real YouK installation is several bays side by side, and that was the next
+thing I expected to have to build. It already works: the chain that makes one
+bay makes three, because each frame after the first arrives through the shelf
+that precedes it.
+
+`npm run youk:bay -- -Scenario run` builds `frame → shelf → frame → shelf →
+frame` plus two more shelves, and the app's own layout dump gives:
+
+```
+i1 frame  @    0.0,    0.0, 0.0
+i2 shelf  @  460.1,  100.0, 0.0
+i3 frame  @  920.1,    0.0, 0.0
+i4 shelf  @ 1380.2,  100.0, 0.0
+i5 frame  @ 1840.2,    0.0, 0.0
+i6 shelf  @  460.1,  810.0, 0.0
+i7 shelf  @  460.1, 1405.0, 0.0
+```
+
+1840.2 is exactly 2 × 920.1, every part is on `y = 0`'s plane and `z = 0`. **No
+drift.** That is the thing worth checking about a chain — a resolve that is
+slightly wrong compounds along the run rather than looking obviously broken, and
+one perspective screenshot cannot tell you either way. It was a screenshot that
+made this run look uneven when it was not.
+
+`window.__cfgLayout()` and the harness's `layout` step exist for that reason:
+they report where every part actually ended up, from the scene graph, after
+`updateMatrixWorld`. Cheaper and far more conclusive than looking.
+
+### One thing the run exposes
+
+Shelves `i6` and `i7` are connected to the first frame only. Their far ends land
+at 920.1, exactly where the second frame is, so they *look* joined — but the
+connection graph is a tree and the second attachment is not recorded. The bill
+of materials is right and so is the geometry; what is wrong is that deleting the
+middle frame would leave two shelves floating. That is the documented
+first-path-wins behaviour of `resolveTransforms`, not a new bug, and it is worth
+deciding about before this is in front of a customer.
+
+---
+
 ## Still open
 
 1. **Which rungs may a span accessory use?** All of them, presumably — the rung
@@ -456,6 +498,10 @@ of CAD with their length already along Z.
    builds a two-bay run from two tubes sharing a middle bracket, and these parts
    carry a bracket at one end only. That is an accessory-to-accessory joint —
    a pattern the engine has not been asked for yet, not just another spec row.
+7. **Should a span accessory record BOTH of its ends?** See the run above: a
+   shelf added to an existing bay lands perfectly against the far frame but is
+   connected only to the near one. Recording both would make the graph a cycle,
+   which `resolveTransforms` deliberately does not do.
 
 None of these blocks what is built. All 45 parts convert cleanly and none exceeds
 40,000 triangles; 22 of them — six frames, four shelves, three clothes rails and

@@ -15,6 +15,8 @@
 # must be up before electron starts. concurrently -k also kills vite on exit -
 # a vite left listening on 5174 is what broke this twice.
 
+param([ValidateSet('bay', 'run')] [string]$Scenario = 'bay')
+
 Set-Location (Join-Path $PSScriptRoot '..')
 
 # Clear a stale vite first, otherwise the run fails on the port rather than on
@@ -40,8 +42,8 @@ foreach ($id in $ids) {
 }
 
 $env:CONFGR_DEMO = '236758-ladder-depth-320mm'
-$env:CONFGR_CAPTURE = (Join-Path (Get-Location) 'youk\bay.png')
-$env:CONFGR_CAPTURE_DELAY = '9000'
+$env:CONFGR_CAPTURE = (Join-Path (Get-Location) "youk\$Scenario.png")
+$env:CONFGR_CAPTURE_DELAY = '11000'
 # Shelf onto the anchored frame, a second frame onto the shelf's far plug, then
 # a tray and a hook strip hung on whatever rung faces are still free. After the
 # second frame the app should report 3 parts, 2 joints, 14 open points - 7
@@ -53,14 +55,30 @@ $env:CONFGR_CAPTURE_DELAY = '9000'
 #     and its far plug dangles into open space. Correct behaviour, poor picture.
 #   - the tray hangs 158.5mm below its hook, so on rung 1 it ends up through the
 #     floor. Also correct, also a poor picture.
-$env:CONFGR_CLICK = 'dump,part:008563,marker:0,dump,part:236758,marker:0,dump,' +
-                    'part:008531,marker:3,dump,part:008543,marker:5,dump,' +
-                    'part:008547,marker:2,dump,part:008537,marker:9,dump'
+#
+# The "run" scenario is the other question: a real YouK installation is several
+# bays side by side, and the chain that makes one bay should make three without
+# any new engine work. frame -> shelf -> frame -> shelf -> frame, then a shelf
+# on the upper rungs of each bay. If the chain is right the frames come out
+# evenly spaced and every shelf lands level; if it is not, the error compounds
+# down the run and is obvious.
+$clicks = @{
+  bay = 'dump,part:008563,marker:0,dump,part:236758,marker:0,dump,' +
+        'part:008531,marker:3,dump,part:008543,marker:5,dump,' +
+        'part:008547,marker:2,dump,part:008537,marker:9,dump'
+  run = 'part:008563,marker:0,part:236758,marker:0,dump,' +
+        'part:008563,marker:7,part:236758,marker:0,dump,' +
+        'part:008563,marker:3,part:008563,marker:10,dump,layout'
+}
+$env:CONFGR_CLICK = $clicks[$Scenario]
 
 "--- running ---"
 $out = & npx concurrently -k -s first "vite" "wait-on tcp:5174 && electron ." 2>&1 | Out-String
 $out | Out-File (Join-Path (Get-Location) 'youk\bay-run.txt') -Encoding utf8
 
-$out -split "`r?`n" | Where-Object { $_ -match '\[click\]|\[capture\]|\[renderer:error|ERROR|refus|blocked' } |
-  Select-Object -First 60
+# The layout dump is multi-line, so its continuation lines carry no [click]
+# prefix - match them too or the only interesting output gets filtered away.
+$out -split "`r?`n" |
+  Where-Object { $_ -match '\[click\]|\[capture\]|\[renderer:error|ERROR|refus|blocked|@ -?\d|instances$|connections$' } |
+  Select-Object -First 80
 "--- full log: youk\bay-run.txt ---"
