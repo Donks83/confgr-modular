@@ -1,10 +1,10 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 4 September 2026, end of session 3. State verified against the
-code at commit `e066c08`, not from memory.
+**Last updated:** 4 September 2026, end of session 4. State verified against the
+code at commit `b154c39`, not from memory.
 
-**Code:** `C:\Claude\confgr-modular` — git, 15 commits, **local only, no remote.**
-**Tests:** 190 passing (`npm test`).
+**Code:** `C:\Claude\confgr-modular` — git, 17 commits, **local only, no remote.**
+**Tests:** 201 passing (`npm test`).
 
 **Related documents**
 
@@ -14,6 +14,43 @@ code at commit `e066c08`, not from memory.
 | `C:\Claude\confgr-studio\configurator-studio-project.md` | confgr Studio V2 — the sibling product this borrows from, and the thing it must reach parity with on export. |
 | `youk/FINDINGS.md` | Everything measured from Kesseböhmer's YouK range. The most detailed document in the project. |
 | `tools/AUTHORING.md` | How a supplier's CAD file becomes a component. |
+
+---
+
+## 0. How to run it
+
+```
+cd C:\Claude\confgr-modular
+npm install          # first time only
+npm run electron:dev
+```
+
+That is the app. It opens a window with the palette on the left, the 3D view in
+the middle, the mounting and view controls on the right and the bill of materials
+in a sticky footer. Click a part in the palette, then click a marker in the view
+to attach it.
+
+**Why it needs two processes.** `electron:dev` is
+`concurrently -k "vite" "wait-on tcp:5174 && electron ."`. `electron/main.js`
+loads `localhost:5174` whenever the app is unpackaged, so Vite has to be up
+first — that is what `wait-on` is for. If it fails with **port 5174 already in
+use**, a Vite from an earlier run is still alive; kill it (`Get-Process node`) or
+run `npm run youk:bay`, which kills a stale one for you.
+
+**Other useful entry points**
+
+| Command | What it does |
+|---|---|
+| `npm test` | 201 unit tests, ~4 s. Run this before believing anything. |
+| `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
+| `npm run inspect youk` | What still blocks each of the 45 YouK parts from being a component. |
+| `npm run joints` | Re-derives every verified joint from the GLBs, independently of the engine. |
+
+**Prices are deliberately blank.** `youk/catalogue.json` ships with every price
+`null` and the app shows `Net (PARTIAL)` rather than a total. To see the quote
+panel with numbers in it, `npm run youk:prices:example` generates a **fictional**
+price list (gitignored, never committed) and the app picks it up. Do not quote
+anyone from it.
 
 ---
 
@@ -30,20 +67,60 @@ It is deliberately a different application from confgr Studio, not a mode inside
 it. Studio composites rendered images; this renders real geometry. The line, and
 what gets copied rather than shared, is set out in §3.2 of the plan.
 
-The first real product in it is **Kesseböhmer's YouK shelving range** — 45
-supplier CAD files, of which 22 are now configurable components. Kesseböhmer is a
-partnership prospect, not a PWS channel.
+The **benchmark project** is **Kesseböhmer's YouK shelving range** — 45 supplier
+CAD files, of which 22 are now configurable components. It is the development
+driver, not the deliverable: it is what proves the application can take a real
+range from supplier CAD to a priced configurator. Kesseböhmer is a partnership
+prospect, not a PWS channel. See §2.
 
 ## 2. End Goals
 
-1. A configurator a customer can use on **Kesseböhmer's own website**, embedded,
-   with more than one on a page.
-2. A **quote** out of the far end — parts list, article numbers, tier pricing,
-   PDF.
-3. **"View in your room"** — AR on a phone, QR handoff from desktop.
-4. The authoring side usable by **somebody who is not the developer**: import a
-   model, mark the attach points, set the rules, without a command line.
-5. Enough of a demo to put in front of Kesseböhmer.
+**The product is the application.** confgr Modular is a tool for building
+modular 3D product configurators — one we use on many client projects, the same
+way confgr Studio is used. **YouK is the benchmark project, not the goal.**
+Kesseböhmer's range is here because it is a real, awkward, 45-file product range
+that forces the application to be genuinely capable — exactly the role Threadworks
+played for confgr Studio. Everything YouK teaches gets generalised into the
+application. Nothing gets hard-coded for Kesseböhmer.
+
+The test of every feature is therefore: *does this work for the next client's
+product, or only for this one?*
+
+**The goals, in order:**
+
+1. **Author a configurator without touching a command line.** Import models,
+   mark the attach points, set the rules, price it. Usable by somebody who is not
+   the developer. This is the application.
+2. **Export a self-contained configurator** the client hosts themselves —
+   embeddable in their own website, and correct when there is **more than one on
+   a page** (see below).
+3. **A quote out of the far end** — parts list, article numbers, tier pricing, PDF.
+4. **"View in your room"** — AR on a phone, QR handoff from desktop, and the whole
+   thing usable on a phone in the first place (§4.5).
+5. **Parity with confgr Studio V2 on the export path**, so a modular project is
+   delivered to a client the same way a Studio project is.
+6. **A YouK demo good enough to put in front of Kesseböhmer** — the proof, and the
+   thing that pays for the rest.
+
+### What "more than one on a page" means
+
+Two independent configurators embedded on the same web page — say a 200mm-deep
+range and a 320mm-deep range side by side on one product page, each with its own
+state, its own basket, its own camera. Click a shelf in one and nothing happens in
+the other.
+
+It sounds trivial and is not: it is only true if the exported viewer keeps **all**
+its state per instance. The moment anything lives in a module-level variable, a
+global, a fixed DOM id, a shared canvas, or `window.__something`, the second
+instance either fights the first or silently drives it. **Mimeeq cannot do this** —
+their embed's state is global — which is why it is worth writing down. It is a
+quality bar on how the export is built, not a feature bullet, and it has to be
+designed in from the first line of the viewer rather than fixed afterwards.
+
+Note the implication for the harness: `window.__cfgQuote` / `window.__cfgLayout`
+in the spike are exactly the pattern the exported viewer must not use. They are
+fine in the editor, which is one instance by definition. They do not go into the
+viewer bundle.
 
 ## 3. Where We Are — Current State (verified against code, 4 September 2026)
 
@@ -51,7 +128,7 @@ Read this section as: **the engine is real, the product around it is not.**
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 6 modules, no UI dependencies, 190 tests across the project.
+`src/engine/` — 8 modules, no UI dependencies, 201 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -102,7 +179,31 @@ from a 138,000-triangle worst case), 22 load as components with no blocker.
 - A bill-of-materials panel stuck to the bottom of the sidebar, with a tier
   selector, VAT and margin. 24 tests on the pricing module alone.
 
-### 3.4 The verification harness — built, and load-bearing
+### 3.4 AR readiness and mounting — the engine half is built, the AR itself is not
+
+`src/engine/ar.js`, 11 tests. What exists:
+
+- **`MOUNTING = { FLOOR, WALL }`** — the whole mounting model, per Matt's
+  simplification. Floor standing or floating. **No height anywhere**, because the
+  real height is chosen in AR by the person holding the phone (§5.1).
+- **`placementFor(mounting)`** — turns that into what each platform needs:
+  horizontal or vertical placement, and Android Scene Viewer's
+  `enable_vertical_placement` flag.
+- **`arReadiness(assembly, components, { mounting, bytes })`** — asks one
+  question: could this configuration go into AR as it stands? Checked at
+  **assembly level, not per part**, which is the point: every one of the 45 YouK
+  parts is under 40,000 triangles and a plausible three-YouboXx configuration
+  still clears Scene Viewer's 100,000 maximum. A per-part budget cannot see that.
+  `ready` is false only on a hard maximum; over the *ideal* is a warning, because
+  a warning that fires on everything gets ignored.
+- **The viewer hides the floor grid and the shadow catcher when mounting is
+  `WALL`** — a floating unit standing on a drawn floor contradicts the one thing
+  the view exists to show.
+
+What does **not** exist: any actual AR. No USDZ, no GLB export of a
+configuration, no QR handoff, no landing route. §4.5 is the plan.
+
+### 3.5 The verification harness — built, and load-bearing
 
 The thing that has caught the most mistakes. `CONFGR_CLICK` drives real pointer
 events through the same raycast path a hand takes, then the app reports on
@@ -114,7 +215,7 @@ The design rule: **it must not be able to report success without having done the
 thing.** An earlier version pressed a part's centre, hit a marker on that ray,
 *added* a part and reported "dragged".
 
-### 3.5 What is NOT built — plainly
+### 3.6 What is NOT built — plainly
 
 This is the honest half of the document.
 
@@ -124,20 +225,21 @@ This is the honest half of the document.
 | **Import a model through the UI** | **Nothing.** CLI only. See §4.2. |
 | **A snap editor** | Nothing. Snaps come from a hand-authored spec file plus a Python script. |
 | **Branding / theming** | Nothing. Studio's `accentColor` / `logo` / `font` are not ported. |
-| **Save and load a project** | IPC handlers exist; no UI calls them (§3.6). |
+| **Save and load a project** | IPC handlers exist; no UI calls them (§3.7). |
 | **A shareable configuration ID** | Nothing — and the plan says build this in week one. |
 | **PDF / tear sheet** | Nothing. |
-| **AR / "view in your room" / QR** | Nothing. The nine AR-safe rules are being *honoured* in the asset pipeline, which was the point, but no AR exists. |
+| **AR / "view in your room" / QR** | **Readiness checks only** (§3.4). No USDZ, no GLB export of a configuration, no QR, no landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
+| **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
 | **Rules and conditions engine** | Nothing. Masks and roles only. No "if X then Y", no auto-inserted connector parts. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
-| **Wall mounting / mount height** | Nothing. The anchor sits on the floor at y=0. See §5.1. |
+| **Wall mounting** | **Decided and half-built.** Floor / floating is chosen and drives the view and the AR flags (§3.4, §5.1). No wall bracket geometry, no wall entity. |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Fifteen commits of work exist on one machine.
+There is also **no git remote.** Seventeen commits of work exist on one machine.
 That is the single cheapest risk on this list to retire.
 
-### 3.6 Plumbing wired in main, with no UI
+### 3.7 Plumbing wired in main, with no UI
 
 `electron/main.js` and `preload.cjs` expose these; nothing in the renderer calls
 them: `projects.list/load/save/delete`, `dialog.openModels`, `dialog.openFolder`,
@@ -149,7 +251,7 @@ The renderer uses exactly three: `app.testAssetsDir`, `fs.listModels`,
 
 ---
 
-## 4. The Four Questions, Answered Plainly
+## 4. The Questions, Answered Plainly
 
 ### 4.1 Can it export a configurator to send to a client, such as Kesseböhmer?
 
@@ -225,6 +327,55 @@ and `check-joint` are the analysis a snap editor would wrap in a UI, and
 `inspect-model` already produces exactly the error list an importer needs to
 show.
 
+#### 4.2a On future projects: is it "mark it up in Blender, save it to a library folder"?
+
+**Yes — that is the intended route, and most of it already exists.** The
+distinction that matters is **who authored the model**:
+
+**Models we author (Blender, or a modeller we brief).** The convention *is* the
+import format. Nothing extra to learn beyond three naming rules:
+
+| Add in Blender | Named | Means |
+|---|---|---|
+| A flat 4-vertex plane | `md-snap.<mask>.<label>` | An attach point. Local **+Z is the facing** — the direction the joint faces. Masks must match exactly for two snaps to join, so a mask is a compatibility family: `youk-d320`, `pals-webbing`. |
+| A cube | `col-<name>` | Collision volume. Not yet consumed by anything, but author it now — the alternative is going back through every model later. |
+| A cube | `dim` | The part's real-world extent, for the size check. |
+
+Then export GLB and drop it in the library folder. The app scans a folder for
+`.glb` at startup, loads what it can, and lists what it refused with the reason —
+`inspect-model` produces that list and it is genuinely good. **That is the whole
+loop, and it works today.**
+
+**The one gap, precisely.** Three things live in the glTF **scene extras**, not in
+node names, and Blender's exporter will not write them: the real-world size
+(`component.js` throws `NO_DECLARED_SIZE` without it), `confgrRoles` (the
+socket/plug map) and `confgrSpans` (multi-cell grid snaps). Hence
+`tools/declare.mjs`. Two ways to close it:
+
+- **Move roles into the snap name** — `md-snap.youk-d320.socket-rung3` — and
+  derive the size from the `dim` cube. Then a plain Blender export is a complete
+  component and `declare` disappears entirely. This is the right answer, it is a
+  small change to `component.js`, and it should happen before the next range.
+  Spans can stay in extras: they are a number pair and only grids use them.
+- Or keep `declare` and give it a UI. Worse — a second step somebody will forget,
+  and the failure is silent until import refuses the file.
+
+**Models a supplier sends (STEP/IGES, like YouK).** These arrive with no snaps,
+no collision boxes, wrong units, wrong axes and 138,000 triangles. There is no
+convention to follow because nobody followed one. That is the case the **snap
+editor** exists for, and it is why §4.2 calls it the whole of Phase 1. On YouK
+the conversion was mechanical and repeatable; *deciding where two parts join* took
+most of two sessions and a set of mounting instructions.
+
+**So the library folder answer, properly stated:** the folder is how a component
+gets *into* the app, and it works. Blender markup is how a model we control
+declares its joints, and it works. What is missing is (a) removing the `declare`
+step, and (b) the snap editor for models that arrive without markup — plus the
+library folder becoming a real, organised, multi-project asset store rather than
+one flat `test-assets/` directory. That last part is **Studio's Asset Vault**
+(SHA-256 content-addressed, `vault:<id>` references, import once and reuse
+anywhere) extended to GLB, which is already on the Phase 1 list.
+
 ### 4.3 Can I change the user interface of the exported deliverable?
 
 **Not applicable yet — nothing is exported.** When it is, the answer should be
@@ -264,12 +415,109 @@ output at all. The gap, feature for feature:
 | WCAG 2.1 AA runtime contract, tested | **Nothing** — no runtime to hold the contract |
 | Shareable URL state | **Nothing** |
 | Analytics + lead capture (the only two network calls in an export) | **Nothing** |
-| 972 unit tests, 306 Playwright e2e | 190 unit tests, no e2e — but a real click-driven harness |
+| 972 unit tests, 306 Playwright e2e | 201 unit tests, no e2e — but a real click-driven harness |
 
 **The one place confgr Modular is ahead:** money. Studio's settings drawer had
 `pdfExport` and `pngExport` as placebo keys that were deleted. confgr Modular has
 a real bill of materials, real tier pricing and 24 tests on it — the plan put
 that in Phase 3, 2027 H2.
+
+### 4.5 AR, mobile, and "a responsive web app *and* a mobile app?"
+
+Three separate questions that get bundled together. Taking them apart:
+
+#### The platform facts, checked rather than recalled
+
+| | Apple — AR Quick Look | Android — Scene Viewer |
+|---|---|---|
+| Format | USDZ | glTF 2.0 / GLB |
+| Wall (vertical) placement | **Supported since iOS 13.** WWDC19 session 612 announced it explicitly. | **Opt-in**: `enable_vertical_placement`, which **defaults to false**. Reports of it being unreliable in practice. |
+| Size | Practical rather than published | **10 MB recommended, 15 MB hard limit** |
+| Triangles | — | **30–50k ideal, 100k recommended maximum** |
+| Materials / textures | — | 10 materials, 2048×2048 |
+| How it launches | `<a rel="ar">` around an `<img>` | `intent://` or `https://arvr.google.com/scene-viewer/…` |
+
+**WebXR is not the route.** It is Android-Chrome only; on iOS it does not exist.
+The native viewers are what actually reaches customers, which means **two model
+formats per configuration**, generated on demand, from the same headless resolve
+function as the PDF and the quote (§4.1 item 4 — this is the concrete reason that
+function has to exist).
+
+The consequence for the asset pipeline is already being honoured: every YouK part
+is under 40,000 triangles because of these numbers, not by accident.
+
+#### Mounting: floor standing or floating. No height.
+
+Matt's call, and it is the right one: *"it doesn't matter what height it is in the
+app — once you turn AR mode on you can put it at whatever height you want."*
+
+So the model is two values, `MOUNTING.FLOOR` and `MOUNTING.WALL`, and **no height
+control anywhere** — in the configurator or in the export. A height field would be
+a number nobody uses and everybody has to fill in, and it would be *wrong* the
+moment the customer holds the phone up to their actual wall. Built (§3.4).
+
+This also kills the "mount height on the anchor" design that was in §5.1 before
+this session. Good — it was more machinery for a worse answer.
+
+Wall mounting has one real cost, and it is Android's: because
+`enable_vertical_placement` defaults to false and is flaky, a floating
+configuration on Android may land on the floor. `arReadiness` raises
+`VERTICAL_PLACEMENT_REQUIRED` so that is a stated caveat rather than a surprise.
+The honest mitigation is copy — "hold your phone up to the wall" — plus letting
+the customer fall back to floor placement.
+
+#### "Responsive web app **and** a mobile app?" — Two answers, and only one is worth doing
+
+**The responsive web app: yes, and it is not optional.** AR *only* exists on a
+phone. A configurator that a customer builds on desktop and then views in AR is a
+handoff (QR code, shareable ID); a configurator a customer builds *on their phone
+in the room* is the actual use case. Both need the runtime to work on a phone.
+That means, concretely:
+
+- Touch: one-finger orbit, two-finger pinch/pan, tap to attach. The current
+  interaction is a raycast from a pointer event, which is already the right shape
+   — a tap is a pointer event. The harness drives it that way.
+- A layout that is not a fixed sidebar: parts palette as a bottom sheet, the bill
+  of materials collapsed to a total, the view getting the rest.
+- The performance budget is the same one AR imposes, so it is already being met.
+- Exit gate, already in the plan: **works on a mid-range Android phone.**
+
+**A native mobile app: no. Not now, probably not ever.** It buys almost nothing
+and costs a great deal:
+
+- AR is reached through the OS viewers from a *web page*. A native wrapper does
+  not unlock better AR; it just wraps the same handoff.
+- The deliverable is an **embed on the client's own website** (§2 goal 2).
+  Kesseböhmer's customers arrive from their product pages. Nobody installs an app
+  to buy a shelf.
+- Two app store review processes, two codebases or a React Native rewrite, and a
+  release cycle measured in days rather than minutes — against a client who wants
+  a URL.
+
+The version worth keeping in reserve is a **PWA**: the responsive web app plus a
+manifest and a service worker, so it is installable to a home screen and works
+offline. That is a day's work on top of the responsive runtime, needs no store,
+and is the honest answer to "can we have an app?" if a client ever asks. It is
+**not** a substitute for the responsive runtime — it is a thin layer over it, so
+the order is: responsive first, PWA if asked, native never unless somebody pays
+for it specifically.
+
+#### What AR actually requires, in order
+
+1. **The headless resolve function** — configuration ID → resolved assembly,
+   without the editor. Everything below depends on it. Already the plan's
+   week-one item and already late.
+2. **GLB export of a configuration** — merge the placed parts into one GLB.
+   `arReadiness` already says whether the result will be accepted.
+3. **USDZ conversion** — the open question is whether glTF **material variants
+   survive the conversion at all**. Test it early with one real gloss and one real
+   glazed material, as the plan says. If they do not, finishes need baking per
+   variant and the file count multiplies.
+4. **A hosted landing route** — `/ar?c=<id>` that sniffs the platform and serves
+   the right link with the right placement flag. This is the tension in §4.1:
+   the configurator can stay a static offline bundle, but AR needs one small
+   hosted route. **Decide it before building the exporter, not after.**
+5. **The QR handoff** on desktop, pointing at that route.
 
 ---
 
@@ -278,28 +526,36 @@ that in Phase 3, 2027 H2.
 Two of these came from Matt looking at Kesseböhmer's own photography, and both
 change the roadmap.
 
-### 5.1 Some YouK parts hang on the wall and never touch the floor
+### 5.1 Some YouK parts hang on the wall and never touch the floor — solved, and simpler than planned
 
-**Not supported today.** The anchor instance sits at `y = 0` and everything
-derives from it, so every assembly stands on the ground plane.
+**In reality every YouK frame is wall mounted:** `MA 405462` fixes each one with
+two brackets, holes 55 mm below the frame top. Whether it also reaches the floor
+is a styling choice, not a structural one.
 
-The plan's position is *"an attach point carries its own height. Parts never
-choose one, and there is no height control anywhere in the UI"* — and *"this is
-why a wall cabinet is never on the floor: it does not decide to be at 1400 mm, it
-attaches to a point that already is."* That reasoning is sound for a part hanging
-off a product. It does not cover **the root of the assembly itself being
-wall-mounted**, which is what YouK does: `MA 405462` wall-mounts every frame with
-two brackets, fixing holes 55 mm below the frame top.
+The engine assumed otherwise: the anchor sits at `y = 0`, so every assembly stood
+on the ground plane. The plan's position — *"an attach point carries its own
+height. Parts never choose one, and there is no height control anywhere in the
+UI"* — is sound for a part hanging off a product but says nothing about the root
+of the assembly being wall-mounted.
 
-The smallest honest change is a **mount height on the anchor** — one number,
-derived from a wall bracket's position rather than typed by a customer, that
-lifts the whole assembly. It is not a height control in the UI; it is a property
-of how that product mounts. The larger version is a wall entity with its own
-attach points, which is the same shape as the floor plane AR needs.
+**My first design was a "mount height on the anchor": one number, derived from the
+bracket position, lifting the whole assembly. Matt replaced it with something
+better:** two options — **floor standing or floating** — and *no height at all*,
+because the real height is chosen in AR by the person holding the phone against
+their own wall. Any number the configurator invented would be both unused and
+wrong.
 
-Also relevant, and already logged: a tray hung on rung 1 drops 158.5 mm and ends
-up through the floor. Once the assembly can float, "below the floor" stops being
-obviously wrong and needs a rule.
+That is what is built (§3.4): `MOUNTING = { FLOOR, WALL }`, driving the AR
+placement flags and hiding the floor grid and shadow when floating. No wall
+entity, no mount height, no height control — less machinery and a better answer.
+
+The lesson worth keeping: **a modelling problem that looks like it needs a number
+sometimes needs an enum.** I was about to add a dimension to the data model to
+represent something the customer decides later, in a different medium.
+
+Still open: a tray hung on rung 1 drops 158.5 mm and can end up below the floor.
+Floor standing still has a floor, so that rule is still needed — it just does not
+apply when floating.
 
 ### 5.2 Frames of different sizes, staggered, with shelves still spanning them
 
@@ -360,21 +616,48 @@ Rules authored in a table, not code.
 Corrections from experience:
 
 - **The snap editor is the whole phase, not a bullet.** §4.2 explains why.
-- **Add a mount-height / wall-mounting concept** (§5.1).
+- ~~Add a mount-height / wall-mounting concept~~ — **done, and smaller than
+  planned.** Floor / floating, no height (§5.1, §3.4).
+- **Move snap roles into the snap name and derive size from the `dim` cube**, so a
+  plain Blender export is a complete component and `tools/declare.mjs` goes away
+  (§4.2a). Small, and it should happen before the next range rather than after.
 - **Add the "which level?" choice** so staggering is reachable (§5.2).
 - **Collision boxes and overlap refusal** belong here. Every part already reports
   `NO_COLLISION_BOX`, and there is a concrete case: a tray on a middle frame's
   inner face cantilevers straight through a shelf and the app allows it.
 
-### Phase 2 — The runtime and the embed — **NOT STARTED**
+### Phase 2 — The runtime, the embed, mobile and AR — **NOT STARTED**
 
-Unchanged from the plan and the most commercially important phase: web component
-with instance-scoped state, folder bundle export, shareable ID, save/reload, AR,
-tear-sheet PDF. Exit gate: live on one real site, two configurators on a page,
-working on a mid-range Android phone.
+The most commercially important phase, and where AR and mobile live. In dependency
+order rather than wish order:
 
-One addition: **the offline-guarantee test.** Studio asserts it by blocking every
-outbound request and driving the tour. Copy that test, not just the exporter.
+1. **The headless resolve function** — configuration ID → resolved assembly with
+   no editor. The PDF, the AR export and any server render all call it. The plan
+   says week one; it is late; everything below waits on it.
+2. **A viewer split out of the editor**, built on `src/engine/*` (already UI-free,
+   which was the hard part) with **no editing affordances**.
+3. **Responsive and touch from the start**, not as a later pass — one-finger
+   orbit, pinch zoom, tap to attach, palette as a bottom sheet (§4.5). AR only
+   exists on a phone, so a desktop-only runtime cannot reach the AR goal at all.
+4. **The web component `<confgr-modular>`** with **all state per instance** so
+   more than one sits on a page (§2). True from the first line or not at all.
+5. **The folder bundle export**, copying Studio's `exportProject.js` shape —
+   *and* its offline-guarantee test, which blocks every outbound request and
+   drives the tour. Copy the test, not just the exporter.
+6. **AR:** GLB export of a configuration → USDZ conversion (test material
+   variants early) → the hosted `/ar?c=<id>` landing route → the QR handoff
+   (§4.5). `arReadiness` already gates whether a configuration will be accepted.
+7. **Save / reload, shareable URL state, tear-sheet PDF.**
+8. **PWA wrapper** — manifest and service worker — *only if a client asks for "an
+   app"*. **No native app** (§4.5).
+
+Exit gate: live on one real site, two independent configurators on one page, AR
+working on both iOS and Android, and the whole thing usable on a mid-range
+Android phone.
+
+**The decision that blocks item 5 and cannot be deferred past it:** a static
+offline bundle versus the hosted route AR needs (§4.1). Settle it before writing
+the exporter.
 
 ### Phase 3 — Money — **PARTLY DONE, ahead of schedule**
 
@@ -392,24 +675,72 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Fifteen commits on one machine.
+1. **A git remote.** Seventeen commits on one machine.
 2. **Their price list**, in whatever format they have it. Everything commercial
    is blocked on data, not code.
 3. **The "which level?" affordance** — small, and it unlocks the staggered
    layouts their own marketing photography shows.
-4. **A wall-mount height** — small, and without it half their range is
-   misrepresented.
-5. **The shareable configuration ID** — the plan says week one, and it is
-   already late. Cheap now, painful later.
-6. **A viewer split out of the editor**, then the bundle export. This is the big
-   one and everything client-facing waits on it.
-7. **Collision refusal**, before a customer builds something that cannot exist.
+4. ~~A wall-mount height~~ — **done**, and it turned out to be an enum rather
+   than a number (§5.1).
+5. **The shareable configuration ID / headless resolve** — the plan says week
+   one, and it is already late. Cheap now, painful later, and AR cannot start
+   without it.
+6. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
+   it changes what the exporter is.
+7. **A viewer split out of the editor** — responsive and touch from the start —
+   then the bundle export. This is the big one and everything client-facing waits
+   on it.
+8. **Collision refusal**, before a customer builds something that cannot exist.
 
-Items 1–5 are days. Item 6 is the project.
+Items 1–6 are days. Item 7 is the project.
+
+### And the critical path for the *application*, which is not the same list
+
+§2 says the product is the tool, not the YouK demo. The items that make the
+application reusable on the next client's range, rather than better at this one:
+
+1. **Snap roles in the snap name** — kills the `declare` step (§4.2a). Hours.
+2. **The library folder becoming a real asset store** — Studio's Asset Vault
+   extended to GLB. Import once, reuse across projects.
+3. **The snap editor** — the difference between a new range costing developer
+   sessions and costing product-manager hours (§4.2). This is the single highest-
+   leverage thing in the whole project for the *application*, and it is invisible
+   to Kesseböhmer.
+4. **Grids with multi-cell spans on a real product** — the one part of the attach
+   model that has never met a real range.
+5. **Branding / theming**, so a deliverable can look like the client rather than
+   like us — and not one control before the runtime consumes it.
 
 ---
 
 ## 7. Session Log
+
+### Session 4 — 4 September 2026
+
+The doc, then AR and mounting. Commits `78296e7` → `b154c39`.
+
+- **`tests/stagger.test.js`** — proved that a shelf spanning two frames at
+  different heights needs **no engine change**, rather than assuming it. Four
+  tests. The finding is that the *UI* is silently choosing among eight valid
+  placements (§5.2).
+- **`src/engine/ar.js`** and the mounting choice. Two decisions worth recording:
+  - **The budget belongs to the assembly, not the part.** The plan's rule 9
+    records a triangle budget per component. Every one of the 45 YouK parts is
+    under 40,000 and a three-YouboXx configuration still clears Scene Viewer's
+    100,000 maximum — so a per-part budget passes everything and catches nothing.
+    The test that matters is literally named *"catches an assembly over budget
+    whose PARTS are all under it."*
+  - **Matt's floor-or-floating simplification beat my design.** I had a mount
+    height on the anchor; he pointed out that height is chosen in AR by whoever
+    is holding the phone. An enum, not a number, and one less field in the data
+    model (§5.1).
+- **The End Goals section was wrong and Matt corrected it.** It read as though the
+  goal were a configurator on Kesseböhmer's website. The goal is the
+  **application**; YouK is the benchmark, the way Threadworks was for confgr
+  Studio. §2 is rewritten, and there is now a second critical path — the one for
+  the application rather than the demo (§6).
+- **§0 exists because "how do I run it" was not written down anywhere.** It is now
+  the first thing in the file.
 
 ### Session 3 — 4 September 2026
 
@@ -454,7 +785,7 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 ### Risks
 
-1. **No git remote.** Everything is on one machine. Cheapest thing on this list.
+1. **No git remote.** Seventeen commits, one machine. Cheapest thing on this list.
 2. **Asset production is the permanent cost.** Every component needs modelling,
    snaps, collision boxes. The plan says this straight: *"it does not go away if
    you buy Mimeeq instead."* YouK took two sessions of developer time for 22
@@ -471,11 +802,16 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 **Product**
 
-- How does a frame actually mount to a wall, and does the configurator need to
-  show the wall?
+- ~~How does a frame actually mount to a wall~~ — answered: two options, floor or
+  floating, no height (§5.1). Whether the configurator should ever *draw* a wall
+  is still open, and probably "no": AR draws the real one.
 - Should a span accessory record **both** of its ends?
-- Should the app refuse a part that would hang below the floor — and what is the
-  floor once assemblies can be wall-hung?
+- Should the app refuse a part that would hang below the floor — still needed for
+  floor standing, and it does not apply when floating.
+- **Does wall placement on Android work well enough to promise?**
+  `enable_vertical_placement` defaults to false and is reported to be unreliable.
+  Needs testing on a real mid-range Android device before it goes in a client
+  demo, not after.
 - How the clothes rail's bracket engages the rung: `check-joint` reports 1.00 mm
   of it inside the rung on all three sizes, and the drawings admit two readings.
   A question for Kesseböhmer, not for more measuring.
