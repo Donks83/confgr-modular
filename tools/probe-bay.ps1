@@ -16,8 +16,18 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed', 'cabinets')]
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
+               'cabinets', 'timber')]
   [string]$Scenario = 'bay',
+  # An ad-hoc click string, used INSTEAD of the named scenario. For working out
+  # what a marker index actually refers to before writing a scenario around it -
+  # marker order is per instance then per snap, so it shifts as the scene grows
+  # and reading it off the source is guesswork. Nothing here should be committed
+  # as a claim; promote it to a named scenario once it says something.
+  # (Named -Steps, not -Clicks: PowerShell variable names are case-insensitive,
+  # so a -Clicks parameter IS the $clicks scenario hashtable below, and the
+  # hashtable literal silently overwrites whatever was passed in.)
+  [string]$Steps = '',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -52,7 +62,8 @@ foreach ($id in $ids) {
 }
 
 $env:CONFGR_DEMO = '236758-ladder-depth-320mm'
-$env:CONFGR_CAPTURE = (Join-Path (Get-Location) "youk\$Scenario.png")
+$captureName = if ($Steps) { 'steps' } else { $Scenario }
+$env:CONFGR_CAPTURE = (Join-Path (Get-Location) "youk\$captureName.png")
 $env:CONFGR_CAPTURE_DELAY = '11000'
 # Shelf onto the anchored frame, a second frame onto the shelf's far plug, then
 # a tray and a hook strip hung on whatever rung faces are still free. After the
@@ -99,7 +110,18 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:34'
+  palette = 'palette:42'
+  # Timber. The claim is that a bay carries either a metal shelf or a timber one,
+  # so this builds the bay with a TIMBER 900 and then hangs a metal 900 on the
+  # rung above. If the two disagree about bay width the second one will not fit,
+  # or will fit somewhere unintended - which is what a tenth of a millimetre in
+  # the generator would have caused. Marker 3 is frame 1's rung-3 RIGHT face,
+  # i.e. inside the bay: the free faces come out paired left/right per rung, so
+  # even indices face out of the bay and odd ones into it. Read off the app, not
+  # off the spec file - see the -Steps switch.
+  timber = 'part:pws-timber-shelf-900mm-for-ladder-depth-320mm,marker:0,' +
+           'part:236758,marker:0,choose:0,dump,' +
+           'part:008563,marker:3,dump,layout'
   # Cabinet brackets. Two outer brackets on the two frames of a bay, which is
   # what a carcase sits on. They are hang parts - each mounts on ONE frame and
   # cantilevers - so each should add a part and a joint, and land 6.5mm below
@@ -134,7 +156,8 @@ $clicks = @{
   # could not be built. Shelf on marker 0, then a rack aiming at the same rung.
   shared = 'part:008563,marker:0,dump,part:008543,marker:0,dump,layout'
 }
-$env:CONFGR_CLICK = $clicks[$Scenario]
+$env:CONFGR_CLICK = if ($Steps) { $Steps } else { $clicks[$Scenario] }
+if ($Steps) { "--- ad-hoc steps, not scenario '$Scenario' ---" }
 
 if ($ExamplePrices) {
   # Generated on demand rather than committed. Invented prices in git are

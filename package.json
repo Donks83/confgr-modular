@@ -16,6 +16,7 @@
     "test:assets": "node tests/make-test-glb.mjs test-assets",
     "test:broken": "node tests/make-broken-glb.mjs test-assets-broken",
     "youk:convert": "tools\\.venv-step\\Scripts\\python tools/step-to-glb.py \"C:/Claude/YouK models\" -o youk --max-tris 40000 --report youk/convert-report.json",
+    "youk:timber": "tools\\.venv-step\\Scripts\\python tools/make-timber.py youk",
     "youk:snap": "tools\\.venv-step\\Scripts\\python tools/add-snaps.py youk --spec youk/snap-spec.json",
     "youk:sheet": "tools\\.venv-step\\Scripts\\python tools/contact-sheet.py youk -o youk/contact-sheet.png",
     "youk:bay": "powershell -ExecutionPolicy Bypass -File tools/probe-bay.ps1",

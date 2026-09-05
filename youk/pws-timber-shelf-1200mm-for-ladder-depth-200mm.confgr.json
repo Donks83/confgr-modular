@@ -1,0 +1,12 @@
+{
+  "confgr": {
+    "widthMm": 1250.1,
+    "heightMm": 25.0,
+    "depthMm": 169.0,
+    "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-d200.mount-left": "plug",
+    "md-snap.youk-d200.mount-right": "plug"
+  }
+}

@@ -114,7 +114,16 @@
     { "id": "008538-hook-strip-for-ladder-width-450mm", "depth": 320, "bearing": "top" },
     { "id": "008539-hook-strip-for-ladder-width-600mm", "depth": 320, "bearing": "top" },
     { "id": "008540-hook-strip-for-ladder-width-900mm", "depth": 320, "bearing": "top" },
-    { "id": "008541-hook-strip-for-ladder-width-1200mm", "depth": 320, "bearing": "top" }
+    { "id": "008541-hook-strip-for-ladder-width-1200mm", "depth": 320, "bearing": "top" },
+
+    { "id": "pws-timber-shelf-450mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
+    { "id": "pws-timber-shelf-600mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
+    { "id": "pws-timber-shelf-900mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
+    { "id": "pws-timber-shelf-1200mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
+    { "id": "pws-timber-shelf-450mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
+    { "id": "pws-timber-shelf-600mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
+    { "id": "pws-timber-shelf-900mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
+    { "id": "pws-timber-shelf-1200mm-for-ladder-depth-200mm", "depth": 200, "bearing": "base" }
   ],
 
   "_wall": [

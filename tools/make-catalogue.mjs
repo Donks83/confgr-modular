@@ -105,9 +105,38 @@ function main(argv) {
   const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};
   const keptItems = existing.items || {};
 
+  // Parts PWS makes rather than buys. They have no STEP file and never will -
+  // Kesseböhmer's brochure says the wooden shelves are made by a carpenter and
+  // are not in the YouK range - so convert-report.json knows nothing about them
+  // and their description comes from the generator's manifest instead.
+  //
+  // They still belong on the quote. `supplier` is what tells a reader which is
+  // which, and it is why an article number of null here is a fact rather than a
+  // gap: we have not assigned one yet.
+  const manifestPath = join(folder, 'timber-manifest.json');
+  const manifest = existsSync(manifestPath)
+    ? new Map(JSON.parse(readFileSync(manifestPath, 'utf8')).parts.map((p) => [p.id, p]))
+    : new Map();
+
   const items = {};
   const noSource = [];
   for (const id of configurable) {
+    const own = manifest.get(id);
+    if (own) {
+      const was = keptItems[id] || {};
+      items[id] = {
+        article: was.article ?? null,
+        description: was.descriptionOverride || own.description,
+        ...(was.descriptionOverride ? { descriptionOverride: was.descriptionOverride } : {}),
+        sizeMm: own.dims_mm,
+        supplier: 'PWS',
+        costEach: was.costEach ?? null,
+        priceEach: was.priceEach ?? {},
+      };
+      if (was.notes) items[id].notes = was.notes;
+      continue;
+    }
+
     const part = sources.get(id);
     if (!part) { noSource.push(id); continue; }
     const { article, description } = describe(part.source);

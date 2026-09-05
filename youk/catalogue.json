@@ -237,6 +237,102 @@
       "costEach": null,
       "priceEach": {}
     },
+    "pws-timber-shelf-450mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber shelf 450 mm for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        500.1,
+        25,
+        289
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-600mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber shelf 600 mm for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        649.5,
+        25,
+        289
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-900mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber shelf 900 mm for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        950.1,
+        25,
+        289
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-1200mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber shelf 1200 mm for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        1250.1,
+        25,
+        289
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-450mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber shelf 450 mm for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        500.1,
+        25,
+        169
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-600mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber shelf 600 mm for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        649.5,
+        25,
+        169
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-900mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber shelf 900 mm for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        950.1,
+        25,
+        169
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-shelf-1200mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber shelf 1200 mm for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        1250.1,
+        25,
+        169
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
     "008536-hook-strip-for-ladder-depth-200mm": {
       "article": "008536",
       "description": "YouK hook strip for ladder depth 200 mm",
