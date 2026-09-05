@@ -1,15 +1,17 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `41554d8`, not from memory. Session 5 ran in five parts: findings
+code at commit `9fb1f8a`, not from memory. Session 5 ran in six parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
 Matt hit while using it, then twelve more parts of the range, then the timber —
 the first parts in the product that are ours rather than a supplier's — then
-**vertical joints** (§5.6), an engine change the cabinets forced, and finally the
-office desktop (§5.7), which needed the same joint and one new rule.
+**vertical joints** (§5.6), an engine change the cabinets forced, the office
+desktop (§5.7), which needed the same joint and one new rule, and finally the
+**`condition` field** (§5.8), which had never been read by anything until the
+office assembly produced a rule that masks and roles could not express.
 
-**Code:** `C:\Claude\confgr-modular` — git, 40 commits, **local only, no remote.**
-**Tests:** 246 passing (`npm test`).
+**Code:** `C:\Claude\confgr-modular` — git, 42 commits, **local only, no remote.**
+**Tests:** 261 passing (`npm test`).
 **Components:** 76 — **36 of the 45 YouK parts, plus 40 timber parts generated
 rather than converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office
 desktops. The remaining 9 supplier parts convert cleanly and have no snaps
@@ -57,7 +59,7 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 246 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 261 unit tests, ~4 s. Run this before believing anything. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 45 YouK parts from being a component. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
@@ -76,6 +78,7 @@ tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regressi
                               timber     a timber shelf and a metal one in one bay
                               carcase    a cabinet laid on two brackets (§5.6)
                               office     a desktop on the office arms (§5.7)
+                              condition  a part that may only go at certain rungs
                               mount      floor / floating / feet, read from the scene
                               palette    what every palette entry actually says
 ```
@@ -85,6 +88,10 @@ a named scenario and captures to `youk/steps.png`. Marker indices shift as the
 scene grows, so working out what marker 3 refers to is a question for the running
 app, not for the spec file. Nothing found this way should be committed as a
 scenario until it says something.
+
+`-Demo <componentId>` changes which part the product is anchored on. It exists
+because a rule that says "not on a short ladder" cannot be tested on a tall one
+(§5.8).
 
 **Adding parts is a pipeline, not an edit.** `youk/snap-spec.json` holds the
 decisions; everything else is mechanics:
@@ -229,6 +236,10 @@ using it expects — but there is still no export, no runtime and no AR.
   undetermined by such a joint, so it comes from the product rather than from the
   parent — and unlike a horizontal joint, the solver refuses a bad pairing
   instead of turning the part around.
+- **A snap may say WHERE it is legal** (`condition`, §5.8). One clause,
+  `otherLabelAnyOf`, a closed vocabulary and an authored reason the app shows.
+  Fails closed on anything it does not understand. The office assembly is
+  rung-3-and-above only, which nothing in mask-and-role could express.
 - **A part may declare it joins nothing** (`mounting: "wall"`). The shoe rack
   screws to the wall and touches no ladder; it goes in as a second anchor at a
   derived position. The assembly always allowed more than one root — this is the
@@ -262,7 +273,7 @@ tiny, which is the point: an id, a depth, and one decision.
 |---|---|---|
 | `frames` | depth, whether it needs turning | a socket at every rung, both faces |
 | `span` | depth, `bearing` base or top | `y = 0`, or `maxY − topSheetMm` |
-| `hang` | depth, turning, and whether it `carries` | **measured**, from the mounting slot |
+| `hang` | depth, turning, whether it `carries`, and any `minRung` | **measured**, from the mounting slot |
 | `carcase` | depth, and what `carriedBy` | two plugs facing **down**, at the part's own ends, offset back-flush along the depth (§5.6, §5.7) |
 | `wall` | nothing — it joins nothing | no plug; declares `mounting: "wall"` |
 
@@ -364,7 +375,7 @@ This is the honest half of the document.
 | **PDF / tear sheet** | Nothing. |
 | **AR / "view in your room" / QR** | **Readiness checks only** (§3.4). No USDZ, no GLB export of a configuration, no QR, no landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
-| **Rules and conditions engine** | Nothing. Masks and roles only. No "if X then Y", no auto-inserted connector parts. Every snap carries `condition: null` and nothing reads it — **and there is now a real case for it**: the office-solution desktop is legal at rung 3 and forbidden at rungs 1–2 (`youk/FINDINGS.md`). |
+| **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
 | **Derived BOM lines** | Nothing. Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. Build the mechanism once for all three. |
@@ -374,7 +385,7 @@ This is the honest half of the document.
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Forty commits of work exist on one
+There is also **no git remote.** Forty-two commits of work exist on one
 machine. That is the single cheapest risk on this list to retire.
 
 ### 3.7 Plumbing wired in main, with no UI
@@ -1073,9 +1084,61 @@ the ladder's own back.
   independently. Put both on the same rung and they interpenetrate — the plate
   lands at x ±3.6 and the arm at ±15.0, and nothing stops it.
 - The clamping angle and the top panel bracket are unauthored, above.
-- **The rung-3-only rule is still not enforced.** Every rung accepts an arm. That
-  is the `condition` field's first real case (§5.3's correction) and it remains
-  the clearest unused thing in the data model.
+- ~~The rung-3-only rule is not enforced~~ — **done**, immediately after, and it
+  turned into §5.8.
+
+### 5.8 The `condition` field, used at last
+
+It had sat on every snap since the first commit with **nothing reading it**. The
+range finally produced a rule that masks and roles cannot express, so it is now a
+feature rather than a field.
+
+`Office solution` page 3 is the case: a tick and a cross over four ladders, green
+across one rung level and red across two others. It marks the only levels the
+desktop assembly may be fitted at. **A mask says what kind of thing fits a point;
+a role says which way round; neither can say "this kind, but only there".**
+
+**Deliberately not an expression language.** A condition is a small declarative
+object with a closed vocabulary — nothing to parse, nothing to execute. v1 has
+exactly one clause:
+
+```json
+{ "otherLabelAnyOf": ["rung-3-right", "…"], "because": "…" }
+```
+
+Everything else is refused. It **fails closed**, which matters far more now than
+when the field was inert: an unknown clause, a condition carrying only a
+`because`, a string where an object should be — all refuse the joint. A rule that
+is mis-authored shows up as a part that will not fit; *a rule that quietly stops
+applying is the hardest kind of wrong to notice.*
+
+**The decision stays a number.** The spec says `minRung: 3` and `add-snaps`
+expands it to the eight labels, so a person checks one number against the drawing
+and the strings stay mechanical. `declare.mjs` carries `confgrConditions` across a
+regeneration — the same trap that ate roles once and `mounting` once, and worse
+here, because losing a condition does not break the model, it silently **removes
+a restriction**.
+
+**It has to be able to say why.** A configurator that refuses without a reason is
+indistinguishable from one that is broken. So `because` is authored beside the
+rule and comes back through the rejection; `whyComponentFitsNowhere()` is the new
+mirror of `whyNothingFits()` — that one answers for a *point*, this one for a
+*part* — and the palette button carries the words as its title and in its meta
+line. The `palette` harness step reports disabled state and the reason too,
+because without that the message was invisible to every probe, which is precisely
+how four ladders read as the same part for a whole session (§5.3).
+
+**Verified in the app, both halves:**
+
+| Anchor | Result |
+|---|---|
+| 1500 frame | The arm is offered **four** markers — rungs 3 and 4, two faces each — where a shelf gets twelve, and lands at y 761.5, which is rung 810 less its own 48.5. |
+| 550 frame | The arm is **disabled**, saying *"fits at rung 3 and above only — Kesseböhmer mark rungs 1 and 2 with a red line"*. |
+
+That second row is a knock-on their sheet implies and never states, and **nothing
+was written for it**: the 550 has only rungs 1 and 2, so no label it offers is on
+the list. `probe-bay` gained `-Demo` for it, because a rule about short ladders
+cannot be tested on a tall one.
 
 ---
 
@@ -1127,8 +1190,9 @@ Corrections from experience:
   **conditional attach point** in the range — geometrically identical sockets, only
   some of them legal for a given part. Masks and roles cannot express it (a mask
   says what kind of thing fits, a role says which way round), so the level chooser
-  has to filter on a condition, not just enumerate rungs. Every snap already
-  carries an unused `condition: null` for exactly this.
+  has to filter on a condition, not just enumerate rungs. **Built** — §5.8. The
+  field that had sat unused on every snap since the first commit now carries the
+  rule, and the 550 mm frame's inability to take a desk falls out of it.
 - ~~Palette entries must show the measured size~~ — **done.** The label now comes
   from the catalogue description rather than the model id, so the corrected
   heights reach the palette and not just the quote (§5.3).
@@ -1230,7 +1294,7 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Forty commits on one machine.
+1. **A git remote.** Forty-two commits on one machine.
 2. **Their price list**, in whatever format they have it. Everything commercial
    is blocked on data, not code. The ten `.xls` scene lists behind their brochure
    QR codes are a free validation set while we wait.
@@ -1415,6 +1479,24 @@ put 140 mm of desk inside the wall and still look right from the front. Derived
 from the two depths rather than special-cased, so the cabinets fall out unchanged
 at zero.
 
+**Then the `condition` field, which had never been read.** Commit `9fb1f8a`, 261
+tests (§5.8). The office assembly is rung-3-and-above only, which is the first
+rule in the range that masks and roles cannot express, and it left the field
+looking like the clearest unused thing in the data model for two sessions.
+
+Three choices worth keeping. It is **a closed vocabulary, not an expression
+language** — nothing to parse and nothing to execute, and an unknown clause is
+refused. It **fails closed**, which matters far more now that something reads it:
+a rule that is mis-authored shows up as a part that will not fit, where a rule
+that quietly stops applying would not show up at all. And it **has to say why** —
+`because` is authored beside the rule, and `whyComponentFitsNowhere()` puts it on
+the greyed-out palette button, because a configurator that refuses without a
+reason is indistinguishable from one that is broken.
+
+The `palette` harness step had to learn to report disabled state as well. Without
+that the message was invisible to every probe — the same shape as the label bug
+in §5.3, caught this time before it could hide anything.
+
 ### Session 4 — 4 September 2026
 
 The doc, then AR and mounting. Commits `78296e7` → `b154c39`.
@@ -1485,7 +1567,7 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 ### Risks
 
-1. **No git remote.** Forty commits, one machine. Cheapest thing on this
+1. **No git remote.** Forty-two commits, one machine. Cheapest thing on this
    list.
 2. **Asset production is the permanent cost.** Every component needs modelling,
    snaps, collision boxes. The plan says this straight: *"it does not go away if

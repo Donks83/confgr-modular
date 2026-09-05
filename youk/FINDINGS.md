@@ -732,6 +732,11 @@ ladder and so comes out centred anyway; a 600 mm desktop on a 320 mm ladder need
 its plugs 140 mm behind its own middle, or 140 mm of desk ends up inside the wall
 while still looking right from the front.
 
+**The rung-3 rule is now enforced.** Both 008551 parts carry `minRung: 3` in
+`youk/snap-spec.json`, which `add-snaps` expands into an explicit allow-list of
+rung labels on the part's plug. On a 1500 ladder the arm is offered four markers
+instead of twelve; on the 550 it is refused outright, in those words.
+
 **Still open on this assembly:** the arm bolts to the plate (step 3) and the
 clamping angle to the arm (step 4), and neither joint is modelled. Placed on the
 same rung the plate lands at x ±3.6 and the arm at ±15.0, so they interpenetrate
