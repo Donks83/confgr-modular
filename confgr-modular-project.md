@@ -397,8 +397,8 @@ This is the honest half of the document.
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
-| **Derived BOM lines** | Nothing. Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. Build the mechanism once for all three. |
-| **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
+| **Derived BOM lines** | Nothing, **and it is now the clearest next thing** (§5.12). Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. The foot has now been measured and its 100 mm reaches the view, but it is not drawn and not priced, because it is not an instance. Build the mechanism once for all three. |
+| **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). **On feet now moves the floor** by the foot's height rather than only flagging it (§5.12). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
 | **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
@@ -1409,6 +1409,63 @@ the test itself against passing on a no-op. **265 tests.**
 already existed. The case that broke it needed two features at once — a tilt and
 a mirrored parent — and no single scenario had both. Two correct scenarios do not
 add up to a correct pair.
+
+### 5.12 The foot — the decision was already made, and never applied
+
+The fifth of page 4's figures is a 750 mm desk built from the **650** hole row
+with the frame on a **100 mm foot**. I offered to "author the foot and make on
+feet lift the frame". Opening the code first showed most of that was already
+there and had been since §5.1: `MOUNTING.FEET`, `FOOT.heightsMm` of 100 and 150,
+`FOOT.adjustmentMm` of ±10, `isGrounded()`, and `groundClearanceMm()` — *"how far
+the product's base sits above the floor, in mm"* — plus the second dropdown in
+the sidebar and the note that there is one foot per ladder, at the front.
+
+**Everything except the line that uses it.** `groundClearanceMm` was read in two
+places: the sidebar caption, and the harness's own status string. Nothing in the
+scene moved. The third figure was unbuildable for the want of one assignment —
+the same shape as the `condition` field sitting unread for two sessions (§5.8),
+and worth noticing as a pattern: a value that is computed, displayed, and never
+acted on looks finished from every angle except the one that matters.
+
+**A foot moves the floor, not the product.** This is the decision worth
+recording. Every measurement in the range is quoted from the frame's own base:
+the plate hangs 298.5 below a rung, its hole rows are 83.5 and 183.5 up the
+plate, the arm carries at 51.5. Lifting the parts by 100 mm to make room for a
+foot would put every one of those numbers out of step with the drawing it was
+read off. So the parts keep their coordinates and the ground drops — which is
+also what the real thing does, since the frame is fixed to the wall and the foot
+only carries the front of it.
+
+| Scenario | Result |
+|---|---|
+| `mount` | `mount:feet` → `clearance=100mm floorY=-100mm`; floor and wall both `floorY=0mm`. Read off three.js, not off React state. |
+| `officefeet` | Kesseböhmer's figure 3. The 650 desk, unmoved at 626.5, top at **651.5** — and with the floor at −100 that is **751.5 above it**. Their 750. |
+
+**All five figures now reach the app**, which was the point:
+
+| | 600 deep | 700 deep |
+|---|---|---|
+| lower row, flat | 651.5 | 651.5 |
+| upper row, flat | 751.5 | 751.5 |
+| lower row + 100 foot | **751.5** | **751.5** |
+| lower row, tilted 9° | front edge 560.9 | 545.3 |
+| upper row, tilted 9° | front edge 660.9 | 645.3 |
+
+**Measured while the sheet was open, and not yet used:** the foot is
+**50 × 99.8 × 20 mm** with a 2.5 mm top plate, fixed with **2 × M4 × 9.5** up
+into the bottom of the front stile, ±10 mm on the levelling nut, in 100 and
+150 mm.
+
+**Still not drawn, and this is the honest gap.** There is no foot in the scene —
+the frame simply floats 100 mm above the grid. Mounting is a product-level
+choice rather than a clicked part (Matt's simplification, §5.1, and it is the
+right one), so a foot is not an instance and has nothing to render or price. It
+wants the same mechanism as the **derived BOM lines** in §3.6: feet, screws and
+the 1.5 mm packers are all quantities the *configuration* implies rather than
+parts somebody clicked. **Build that once, for all of them**, rather than making
+the foot a clickable part and having two contradictory ways to say the same
+thing. Three feet-shaped things then land together: the geometry, the quote line,
+and the required-part rule.
 
 ---
 

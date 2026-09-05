@@ -18,7 +18,7 @@
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
-               'officeclamptilt', 'condition', 'timber')]
+               'officeclamptilt', 'officefeet', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -121,7 +121,7 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:76'
+  palette = 'palette:77'
   # Timber. The claim is that a bay carries either a metal shelf or a timber one,
   # so this builds the bay with a TIMBER 900 and then hangs a metal 900 on the
   # rung above. If the two disagree about bay width the second one will not fit,
@@ -231,6 +231,22 @@ $clicks = @{
                     'part:008551-clamping-angles,marker:0,' +
                     'part:008551-clamping-angles,marker:0,dump,' +
                     'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
+  # Page 4 of the office sheet shows THREE flat desk heights - 650, 750, and 750
+  # again with the frame on 100mm feet. The third is not a third bracket
+  # position: its bolts are in the LOWER hole row, the same as the 650, and the
+  # foot makes up the 100mm between the plate's two rows. Matt read the panel and
+  # asked; the green dots settle it.
+  #
+  # So this is that figure. The 650 desk, then `mount:feet`. The desktop stays
+  # where it is - product coordinates are quoted from the frame's base and every
+  # number in the range depends on that - and the FLOOR drops to -100. Its top is
+  # 626.5 + 25 = 651.5 in the product, which is 751.5 above the floor.
+  officefeet = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-shelf-supports,marker:0,choose:0,' +
+               'part:008551-shelf-supports,marker:1,choose:0,' +
+               'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +
+               'mount:feet,ground,layout'
   # The `condition` field's first use, on a 1500 frame. The office PLATE may only
   # be fitted at rung 3 and above, so a bare 1500 ladder should offer it FOUR
   # markers (rungs 3 and 4, two faces each) where a shelf gets twelve. If it

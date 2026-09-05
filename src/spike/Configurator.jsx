@@ -560,14 +560,29 @@ export default function Configurator() {
   // showing whether this thing reaches the floor. So the ground goes away when
   // the mounting says wall. The lights keep casting; only the catcher is gone,
   // which is what makes the shadow disappear rather than move.
+  //
+  // A FOOT moves the floor, not the product. Every measurement in this range is
+  // quoted from the frame's own base — the plate hangs 298.5 below a rung, the
+  // arm's holes are 83.5 and 183.5 up the plate — so lifting the parts to make
+  // room for a foot would put every one of those numbers 100 mm out of step
+  // with the drawings they were read off. The parts keep their coordinates and
+  // the ground drops instead, which is also what the real thing does: the frame
+  // is fixed to the wall and the foot carries the front of it.
+  //
+  // Kesseböhmer's own page 4 is the check. Three flat desk heights, 650, 750
+  // and 750 — and the third is the 650 hole row with a 100 mm foot under it.
+  // Same holes, same product, a floor 100 mm further down.
   useEffect(() => {
     const ctx = three.current;
     if (!ctx) return;
     const grounded = isGrounded(mounting);
     ctx.grid.visible = grounded;
     ctx.floor.visible = grounded;
+    const floorY = -groundClearanceMm(mounting, footHeightMm) / 1000;
+    ctx.grid.position.y = floorY;
+    ctx.floor.position.y = floorY;
     window.__spikeRender?.();
-  }, [mounting]);
+  }, [mounting, footHeightMm]);
 
   // For the harness. Reports the ground out of the SCENE, not out of React
   // state, so a `mount:wall` step that changed the dropdown and nothing else
@@ -578,6 +593,10 @@ export default function Configurator() {
       if (!ctx) return 'no scene';
       return `mounting=${mounting} grid=${ctx.grid.visible} floor=${ctx.floor.visible} `
         + `clearance=${groundClearanceMm(mounting, footHeightMm)}mm `
+        // Read off the SCENE, like the visibility above: a clearance that is
+        // computed and then not applied is exactly the kind of no-op this
+        // harness exists to catch.
+        + `floorY=${Math.round(ctx.floor.position.y * 1000)}mm `
         + `ar=${ar.placement.vertical ? 'wall' : 'floor'} tris=${ar.triangles} `
         + `ready=${ar.ready} warnings=[${ar.warnings.map((w) => w.code).join(' ')}]`;
     };

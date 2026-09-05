@@ -736,10 +736,23 @@ its rear bolt hole and the arm's rear end is 25 mm behind that hole — 25 · si
 of lift. Kesseböhmer's 650 on the tilted figures is the flat figure's number
 repeated; ours is what the measured holes actually do.
 
-**The one figure the app cannot build is figure 3.** The 100 mm adjustable foot
-(237023) is unauthored, and `mounting: "on feet"` is a view and AR flag rather
-than 100 mm of geometry (§5.1) — so the frame does not rise and the third flat
-height has no route.
+~~**The one figure the app cannot build is figure 3.**~~ **Fixed** (§5.12). `on
+feet` now drops the floor by the foot's height instead of only flagging it, so
+the 650 desk reads 751.5 above the floor — Kesseböhmer's third figure. The foot
+itself is still not drawn or priced, because mounting is a product choice rather
+than a clicked part.
+
+**The foot, 237023, measured from `mounting instructions Foot.pdf` and the STEP:**
+
+- **50 × 99.8 × 20 mm**, a 2.5 mm top plate over the legs.
+- **1 × per ladder**, at the FRONT stile — the back stays fixed to the wall.
+- Fixed with **2 × M4 × 9.5**, driven UP into the bottom of the stile (PZ2).
+- **100 or 150 mm**, with **±10 mm** on the levelling nut. Usually to clear a
+  skirting board.
+
+Its joint is the bottom of a stile — which is the same joint the 008552 top
+panel bracket needs at the other end, and neither is a rung. Two parts, one
+missing capability.
 
 **Measured, session 5, when the parts were authored.** The 650 / 750 mm figures
 are **floor-to-top heights, not variants of the desktop** — where a desk ends up
