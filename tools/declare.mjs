@@ -37,7 +37,8 @@ const GRID_PREFIX = 'md-grid.';
 
 // The keys this tool owns in scene extras. Anything else already there is left
 // alone — a supplier's own extras are not ours to discard.
-const OWNED = ['confgr', 'confgrGrids', 'confgrSpans', 'confgrRoles', 'confgrOptions'];
+const OWNED = ['confgr', 'confgrGrids', 'confgrSpans', 'confgrRoles',
+               'confgrConditions', 'confgrOptions'];
 
 /** The reviewable declaration that lives next to a model in git. */
 const sidecarPath = (glbPath) => join(dirname(glbPath), `${basename(glbPath, extname(glbPath))}.confgr.json`);
@@ -160,6 +161,13 @@ function measureDeclaration(report, existing = null) {
     if (existing.confgrSpans) declaration.confgrSpans = existing.confgrSpans;
     if (existing.confgrOptions) declaration.confgrOptions = existing.confgrOptions;
 
+    // WHERE a snap may be used, which is a decision like a role and is lost the
+    // same way if it is not carried over. Worse than a role, in fact: dropping a
+    // condition does not break the model, it silently REMOVES a restriction and
+    // the part starts fitting everywhere. A rule that quietly stops applying is
+    // the hardest kind of wrong to notice.
+    if (existing.confgrConditions) declaration.confgrConditions = existing.confgrConditions;
+
     // How the part is HELD is a decision, not a measurement, and losing it is
     // worse than losing a role: a part declared mounting "wall" is allowed to
     // have no snaps, so dropping the declaration turns a legitimate part into
@@ -195,6 +203,7 @@ function existingDeclaration(glbPath, report) {
     ...(c.grids ? { confgrGrids: c.grids } : {}),
     ...(c.spans ? { confgrSpans: c.spans } : {}),
     ...(c.roles ? { confgrRoles: c.roles } : {}),
+    ...(c.conditions ? { confgrConditions: c.conditions } : {}),
     ...(c.options ? { confgrOptions: c.options } : {}),
   };
 }
@@ -236,6 +245,28 @@ function validateDeclaration(decl, report) {
       if (typeof g[key] !== 'number' || !(g[key] > 0)) {
         problems.push(`confgrGrids["${name}"].${key} is ${JSON.stringify(g[key])}; fill it in — a grid `
           + 'cannot generate cells without all four.');
+      }
+    }
+  }
+
+  for (const [name, cond] of Object.entries(decl.confgrConditions || {})) {
+    if (!known.has(name)) {
+      problems.push(`confgrConditions names "${name}", which is not a snap node in this model.`);
+      continue;
+    }
+    const clauses = cond && typeof cond === 'object' && !Array.isArray(cond)
+      ? Object.keys(cond).filter((k) => k !== 'because') : [];
+    if (!clauses.length) {
+      problems.push(`confgrConditions["${name}"] has no clause. "because" is documentation, `
+        + 'not a test — a condition with only a because refuses every joint.');
+    }
+    for (const clause of clauses) {
+      if (clause !== 'otherLabelAnyOf') {
+        problems.push(`confgrConditions["${name}"] uses "${clause}", which the evaluator does `
+          + 'not know. It would fail closed and the part would never fit anywhere.');
+      } else if (!Array.isArray(cond.otherLabelAnyOf) || !cond.otherLabelAnyOf.length) {
+        problems.push(`confgrConditions["${name}"].otherLabelAnyOf must be a non-empty list of `
+          + 'snap labels.');
       }
     }
   }

@@ -126,12 +126,18 @@ def load_body(glb):
     return trimesh.util.concatenate(parts) if len(parts) > 1 else parts[0]
 
 
+def tops_for_depth(spec, depth):
+    """The rung heights for a ladder depth. One list, read in two places."""
+    tops = spec["rungTopsMm"].get(str(depth))
+    if tops is None:
+        raise RuntimeError(f"no rungTopsMm entry for depth {depth}")
+    return tops
+
+
 def frame_snaps(mesh, part, spec):
     """A socket at every rung that fits, facing both ways."""
     depth = str(part["depth"])
-    tops = spec["rungTopsMm"].get(depth)
-    if tops is None:
-        raise RuntimeError(f"no rungTopsMm entry for depth {depth}")
+    tops = tops_for_depth(spec, depth)
 
     height_mm = float(mesh.extents[1]) * 1000.0
     usable = [t for t in tops if t <= height_mm]
@@ -257,6 +263,33 @@ def hang_snaps(mesh, part, spec):
     #
     # Its own mask, so a carcase can only meet a bracket. Sharing the rung mask
     # would let a cabinet hang straight off a ladder with nothing under it.
+    # WHERE this part may hang, when the answer is not "any rung".
+    #
+    # `Office solution` page 3 opens with a tick and a cross over four ladders,
+    # green across one rung line and red across two others. Matt read it
+    # correctly and I did not: it marks the only levels the desktop assembly may
+    # be fitted at, and it is the one rule in the range that masks and roles
+    # cannot express. A mask says what kind of thing fits; a role says which way
+    # round; neither says "this kind, but only there".
+    #
+    # The SPEC says `minRung: 3`. The list of labels is expanded here, so the
+    # decision stays one number a person can check against the drawing and the
+    # eight strings stay mechanical. A knock-on falls straight out of it: the
+    # 550mm frame has only rungs 1 and 2, so no label it offers is in the list
+    # and it cannot take a desk at all - which is what the sheet shows.
+    min_rung = part.get("minRung")
+    if min_rung:
+        allowed = [f"rung-{i}-{side}"
+                   for i in range(int(min_rung), len(tops_for_depth(spec, depth)) + 1)
+                   for side in ("right", "left")]
+        snaps[0]["condition"] = {
+            "otherLabelAnyOf": allowed,
+            "because": part.get(
+                "minRungBecause",
+                f"This fits at rung {min_rung} and above only.",
+            ),
+        }
+
     if part.get("carries"):
         packer = float(spec.get("topSheetMm", 1.5))
         snaps.append({
@@ -484,6 +517,15 @@ def main():
                 "unitScale": "metres",
             }
             existing["confgrRoles"] = {s["name"]: s["role"] for s in snaps}
+            # Conditions travel the same way, and are REPLACED rather than
+            # merged: the spec is the source, so a rule removed from the spec
+            # has to disappear from the model too. A stale allow-list left
+            # behind would go on refusing joints with nothing saying why.
+            conditions = {s["name"]: s["condition"] for s in snaps if s.get("condition")}
+            if conditions:
+                existing["confgrConditions"] = conditions
+            else:
+                existing.pop("confgrConditions", None)
             sidecar.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf8")
 
         except Exception as err:  # noqa: BLE001

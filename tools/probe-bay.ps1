@@ -17,7 +17,7 @@
 
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
-               'cabinets', 'carcase', 'office', 'timber')]
+               'cabinets', 'carcase', 'office', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -28,6 +28,9 @@ param(
   # so a -Clicks parameter IS the $clicks scenario hashtable below, and the
   # hashtable literal silently overwrites whatever was passed in.)
   [string]$Steps = '',
+  # Which part the app anchors the product on. Almost always the 1500 frame, but
+  # a rule that says "not on a short ladder" cannot be tested on a tall one.
+  [string]$Demo = '236758-ladder-depth-320mm',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -68,7 +71,7 @@ foreach ($id in $ids) {
   else { "  MISSING youk\$id.glb - run the converter, then tools/add-snaps.py" }
 }
 
-$env:CONFGR_DEMO = '236758-ladder-depth-320mm'
+$env:CONFGR_DEMO = $Demo
 $captureName = if ($Steps) { 'steps' } else { $Scenario }
 $env:CONFGR_CAPTURE = (Join-Path (Get-Location) "youk\$captureName.png")
 $env:CONFGR_CAPTURE_DELAY = '11000'
@@ -167,6 +170,17 @@ $clicks = @{
   office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
            'part:008551-shelf-supports,marker:5,part:008551-shelf-supports,marker:12,dump,' +
            'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
+  # The `condition` field's first use, on a 1500 frame. The office arm may only
+  # be fitted at rung 3 and above, so a bare 1500 ladder should offer it FOUR
+  # markers (rungs 3 and 4, two faces each) where a shelf gets twelve. If it
+  # offers twelve the rule is not being read; if it offers none it is failing
+  # closed on something and the message will say which.
+  #
+  # Run the other half by hand, because the anchor has to change:
+  #     -Demo 236750-ladder-depth-320mm -Steps "part:008551-shelf-supports,dump"
+  # The 550 frame has only rungs 1 and 2, both forbidden, so the arm is disabled
+  # outright - the knock-on Kesseboehmer's sheet implies and never states.
+  condition = 'part:008551-shelf-supports,marker:0,dump,layout'
   # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
   # should go straight in without waiting for a marker, add NO joint, and land
   # centred on the bay. If the joint count goes up, it has been attached to

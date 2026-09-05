@@ -413,6 +413,39 @@ export function whyNothingFits(matrix, key) {
 }
 
 /**
+ * Why a part fits nowhere at all — the mirror of whyNothingFits.
+ *
+ * That one answers for a POINT: "what could go here". This answers for a PART:
+ * "why can this go nowhere". Both were needed the moment conditions arrived,
+ * because a condition is the first thing that can grey a part out completely.
+ * The office arm on a 550 mm ladder is exactly that: every rung it offers is
+ * one the rule forbids, so the palette entry goes flat with nothing said.
+ *
+ * A configurator that refuses without a reason is indistinguishable from one
+ * that is broken, so the authored `because` is preferred over the generic text.
+ */
+export function whyComponentFitsNowhere(matrix, componentId) {
+  const reasons = matrix.rejected.filter((r) => r.componentId === componentId);
+  if (!reasons.length) return null;
+
+  // A condition ranks first here, unlike whyNothingFits. It is the only reason
+  // in the list that is a deliberate rule rather than a fact about the scene,
+  // so it is the only one worth putting in front of a person.
+  const rank = {
+    [REASONS.CONDITION_FAILED]: 0,
+    [REASONS.ALREADY_OCCUPIED]: 1,
+    [REASONS.TOO_FAR]: 2,
+    [REASONS.MASK_MISMATCH]: 3,
+  };
+  const ranked = [...reasons].sort(
+    (a, b) => (rank[a.reason] ?? 9) - (rank[b.reason] ?? 9),
+  );
+
+  const top = ranked[0];
+  return top.message || REASON_TEXT[top.reason] || null;
+}
+
+/**
  * Add a part to the assembly at a placement.
  *
  * Returns a NEW assembly. The attached instance carries no coordinates —

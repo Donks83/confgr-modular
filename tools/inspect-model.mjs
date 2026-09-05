@@ -437,6 +437,7 @@ export function inspect(path) {
       grids: extras?.confgrGrids || null,
       spans: extras?.confgrSpans || null,
       roles: extras?.confgrRoles || null,
+      conditions: extras?.confgrConditions || null,
       options: extras?.confgrOptions || null,
       bodyNode: body ? { min: body.min, max: body.max } : null,
       snapNodes: snapNodes.map((n) => n.name),
@@ -802,6 +803,20 @@ function render(report, result) {
     const role = c.roles?.[n] ? ` [${c.roles[n]}]` : '';
     const span = c.spans?.[n] ? ` span ${c.spans[n].cols}x${c.spans[n].rows}` : '';
     line(`                     ${n}${role}${span}`);
+    // A condition is invisible in a screenshot and invisible in the status
+    // line, and it makes a part refuse to fit. Show it wherever the model is
+    // being explained, or the first symptom is "why won't this go anywhere".
+    const cond = c.conditions?.[n];
+    if (cond) {
+      const clauses = Object.entries(cond).filter(([k]) => k !== 'because');
+      for (const [clause, value] of clauses) {
+        const shown = Array.isArray(value)
+          ? `${value.length} allowed: ${value.slice(0, 4).join(', ')}${value.length > 4 ? ', …' : ''}`
+          : JSON.stringify(value);
+        line(`                       only where ${clause} — ${shown}`);
+      }
+      if (cond.because) line(`                       "${cond.because}"`);
+    }
   }
   line(`  attach grids:    ${c.gridNodes.length ? c.gridNodes.length : 'none'}`);
   for (const n of c.gridNodes) {

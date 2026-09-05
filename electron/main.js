@@ -172,11 +172,16 @@ function createWindow() {
                     // What the palette actually SAYS. A wrong label is invisible
                     // in a screenshot and invisible in the status line, which is
                     // how four ladders read as the same part for a whole session.
+                    // Disabled and the REASON come too. A part greyed out with
+                    // no explanation is the same class of invisible fault as a
+                    // wrong label, and conditions are the first thing that can
+                    // grey a part out permanently.
                     : kind === 'palette'
                     ? `[...document.querySelectorAll('.cfg-palette button')]
                          .slice(0, Number(${JSON.stringify(value)}) || 8)
                          .map((b) => b.dataset.component + '  =>  '
-                            + (b.querySelector('strong')?.textContent || '(no label)'))
+                            + (b.querySelector('strong')?.textContent || '(no label)')
+                            + (b.disabled ? '  [DISABLED: ' + (b.title || 'no reason given') + ']' : ''))
                          .join('\\n')`
                     : kind === 'dump'
                     ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]

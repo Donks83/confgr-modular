@@ -350,13 +350,17 @@
     {
       "id": "008551-base-brackets-for-office-solution",
       "depth": 320,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "minRung": 3,
+      "minRungBecause": "The office desktop assembly fits at rung 3 and above only — Kesseboehmer mark rungs 1 and 2 with a red line."
     },
     {
       "id": "008551-shelf-supports-for-office-solution",
       "depth": 320,
       "rotateYdeg": 0,
-      "carries": "desktop"
+      "carries": "desktop",
+      "minRung": 3,
+      "minRungBecause": "The office desktop assembly fits at rung 3 and above only — Kesseboehmer mark rungs 1 and 2 with a red line."
     }
   ],
   "_youboxx": [

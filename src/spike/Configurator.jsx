@@ -22,7 +22,7 @@ import { loadComponentFromPath } from '../three/loadGlb.js';
 import { resolveTransforms, validateAssembly } from '../engine/assembly.js';
 import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
-  whyNothingFits, attachAt, detach, pointKey,
+  whyNothingFits, whyComponentFitsNowhere, attachAt, detach, pointKey,
   canMove, moveTargets, moveTo,
   placementsAt, mountHeightMm, mountLabel, isFlatMount, distinctPlacements,
   placeFree, freePositionFor,
@@ -1244,9 +1244,16 @@ export default function Configurator() {
             const places = assembly.instances.length ? pointsForComponent(matrix, c.id).length : 1;
             const disabled = !wallFixed
               && assembly.instances.length > 0 && places === 0 && !pendingPoint;
+            // Greying a part out without saying why is the same failure as
+            // refusing a joint without saying why. A condition is the first
+            // thing that can disable a part permanently rather than just for
+            // now — the office arm on a 550 mm ladder can never go anywhere —
+            // so the rule's own words go on the button.
+            const why = disabled ? whyComponentFitsNowhere(matrix, c.id) : null;
             return (
               <button
                 key={c.id}
+                title={why || undefined}
                 // The harness selects parts by this, not by the visible text, so
                 // the label can change without breaking every probe.
                 data-component={c.id}
@@ -1263,6 +1270,7 @@ export default function Configurator() {
                   {wallFixed
                     ? 'fixes to the wall'
                     : (assembly.instances.length && !pendingPoint ? ` · ${places} place${places === 1 ? '' : 's'}` : '')}
+                  {why ? ` · ${why}` : ''}
                 </span>
               </button>
             );

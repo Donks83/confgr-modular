@@ -76,18 +76,78 @@ export function canConnectLogically(a, b, ctx = {}) {
     return { ok: false, reason: REASONS.ROLE_CLASH };
   }
 
-  // Conditions are expressions in Phase 1. Until the evaluator exists, a
-  // condition with no evaluator supplied is treated as unmet rather than met —
-  // failing closed, so an unevaluated rule never silently permits a bad joint.
-  const evaluate = ctx.evaluateCondition;
-  for (const snap of [a, b]) {
+  // CONDITIONS. A snap may say it is only legal against certain other snaps.
+  // The range's first real case is Kesseböhmer's: the office-solution arm may
+  // be fitted at rung 3 and above and nowhere else, which their sheet states
+  // with a tick and a cross and nothing in mask-and-role can express. A mask
+  // says what KIND of thing fits; a role says which way round; neither can say
+  // "this kind, but only there".
+  //
+  // Still fails closed. A condition the evaluator does not understand refuses
+  // the joint rather than waving it through, so a rule that is mis-authored is
+  // visible as a part that will not fit rather than invisible as a rule that
+  // quietly does nothing.
+  const evaluate = ctx.evaluateCondition || evaluateCondition;
+  for (const [snap, other] of [[a, b], [b, a]]) {
     if (snap.condition == null) continue;
-    if (!evaluate || !evaluate(snap.condition)) {
-      return { ok: false, reason: REASONS.CONDITION_FAILED };
+    if (!evaluate(snap.condition, { self: snap, other })) {
+      return {
+        ok: false,
+        reason: REASONS.CONDITION_FAILED,
+        // Authored alongside the rule, so the app can say WHY rather than
+        // "not available". A configurator that refuses without a reason is
+        // indistinguishable from one that is broken.
+        message: typeof snap.condition?.because === 'string'
+          ? snap.condition.because
+          : undefined,
+      };
     }
   }
 
   return { ok: true, reason: REASONS.OK };
+}
+
+/**
+ * The built-in condition evaluator.
+ *
+ * Deliberately NOT an expression language. A condition is a small declarative
+ * object with a closed vocabulary, so there is nothing to parse, nothing to
+ * execute, and an unrecognised clause is refused rather than guessed at. The
+ * expressive version can come later; this exists because the range needs one
+ * rule today and an unused field is worth less than a narrow used one.
+ *
+ * Vocabulary, v1:
+ *
+ *   otherLabelAnyOf  [string]  the snap on the other end must have one of these
+ *                              labels. Authored as an explicit list rather than
+ *                              a pattern, and GENERATED from the spec - the
+ *                              author writes `minRung: 3` and add-snaps.py
+ *                              expands it, so the decision stays a number and
+ *                              the list stays mechanical.
+ *
+ * `because` is documentation for the person, not part of the test.
+ */
+export function evaluateCondition(condition, { other } = {}) {
+  if (condition == null) return true;
+  if (typeof condition !== 'object' || Array.isArray(condition)) return false;
+
+  const clauses = Object.keys(condition).filter((k) => k !== 'because');
+  if (!clauses.length) return false;
+
+  for (const clause of clauses) {
+    switch (clause) {
+      case 'otherLabelAnyOf': {
+        const allowed = condition.otherLabelAnyOf;
+        if (!Array.isArray(allowed)) return false;
+        if (!allowed.includes(other?.label)) return false;
+        break;
+      }
+      default:
+        return false;   // unknown clause: closed, not open
+    }
+  }
+
+  return true;
 }
 
 /**

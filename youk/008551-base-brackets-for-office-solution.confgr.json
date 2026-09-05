@@ -7,5 +7,20 @@
   },
   "confgrRoles": {
     "md-snap.youk-d320.mount": "plug"
+  },
+  "confgrConditions": {
+    "md-snap.youk-d320.mount": {
+      "otherLabelAnyOf": [
+        "rung-3-right",
+        "rung-3-left",
+        "rung-4-right",
+        "rung-4-left",
+        "rung-5-right",
+        "rung-5-left",
+        "rung-6-right",
+        "rung-6-left"
+      ],
+      "because": "The office desktop assembly fits at rung 3 and above only \u2014 Kesseboehmer mark rungs 1 and 2 with a red line."
+    }
   }
 }

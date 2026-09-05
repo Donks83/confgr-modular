@@ -269,6 +269,22 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       );
     }
 
+    // A rule about WHERE this snap may be used, not what fits it. Validated
+    // here rather than at connect time: a mis-authored condition should be a
+    // model that refuses to load, not a part that mysteriously never fits.
+    const condition = desc.extras?.confgrConditions?.[node.name] ?? null;
+    if (condition !== null) {
+      const bad = typeof condition !== 'object' || Array.isArray(condition)
+        || !Object.keys(condition).some((k) => k !== 'because');
+      if (bad) {
+        throw new ComponentError(
+          `Snap "${node.name}" has a condition that is not a clause object. `
+          + 'See evaluateCondition in snapMatch.js for the vocabulary.',
+          { code: 'SNAP_CONDITION_INVALID', detail: { name: node.name, condition } },
+        );
+      }
+    }
+
     snaps.push({
       id: node.name,
       mask: parsed.mask,
@@ -279,7 +295,7 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       position: node.translation,
       facing: snapFacing(node),
       required: false,   // set in the editor, not in the model
-      condition: null,   // an expression, evaluated in Phase 1
+      condition,
       role,
       // {cols, rows} when this snap occupies a rectangle of grid cells, else
       // null meaning a single point or a single cell.
