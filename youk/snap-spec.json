@@ -8,9 +8,7 @@
     "that assembles confidently and incorrectly, so it is data in git rather than",
     "constants in a script."
   ],
-
-  "frameThicknessMm": 30.0,
-
+  "frameThicknessMm": 30,
   "_mask": [
     "ONE mask per ladder depth, shared by span and hang accessories, because a",
     "rung mount is a rung mount: both families bolt through the same hole in the",
@@ -19,7 +17,6 @@
     "tray could then occupy the same rung face. Depth is the axis that actually",
     "gates compatibility, and it is already in the mask."
   ],
-
   "_rungTops": [
     "Height above the frame base of each rung member's TOP face, which is what an",
     "accessory bears down on. Members are 4.9mm thick and start 95.1, 450.1,",
@@ -31,10 +28,21 @@
     "dimension chain and is confirmed in the geometry."
   ],
   "rungTopsMm": {
-    "200": [100.0, 336.5, 573.0, 809.5],
-    "320": [100.0, 455.0, 810.0, 1405.0, 1760.0, 2115.0]
+    "200": [
+      100,
+      336.5,
+      573,
+      809.5
+    ],
+    "320": [
+      100,
+      455,
+      810,
+      1405,
+      1760,
+      2115
+    ]
   },
-
   "_mountHole": [
     "Every rung carries two 5x5mm holes in its top wall, at these distances",
     "either side of the frame's depth centre. Each hang accessory carries a 9x6mm",
@@ -45,9 +53,11 @@
     "add-snaps.py finds the slot by this number and takes the plug from it, so",
     "the plug is measured from each part rather than typed in per part."
   ],
-  "mountHoleMm": { "200": 35.0, "320": 95.0 },
+  "mountHoleMm": {
+    "200": 35,
+    "320": 95
+  },
   "topSheetMm": 1.5,
-
   "_frames": [
     "The ladder frames. Converted with their 320mm depth along X, which cannot be",
     "right - a shelf's width is also along X, and a shelf spans BETWEEN two",
@@ -55,14 +65,37 @@
     "the axis the frames are spaced along."
   ],
   "frames": [
-    { "id": "236746-leiterregal-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
-    { "id": "236748-ladder-depth-2000mm",            "depth": 200, "rotateYdeg": 90 },
-    { "id": "236750-ladder-depth-320mm",             "depth": 320, "rotateYdeg": 90 },
-    { "id": "236754-ladder-depth-320mm",             "depth": 320, "rotateYdeg": 90 },
-    { "id": "236758-ladder-depth-320mm",             "depth": 320, "rotateYdeg": 90 },
-    { "id": "236762-ladder-depth-320mm",             "depth": 320, "rotateYdeg": 90 }
+    {
+      "id": "236746-leiterregal-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "236748-ladder-depth-2000mm",
+      "depth": 200,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "236750-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "236754-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "236758-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "236762-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    }
   ],
-
   "_span": [
     "Accessories that span two frames. Each carries a plug at BOTH ends, so the",
     "bay resolves as a chain: frame -> shelf -> frame, with the shelf's width",
@@ -102,30 +135,102 @@
     "\"top\", so the strip presenting an identical sheet settles it."
   ],
   "span": [
-    { "id": "008561-shelf-450mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
-    { "id": "008562-shelf-600mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
-    { "id": "008563-shelf-900mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
-    { "id": "008564-shelf-1200mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
-
-    { "id": "008530-clothes-rail-600mm",  "depth": 320, "bearing": "top" },
-    { "id": "008531-clothes-rail-900mm",  "depth": 320, "bearing": "top" },
-    { "id": "008532-clothes-rail-1200mm", "depth": 320, "bearing": "top" },
-
-    { "id": "008538-hook-strip-for-ladder-width-450mm", "depth": 320, "bearing": "top" },
-    { "id": "008539-hook-strip-for-ladder-width-600mm", "depth": 320, "bearing": "top" },
-    { "id": "008540-hook-strip-for-ladder-width-900mm", "depth": 320, "bearing": "top" },
-    { "id": "008541-hook-strip-for-ladder-width-1200mm", "depth": 320, "bearing": "top" },
-
-    { "id": "pws-timber-shelf-450mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
-    { "id": "pws-timber-shelf-600mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
-    { "id": "pws-timber-shelf-900mm-for-ladder-depth-320mm",  "depth": 320, "bearing": "base" },
-    { "id": "pws-timber-shelf-1200mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
-    { "id": "pws-timber-shelf-450mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
-    { "id": "pws-timber-shelf-600mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
-    { "id": "pws-timber-shelf-900mm-for-ladder-depth-200mm",  "depth": 200, "bearing": "base" },
-    { "id": "pws-timber-shelf-1200mm-for-ladder-depth-200mm", "depth": 200, "bearing": "base" }
+    {
+      "id": "008561-shelf-450mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "008562-shelf-600mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "008563-shelf-900mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "008564-shelf-1200mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "008530-clothes-rail-600mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008531-clothes-rail-900mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008532-clothes-rail-1200mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008538-hook-strip-for-ladder-width-450mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008539-hook-strip-for-ladder-width-600mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008540-hook-strip-for-ladder-width-900mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "008541-hook-strip-for-ladder-width-1200mm",
+      "depth": 320,
+      "bearing": "top"
+    },
+    {
+      "id": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-600mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-1200mm-for-ladder-depth-320mm",
+      "depth": 320,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-450mm-for-ladder-depth-200mm",
+      "depth": 200,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-600mm-for-ladder-depth-200mm",
+      "depth": 200,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+      "depth": 200,
+      "bearing": "base"
+    },
+    {
+      "id": "pws-timber-shelf-1200mm-for-ladder-depth-200mm",
+      "depth": 200,
+      "bearing": "base"
+    }
   ],
-
   "_wall": [
     "Parts that join NOTHING. They are screwed straight to the wall, so they",
     "have no snap planes at all, and their instruction sheets contain no ladder.",
@@ -146,12 +251,19 @@
     "for the other 40-odd parts."
   ],
   "wall": [
-    { "id": "008553-shoe-rack-450mm" },
-    { "id": "008554-shoe-rack-600mm" },
-    { "id": "008555-shoe-rack-900mm" },
-    { "id": "008556-shoe-rack-1200mm" }
+    {
+      "id": "008553-shoe-rack-450mm"
+    },
+    {
+      "id": "008554-shoe-rack-600mm"
+    },
+    {
+      "id": "008555-shoe-rack-900mm"
+    },
+    {
+      "id": "008556-shoe-rack-1200mm"
+    }
   ],
-
   "_hang": [
     "Accessories that hang on ONE frame and cantilever off it (MA 406209, MA",
     "406210). They lie across the frame's depth, so like the frames they are",
@@ -166,30 +278,82 @@
     "One plug, not two: nothing attaches to the far side of a hung accessory."
   ],
   "hang": [
-    { "id": "008536-hook-strip-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
-    { "id": "008537-hook-strip-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 },
-    { "id": "008542-rack-for-ladder-depth-200mm",       "depth": 200, "rotateYdeg": 90 },
-    { "id": "008543-rack-for-ladder-depth-320mm",       "depth": 320, "rotateYdeg": 90 },
-    { "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
-
-    { "id": "008545-youboxx-set-2", "depth": 200, "rotateYdeg": 0 },
-    { "id": "008546-youboxx-set-3", "depth": 320, "rotateYdeg": 0 },
-    { "id": "008547-youboxx-set-4", "depth": 320, "rotateYdeg": 0 },
-    { "id": "008548-youboxx-set-5", "depth": 320, "rotateYdeg": 0 },
-
-    { "id": "008557-outer-cabinet-bracket-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
-    { "id": "008558-outer-cabinet-bracket-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 },
-    { "id": "008559-cabinet-bracket-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
-    { "id": "008560-cabinet-bracket-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 }
+    {
+      "id": "008536-hook-strip-for-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008537-hook-strip-for-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008542-rack-for-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008543-rack-for-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008545-youboxx-set-2",
+      "depth": 200,
+      "rotateYdeg": 0
+    },
+    {
+      "id": "008546-youboxx-set-3",
+      "depth": 320,
+      "rotateYdeg": 0
+    },
+    {
+      "id": "008547-youboxx-set-4",
+      "depth": 320,
+      "rotateYdeg": 0
+    },
+    {
+      "id": "008548-youboxx-set-5",
+      "depth": 320,
+      "rotateYdeg": 0
+    },
+    {
+      "id": "008557-outer-cabinet-bracket-for-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90,
+      "carries": "carcase"
+    },
+    {
+      "id": "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90,
+      "carries": "carcase"
+    },
+    {
+      "id": "008559-cabinet-bracket-for-ladder-depth-200mm",
+      "depth": 200,
+      "rotateYdeg": 90,
+      "carries": "carcase"
+    },
+    {
+      "id": "008560-cabinet-bracket-for-ladder-depth-320mm",
+      "depth": 320,
+      "rotateYdeg": 90,
+      "carries": "carcase"
+    }
   ],
-
   "_youboxx": [
     "The YouboXx sets need NO rotation - they come out of CAD with their length",
     "already along Z, unlike every other hang part. Left at 90 they would fail",
     "the slot search rather than silently mount sideways, which is the point of",
     "deriving the plug from the slot instead of a typed-in number."
   ],
-
   "_notThisSystem": [
     "The SHOE RACKS (008553-008556) are not frame accessories at all. MA 406213",
     "screws them straight to a wall with plugs and screws - no ladder appears in",
@@ -199,7 +363,6 @@
     "They belong to a wall-fixed product the configurator has no concept of, so",
     "they stay out rather than being forced into a bay."
   ],
-
   "_notYet": [
     "Deliberately absent:",
     "  - the clothes rail EXTENSIONS (008533, 008534, 008535). MA 406208 shows a",
@@ -210,5 +373,103 @@
     "    bracket, the newspaper-rack divider (it sits in the rack, not on a",
     "    frame), the adjustable foot and the wall brackets",
     "Adding the rest is more rows here, not more code."
+  ],
+  "carcase": [
+    {
+      "id": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-320mm",
+      "depth": 320
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-200mm",
+      "depth": 200
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-200mm",
+      "depth": 200
+    }
   ]
 }

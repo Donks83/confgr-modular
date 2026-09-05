@@ -127,10 +127,20 @@ describe('extractComponent — the AR-safe rules', () => {
     expect(() => extractComponent(desc)).toThrow(/not flat/);
   });
 
-  it('refuses a snap facing straight up', () => {
+  // This used to be a refusal, and the refusal was wrong about this range.
+  // Kesseböhmer's carcase-holder and office-solution sheets both describe a part
+  // LAID ON its brackets and screwed up from below: its only mating face points
+  // down, and rejecting that made the cabinets and the desktop unbuildable.
+  // The check that a joint makes sense moved to solveChildTransform, which is
+  // where both ends of it are visible - see tests/verticalJoint.test.js.
+  it('accepts a snap facing straight up, and reports the facing', () => {
     const desc = describeUnit();
-    desc.nodes[1].rotation = [-R2, 0, 0, R2];   // +Z rotated to -Y
-    expect(() => extractComponent(desc)).toThrow(/straight up or down/);
+    desc.nodes[1].rotation = [-R2, 0, 0, R2];   // +Z rotated to +Y
+    const component = extractComponent(desc);
+    const up = component.snaps.find((s) => Math.abs(s.facing[1]) > 0.99);
+    expect(up).toBeDefined();
+    expect(up.facing[1]).toBeCloseTo(1, 6);
+    expect(Math.hypot(up.facing[0], up.facing[2])).toBeCloseTo(0, 6);
   });
 
   // A component needs SOME attach point, but a grid counts — a MOLLE panel has

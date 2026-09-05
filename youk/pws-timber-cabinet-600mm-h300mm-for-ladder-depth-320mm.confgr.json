@@ -1,0 +1,12 @@
+{
+  "confgr": {
+    "widthMm": 589.3,
+    "heightMm": 300.0,
+    "depthMm": 320.0,
+    "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-carcase-d320.rest-left": "plug",
+    "md-snap.youk-carcase-d320.rest-right": "plug"
+  }
+}

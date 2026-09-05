@@ -24,7 +24,7 @@ import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
   whyNothingFits, attachAt, detach, pointKey,
   canMove, moveTargets, moveTo,
-  placementsAt, mountHeightMm, distinctPlacements,
+  placementsAt, mountHeightMm, mountLabel, isFlatMount, distinctPlacements,
   placeFree, freePositionFor,
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
@@ -1207,8 +1207,12 @@ export default function Configurator() {
             </h2>
             <p className="cfg-note cfg-dim">
               {labelFor({ id: pendingChoice.componentId })} can meet this point in{' '}
-              {pendingChoice.placements.length} places. The number is how far up
-              the part its own joint sits, so a taller number hangs it lower.
+              {pendingChoice.placements.length} places.{' '}
+              {pendingChoice.placements.some(isFlatMount)
+                // A part laid on top has both its joints at the same height, so
+                // the height cannot tell them apart — which end lands here can.
+                ? 'This part is laid on top, so what you are choosing is which end of it sits here.'
+                : 'The number is how far up the part its own joint sits, so a taller number hangs it lower.'}
             </p>
             <div className="cfg-palette cfg-choices">
               {pendingChoice.placements.map((p) => (
@@ -1219,7 +1223,7 @@ export default function Configurator() {
                     ? applyMove(pendingChoice.instanceId, p)
                     : commitPlacement(p))}
                 >
-                  <strong>{mountHeightMm(p)} mm up the part</strong>
+                  <strong>{mountLabel(p)}</strong>
                   <span className="cfg-meta">{p.mountSnap?.label || p.mountSnapId}</span>
                 </button>
               ))}

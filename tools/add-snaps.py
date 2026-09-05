@@ -62,6 +62,13 @@ FACING_QUAT = {
     "+x": (0.0, ROOT_HALF, 0.0, ROOT_HALF),
     "-z": (0.0, 1.0, 0.0, 0.0),
     "-x": (0.0, -ROOT_HALF, 0.0, ROOT_HALF),
+    # Flat faces, for a part LAID ON another rather than met edge-on: the
+    # carcase on its brackets, the office desktop on its shelf supports. The
+    # engine refused these outright until the vertical joint went in - see
+    # solveChildTransform. Only emitted when the spec asks for one, which is
+    # what stops a snap ending up flat by accident.
+    "+y": (-ROOT_HALF, 0.0, 0.0, ROOT_HALF),
+    "-y": (ROOT_HALF, 0.0, 0.0, ROOT_HALF),
 }
 
 
@@ -238,14 +245,65 @@ def hang_snaps(mesh, part, spec):
         "facing": "-x",
         "role": "plug",
     }]
+    # A bracket that CARRIES something adds a second snap: a flat socket on the
+    # face the carried part rests on. `Carcass holder` step 3 - the carcase sits
+    # on the brackets and is screwed up from below - and step 5 puts the usual
+    # 1.5mm packer between bracket and carcase underside, so the socket sits a
+    # packer above the plate rather than on it.
+    #
+    # The plate's top face is MEASURED, not declared. It is the part's own
+    # highest point, which for the 8mm carcase brackets is y = 8.0. Typing that
+    # in per part is exactly how the extension brackets would end up wrong.
+    #
+    # Its own mask, so a carcase can only meet a bracket. Sharing the rung mask
+    # would let a cabinet hang straight off a ladder with nothing under it.
+    if part.get("carries"):
+        packer = float(spec.get("topSheetMm", 1.5))
+        snaps.append({
+            "name": f"md-snap.youk-{part['carries']}-d{depth}.carries",
+            "position_mm": (0.0, top_y + packer, 0.0),
+            "facing": "+y",
+            "role": "socket",
+        })
+
     reach = float(v[:, 0].max()) - x
     return snaps, {
         "mask": mask,
+        "carriesY_mm": round(top_y + float(spec.get("topSheetMm", 1.5)), 2)
+        if part.get("carries") else None,
         "plug_mm": (round(x, 2), round(y, 2)),
         "slotWidth_mm": round(float(slot[:, 0].max() - slot[:, 0].min()), 2),
         "sheet_mm": round(sheet, 2),
         "reach_mm": round(reach, 1),
     }
+
+
+def carcase_snaps(mesh, part, spec):
+    """Two plugs on the UNDERSIDE, one over each bracket.
+
+    The mirror image of the span family. A shelf meets the rungs edge-on and its
+    plugs face outward along x; a carcase is laid on top of two brackets and its
+    plugs face straight down, because that is the only face it mates on. Nothing
+    holds it sideways - `Carcass holder` step 3 screws it up from below, and step
+    4 puts two dowels in for location.
+
+    The plugs sit at the extreme ends, not inset. That is not a shortcut: the
+    box is generated exactly as wide as the gap between the two bracket centres,
+    so its ends and its plugs are the same place. tools/make-timber.py derives
+    that width by READING the bracket's own plug offset out of the snapped GLB
+    rather than being told it, which is what keeps the two in step.
+    """
+    depth = str(part["depth"])
+    half = float(mesh.extents[0]) * 1000.0 / 2.0
+    mask = f"youk-{part.get('carriedBy', 'carcase')}-d{depth}"
+    snaps = [
+        {"name": f"md-snap.{mask}.rest-left",
+         "position_mm": (-half, 0.0, 0.0), "facing": "-y", "role": "plug"},
+        {"name": f"md-snap.{mask}.rest-right",
+         "position_mm": (half, 0.0, 0.0), "facing": "-y", "role": "plug"},
+    ]
+    return snaps, {"mask": mask, "plugX_mm": round(half, 2),
+                   "spacing_mm": round(2 * half, 2)}
 
 
 def build(glb, part, spec, kind, out_path):
@@ -269,6 +327,7 @@ def build(glb, part, spec, kind, out_path):
 
     snaps, detail = {
         "frame": frame_snaps, "span": span_snaps, "hang": hang_snaps,
+        "carcase": carcase_snaps,
     }[kind](mesh, part, spec)
 
     scene = trimesh.Scene()
@@ -328,6 +387,7 @@ def main():
     jobs = ([("frame", p) for p in spec.get("frames", [])]
             + [("span", p) for p in spec.get("span", [])]
             + [("hang", p) for p in spec.get("hang", [])]
+            + [("carcase", p) for p in spec.get("carcase", [])]
             + [("wall", p) for p in spec.get("wall", [])])
     if not jobs:
         print("spec lists no parts", file=sys.stderr)
@@ -388,11 +448,17 @@ def main():
                 print(f'  {"":<46}       plugs at x = +/-{detail["plugX_mm"]}, '
                       f'y {detail["plugY_mm"]} ({detail["bearing"]}) mm '
                       f'-> frames {detail["spacing_mm"]} mm apart')
+            elif kind == "carcase":
+                print(f'  {"":<46}       plugs DOWN at x = +/-{detail["plugX_mm"]} mm '
+                      f'-> brackets {detail["spacing_mm"]} mm apart')
             else:
                 px, py = detail["plug_mm"]
                 print(f'  {"":<46}       plug at x {px}, y {py} mm from a '
                       f'{detail["slotWidth_mm"]} mm slot in a {detail["sheet_mm"]} mm '
                       f'sheet; reaches {detail["reach_mm"]} mm out')
+                if detail.get("carriesY_mm") is not None:
+                    print(f'  {"":<46}       carries a part at y '
+                          f'{detail["carriesY_mm"]} mm (plate top + packer)')
 
             # The roles go in the sidecar, which declare.mjs then applies. Kept
             # separate on purpose: the sidecar is what a human reviews.

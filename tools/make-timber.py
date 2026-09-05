@@ -53,6 +53,18 @@ SHELF_DEPTH_MM = {200: 169.0, 320: 289.0}
 
 BOARD_THICKNESS_MM = 25.0
 
+# The ladder stile, 30 mm. A shelf's plugs are inset half of it at each end, so
+# the bay's ladder spacing is the shelf's overall length less this. Matches
+# frameThicknessMm in youk/snap-spec.json, which is where add-snaps reads it.
+FRAME_THICKNESS_MM = 30.0
+
+# Cabinet heights. Kesseböhmer cap the carcase at 450 mm on the carcase-holder
+# sheet, so 450 is their maximum rather than a round number we liked; the other
+# two are Matt's, to give a run something to vary. Width is NOT a free choice -
+# it is whatever makes the box land on both brackets - and depth is the ladder
+# depth, which is their stated minimum.
+CABINET_HEIGHTS_MM = (200, 300, 450)
+
 # Small enough to catch a highlight and read as a real edge, small enough that
 # nobody would call it a bevel. Not a spec number - a rendering one.
 CHAMFER_MM = 1.5
@@ -129,13 +141,93 @@ def board(length_mm, thickness_mm, depth_mm, chamfer_mm=CHAMFER_MM):
 
     mesh = trimesh.Trimesh(vertices=verts, faces=np.array(faces), process=False)
     mesh.name = "body"
+    return mesh
+
+
+def dressed(mesh):
+    """Give a mesh the timber material. Applied once, after any assembly."""
+    import numpy as np
+    import trimesh
+
     # UVs the material does not use, but glTF export drops the material without
     # a TextureVisuals to hang it on.
     mesh.visual = trimesh.visual.TextureVisuals(
-        uv=np.zeros((len(verts), 2), dtype=float),
+        uv=np.zeros((len(mesh.vertices), 2), dtype=float),
         material=timber_material(),
     )
+    mesh.name = "body"
     return mesh
+
+
+# Which way is the wall. attach.js parks a wall-fixed part at the assembly's
+# MINIMUM z (`bounds.min[2] - min[2]` in freePositionFor), so -z is the wall and
+# +z is the room. That decides which panel is the door, and it is read off the
+# engine rather than guessed - a cabinet with its door against the wall is the
+# kind of thing that survives to a client demo.
+WALL_AXIS = "-z"
+DOOR_AXIS = "+z"
+
+
+def panel(length_mm, thickness_mm, depth_mm, outward, centre_mm):
+    """One board of a box, turned so its chamfered face looks along `outward`.
+
+    board() eases the edges of its +y face only. Orienting every panel so that
+    face points OUT of the box means each one is eased where it can be seen, and
+    the chamfers meet as a shadow gap between panels - which is what makes six
+    slabs read as a piece of furniture rather than a solid block.
+    """
+    import numpy as np
+    import trimesh
+
+    slab = board(length_mm, thickness_mm, depth_mm)
+    # board() sits on y = 0; centre it before rotating about its own middle.
+    slab.apply_translation([0.0, -thickness_mm / 2000.0, 0.0])
+
+    rot = {
+        "+y": (0.0, [1, 0, 0]),
+        "-y": (math.pi, [1, 0, 0]),
+        "+z": (math.pi / 2, [1, 0, 0]),
+        "-z": (-math.pi / 2, [1, 0, 0]),
+        "+x": (-math.pi / 2, [0, 0, 1]),
+        "-x": (math.pi / 2, [0, 0, 1]),
+    }[outward]
+    slab.apply_transform(trimesh.transformations.rotation_matrix(rot[0], rot[1]))
+    slab.apply_translation(np.array(centre_mm) / 1000.0)
+    return slab
+
+
+def cabinet(width_mm, height_mm, depth_mm, thickness_mm=BOARD_THICKNESS_MM):
+    """Six panels, origin at base centre, door to the room and back to the wall.
+
+    Six-piece box construction to Matt's spec, no internal detail: two sides,
+    base, top, back, and a full-overlay door across the front. The door overlays
+    rather than sits between the sides because that is how a PWS door is made,
+    and because an inset front reads as a drawer.
+
+    Overall depth INCLUDES the door, so the carcase behind it is depth - t. That
+    keeps the box's footprint equal to the ladder depth, which is what
+    Kesseböhmer's minimum ("depth at least the ladder depth") is about.
+    """
+    import trimesh
+
+    t = thickness_mm
+    w, h, d = width_mm, height_mm, depth_mm
+    box_d = d - t                       # everything behind the door
+    box_z = -d / 2 + box_d / 2          # centre of that, in the part's own frame
+
+    panels = [
+        # sides: full height, outward faces are the ends of the run
+        panel(h, t, box_d, "-x", (-w / 2 + t / 2, h / 2, box_z)),
+        panel(h, t, box_d, "+x", (w / 2 - t / 2, h / 2, box_z)),
+        # base and top, between the sides
+        panel(w - 2 * t, t, box_d, "-y", (0.0, t / 2, box_z)),
+        panel(w - 2 * t, t, box_d, "+y", (0.0, h - t / 2, box_z)),
+        # back, between the sides and between base and top
+        panel(w - 2 * t, t, h - 2 * t, WALL_AXIS, (0.0, h / 2, -d / 2 + t / 2)),
+        # door, full overlay
+        panel(w, t, h, DOOR_AXIS, (0.0, h / 2, d / 2 - t / 2)),
+    ]
+    return trimesh.util.concatenate(panels)
 
 
 def write(mesh, path):
@@ -161,6 +253,41 @@ def write(mesh, path):
     path.write_bytes(trimesh.exchange.gltf.export_glb(scene))
 
 
+def bracket_plug_offset_mm(folder, depth):
+    """How far inboard of its ladder a cabinet bracket sits, read off the GLB.
+
+    THE NUMBER THAT SETS THE CABINET'S WIDTH, so it is read rather than typed.
+
+    A bracket straddles the ladder stile, and its plug - the point that lands on
+    the rung - is offset from its own centre. For the 320 outer bracket that is
+    15.1 mm, so on a bay whose ladders are 920.1 mm apart the two brackets end up
+    889.9 mm apart, and a carcase must be exactly that wide for its second plug
+    to arrive over the second bracket.
+
+    This is the same class of mistake as the 0.1 mm that nearly shipped in the
+    shelf lengths, and the same fix: take the number from what the pipeline
+    actually produced. Reading the snapped GLB means the day somebody re-authors
+    the brackets, the cabinets follow.
+    """
+    import trimesh
+
+    ids = {320: "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
+           200: "008557-outer-cabinet-bracket-for-ladder-depth-200mm"}
+    glb = folder / f"{ids[depth]}.glb"
+    if not glb.exists():
+        raise SystemExit(
+            f"{glb.name} is not there. The cabinets are sized from the cabinet "
+            f"brackets, so those have to be snapped first: npm run youk:snap"
+        )
+
+    scene = trimesh.load(str(glb), force="scene")
+    for name in scene.graph.nodes_geometry:
+        if name.endswith(".mount"):
+            transform = scene.graph.get(name)[0]
+            return abs(float(transform[0, 3]) * 1000.0)
+    raise SystemExit(f"{glb.name} has no .mount snap - re-run npm run youk:snap")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("folder", nargs="?", default="youk")
@@ -173,7 +300,7 @@ def main():
     for depth in (320, 200):
         for nominal, length in SHELF_LENGTH_MM.items():
             part_id = f"pws-timber-shelf-{nominal}mm-for-ladder-depth-{depth}mm"
-            mesh = board(length, BOARD_THICKNESS_MM, SHELF_DEPTH_MM[depth])
+            mesh = dressed(board(length, BOARD_THICKNESS_MM, SHELF_DEPTH_MM[depth]))
             out = folder / f"{part_id}.converted.glb"
             write(mesh, out)
             dims = [round(float(v) * 1000, 1) for v in mesh.extents]
@@ -188,6 +315,34 @@ def main():
             })
             print(f'  {part_id:<52} {dims[0]:>7.1f} x {dims[1]:>5.1f} x {dims[2]:>6.1f} mm  '
                   f'{len(mesh.faces):>3} tris')
+
+    print()
+    for depth in (320, 200):
+        offset = bracket_plug_offset_mm(folder, depth)
+        for nominal, shelf_length in SHELF_LENGTH_MM.items():
+            # The bay's ladder spacing is what the shelf sets: its overall length
+            # less the frame thickness, half of it swallowed at each end. Then
+            # the two brackets sit `offset` inboard of each ladder centre.
+            ladder_spacing = shelf_length - FRAME_THICKNESS_MM
+            width = round(ladder_spacing - 2 * offset, 4)
+            for height in CABINET_HEIGHTS_MM:
+                part_id = (f"pws-timber-cabinet-{nominal}mm-h{height}mm"
+                           f"-for-ladder-depth-{depth}mm")
+                mesh = dressed(cabinet(width, float(height), float(depth)))
+                out = folder / f"{part_id}.converted.glb"
+                write(mesh, out)
+                dims = [round(float(v) * 1000, 1) for v in mesh.extents]
+                made.append({
+                    "id": part_id,
+                    "description": (
+                        f"Timber cabinet {nominal} mm, {height} mm high, for "
+                        f"ladder depth {depth} mm, {BOARD_THICKNESS_MM:.0f} mm"
+                    ),
+                    "dims_mm": dims,
+                    "triangles": len(mesh.faces),
+                })
+                print(f'  {part_id:<52} {dims[0]:>7.1f} x {dims[1]:>5.1f} x '
+                      f'{dims[2]:>6.1f} mm  {len(mesh.faces):>3} tris')
 
     # A manifest, so make-catalogue has a source for parts that have no STEP and
     # therefore no entry in convert-report.json.

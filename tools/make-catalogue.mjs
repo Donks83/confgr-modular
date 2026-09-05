@@ -94,13 +94,19 @@ function main(argv) {
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
 
   const sources = new Map(report.parts.map((p) => [p.id, p]));
-  const configurable = [
-    // `wall` too: a part that joins nothing is still a part somebody is billed
-    // for. Leaving it out would put the shoe rack in the app with a raw model
-    // id for a name and no line on the quote.
-    ...(spec.frames || []), ...(spec.span || []), ...(spec.hang || []),
-    ...(spec.wall || []),
-  ].map((row) => row.id);
+  // EVERY family, found rather than listed. This was `spec.frames + span + hang
+  // + wall`, and that spelling has now gone stale twice: once when `wall` was
+  // added, which put the shoe rack in the app with a raw model id for a name and
+  // no line on the quote, and again when `carcase` was, which left 24 cabinets
+  // out of the catalogue entirely. A part that joins nothing is still a part
+  // somebody is billed for, and so is a part that joins downwards.
+  //
+  // The rule instead: any array in the spec whose rows carry an id is a family.
+  // Adding one to snap-spec.json is now all it takes.
+  const configurable = Object.values(spec)
+    .filter((value) => Array.isArray(value) && value.every((row) => row && row.id))
+    .flat()
+    .map((row) => row.id);
 
   const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};
   const keptItems = existing.items || {};

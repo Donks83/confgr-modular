@@ -121,15 +121,18 @@ export function snapBearingSide(component, snapId) {
  * in for, which is easier to validate and impossible to misread.
  */
 export function snapFacing(node) {
-  const facing = normalise(rotateVec(node.rotation, SNAP_LOCAL_FACING));
-  if (Math.hypot(facing[0], facing[2]) < EPS) {
-    throw new ComponentError(
-      `Snap "${node.name}" faces straight up or down. Horizontal facings only — `
-      + 'a floor-standing assembly cannot connect through a ceiling.',
-      { code: 'SNAP_FACING_VERTICAL', detail: { name: node.name, facing } },
-    );
-  }
-  return facing;
+  // A vertical facing used to be refused here, on the reasoning that "a
+  // floor-standing assembly cannot connect through a ceiling". That was wrong
+  // about this range. Kesseböhmer's carcase-holder and office-solution sheets
+  // both describe the same joint: the part is LAID ON its brackets and screwed
+  // up from below. It meets nothing edge-on, so its only mating face points
+  // down, and refusing that made the cabinets and the desktop unbuildable.
+  //
+  // What the check was really worth was catching a snap plane left flat by
+  // accident. That protection now lives where the mistake would be made:
+  // add-snaps.py only emits a vertical facing when the spec asks for one, and
+  // solveChildTransform refuses to pair a flat face with an upright one.
+  return normalise(rotateVec(node.rotation, SNAP_LOCAL_FACING));
 }
 
 function validateSnapGeometry(node) {

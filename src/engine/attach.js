@@ -231,6 +231,39 @@ export function mountHeightMm(placement) {
   return typeof metres === 'number' ? Math.round(metres * 1000) : 0;
 }
 
+/** How far along the part its own joint sits. Only meaningful on a flat face. */
+export function mountOffsetMm(placement) {
+  const metres = placement?.mountSnap?.position?.[0];
+  return typeof metres === 'number' ? Math.round(metres * 1000) : 0;
+}
+
+/** Whether this placement mates on a face that lies flat rather than upright. */
+export function isFlatMount(placement) {
+  const facing = placement?.mountSnap?.facing;
+  return Array.isArray(facing) && Math.hypot(facing[0], facing[2]) < 1e-6;
+}
+
+/**
+ * What to call one placement when a person is choosing between several.
+ *
+ * The height works for every joint that meets edge-on, because that is what
+ * varies: mate by the rung 810 mm up the frame and the frame hangs 810 mm below
+ * the shelf. It is useless on a flat face. A carcase laid on a bracket has both
+ * of its plugs at the same height — its own underside — so the chooser offered
+ * "0 mm up the part" twice and asked the person to pick between two identical
+ * labels, which is the same complaint that produced the level chooser in the
+ * first place.
+ *
+ * What actually differs there is WHICH END of the part lands on the point, and
+ * therefore which way the rest of it runs. So say that instead.
+ */
+export function mountLabel(placement) {
+  if (!isFlatMount(placement)) return `${mountHeightMm(placement)} mm up the part`;
+  const offset = mountOffsetMm(placement);
+  if (offset === 0) return 'centred on this point';
+  return offset < 0 ? 'running to the right' : 'running to the left';
+}
+
 /**
  * Of those placements, the ones that actually put the part somewhere different.
  *

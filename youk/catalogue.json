@@ -333,6 +333,50 @@
       "costEach": null,
       "priceEach": {}
     },
+    "008553-shoe-rack-450mm": {
+      "article": "008553",
+      "description": "YouK shoe rack 450 mm, Schuhablage 450 mm",
+      "sizeMm": [
+        448,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008554-shoe-rack-600mm": {
+      "article": "008554",
+      "description": "YouK shoe rack 600 mm, Schuhablage 600 mm",
+      "sizeMm": [
+        598,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008555-shoe-rack-900mm": {
+      "article": "008555",
+      "description": "YouK shoe rack 900 mm, Schuhablage 900 mm",
+      "sizeMm": [
+        898,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008556-shoe-rack-1200mm": {
+      "article": "008556",
+      "description": "YouK shoe rack 1200 mm, Schuhablage 1200 mm",
+      "sizeMm": [
+        1198,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
     "008536-hook-strip-for-ladder-depth-200mm": {
       "article": "008536",
       "description": "YouK hook strip for ladder depth 200 mm",
@@ -478,47 +522,291 @@
       "costEach": null,
       "priceEach": {}
     },
-    "008553-shoe-rack-450mm": {
-      "article": "008553",
-      "description": "YouK shoe rack 450 mm, Schuhablage 450 mm",
+    "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
       "sizeMm": [
-        448,
-        76.6,
-        110.1
+        439.9,
+        200,
+        320
       ],
+      "supplier": "PWS",
       "costEach": null,
       "priceEach": {}
     },
-    "008554-shoe-rack-600mm": {
-      "article": "008554",
-      "description": "YouK shoe rack 600 mm, Schuhablage 600 mm",
+    "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
       "sizeMm": [
-        598,
-        76.6,
-        110.1
+        439.9,
+        300,
+        320
       ],
+      "supplier": "PWS",
       "costEach": null,
       "priceEach": {}
     },
-    "008555-shoe-rack-900mm": {
-      "article": "008555",
-      "description": "YouK shoe rack 900 mm, Schuhablage 900 mm",
+    "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
       "sizeMm": [
-        898,
-        76.6,
-        110.1
+        439.9,
+        450,
+        320
       ],
+      "supplier": "PWS",
       "costEach": null,
       "priceEach": {}
     },
-    "008556-shoe-rack-1200mm": {
-      "article": "008556",
-      "description": "YouK shoe rack 1200 mm, Schuhablage 1200 mm",
+    "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
       "sizeMm": [
-        1198,
-        76.6,
-        110.1
+        589.3,
+        200,
+        320
       ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        589.3,
+        300,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        589.3,
+        450,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        200,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        300,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        450,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        200,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        300,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-320mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        450,
+        320
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        439.9,
+        200,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        439.9,
+        300,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 450 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        439.9,
+        450,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        589.3,
+        200,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        589.3,
+        300,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 600 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        589.3,
+        450,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        200,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        300,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 900 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        889.9,
+        450,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        200,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        300,
+        200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-200mm": {
+      "article": null,
+      "description": "Timber cabinet 1200 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "sizeMm": [
+        1189.9,
+        450,
+        200
+      ],
+      "supplier": "PWS",
       "costEach": null,
       "priceEach": {}
     }

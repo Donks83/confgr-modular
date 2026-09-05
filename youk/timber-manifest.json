@@ -84,6 +84,246 @@
         169.0
       ],
       "triangles": 20
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        200.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 450 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        300.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 450 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        450.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 600 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        200.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 600 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        300.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 600 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        450.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 900 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        200.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 900 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        300.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 900 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        450.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 1200 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        200.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 1200 mm, 300 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        300.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-320mm",
+      "description": "Timber cabinet 1200 mm, 450 mm high, for ladder depth 320 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        450.0,
+        320.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        200.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 450 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        300.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 450 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        439.9,
+        450.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 600 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        200.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 600 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        300.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 600 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        589.3,
+        450.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 900 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        200.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 900 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        300.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 900 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        889.9,
+        450.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 1200 mm, 200 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        200.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 1200 mm, 300 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        300.0,
+        200.0
+      ],
+      "triangles": 120
+    },
+    {
+      "id": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-200mm",
+      "description": "Timber cabinet 1200 mm, 450 mm high, for ladder depth 200 mm, 25 mm",
+      "dims_mm": [
+        1189.9,
+        450.0,
+        200.0
+      ],
+      "triangles": 120
     }
   ]
 }

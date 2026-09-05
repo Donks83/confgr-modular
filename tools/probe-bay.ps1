@@ -17,7 +17,7 @@
 
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
-               'cabinets', 'timber')]
+               'cabinets', 'carcase', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -54,7 +54,14 @@ if ($stale) { Start-Sleep -Seconds 1 }
 # palette. Reading the spec rather than a second list here means the two cannot
 # drift apart. These copies are gitignored: derived supplier geometry.
 $spec = Get-Content 'youk\snap-spec.json' -Raw | ConvertFrom-Json
-$ids = @($spec.frames + $spec.span + $spec.hang + $spec.wall | Select-Object -ExpandProperty id)
+# Every family, found rather than listed - see the same fix in
+# tools/make-catalogue.mjs and why it is worth making. A named list here went
+# stale twice, and the second time the app booted with 24 parts missing from the
+# palette and nothing said so.
+$ids = @($spec.PSObject.Properties |
+         Where-Object { $_.Value -is [array] -and $_.Value.Count -and $_.Value[0].PSObject.Properties.Name -contains 'id' } |
+         ForEach-Object { $_.Value } |
+         Select-Object -ExpandProperty id)
 "--- copying $($ids.Count) snapped YouK components into test-assets ---"
 foreach ($id in $ids) {
   if (Test-Path "youk\$id.glb") { Copy-Item "youk\$id.glb" "test-assets\$id.glb" -Force }
@@ -128,6 +135,25 @@ $clicks = @{
   # its rung (8mm plate less the 1.5mm top sheet).
   cabinets = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +
              'part:008558,marker:0,dump,part:008558,marker:9,dump,layout'
+  # The carcase, and the first vertical joint in the range. A bay, two cabinet
+  # brackets, then a 900 box LAID ON them - it meets nothing edge-on, which the
+  # engine refused outright until solveChildTransform learned about flat faces.
+  #
+  # Two things this has to show. The box must add a JOINT, not just a part: if
+  # the count goes up without one it has been parked in free space and the
+  # bracket socket was never used. And it must land centred on the bay at
+  # 460.05, because its width is derived from the brackets' own plug offset -
+  # if that derivation is wrong the far end hangs off the second bracket and
+  # the picture looks fine from one side.
+  # Markers 4 and 11 put both brackets on RUNG 3 of their own ladder. Taking 0
+  # twice does not: the second bracket lands on the next free face, which is a
+  # different rung, and a carcase across two brackets 355mm apart is not a
+  # carcase. The `cabinets` scenario above has that flaw and its comment did not
+  # notice - worth knowing before reading it as a passing check.
+  carcase = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+            'part:008558,marker:4,part:008558,marker:11,dump,' +
+            'part:pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm,marker:0,' +
+            'choices,choose:0,dump,layout'
   # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
   # should go straight in without waiting for a marker, add NO joint, and land
   # centred on the bay. If the joint count goes up, it has been attached to

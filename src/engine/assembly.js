@@ -13,7 +13,7 @@
 // every change. It is O(parts) with a single breadth-first pass.
 
 import {
-  add, sub, rotateVec, multiplyQuat, quatFromYaw, yawOf, normalise, scale,
+  add, sub, rotateVec, multiplyQuat, quatFromYaw, yawOf, normalise, scale, dot,
 } from './vec.js';
 import {
   isGridCellId, parseGridCellId, gridAttachPoint, expandGridCells, cellsCovered,
@@ -46,6 +46,23 @@ const IDENTITY = { translation: [0, 0, 0], rotation: [0, 0, 0, 1] };
  * normals rather than by forcing euler Y connection". So: forced Y by default,
  * full-normal alignment left as a future per-snap option.
  *
+ * VERTICAL JOINTS — one part resting on another's top face — are the exception,
+ * added for the YouK carcase and the office desktop. Both are laid ON their
+ * brackets and screwed up from below; neither meets anything edge-on, so there
+ * is no horizontal facing to solve and the old code refused the joint outright.
+ *
+ * Yaw is then genuinely undetermined: spinning the part about the vertical
+ * leaves two vertical facings opposed. So it has to come from somewhere else,
+ * and it is NOT the parent's. A carcase spans two cabinet brackets, one on each
+ * ladder of the bay, and those two brackets face opposite ways — inheriting
+ * either would put the carcase's door against the wall half the time, depending
+ * on which bracket the person happened to click. The product is anchored
+ * world-aligned, so the part takes the PRODUCT's orientation: yaw zero.
+ *
+ * The consequence, stated so nobody trips over it: a part whose orientation must
+ * follow its parent cannot use a vertical joint. Everything that sits on top of
+ * something is fine, which is the whole set of things this is for.
+ *
  * @param parentTransform {{ translation, rotation }} the parent in world space
  * @param parentSnap {{ position, facing }} in parent-local space
  * @param childSnap {{ position, facing }} in child-local space
@@ -64,16 +81,39 @@ export function solveChildTransform(parentTransform, parentSnap, childSnap) {
   const targetYaw = yawOf(targetFacing);
   const childYaw = yawOf(childSnap.facing);
 
-  if (targetYaw === null || childYaw === null) {
+  // yawOf returns null for a facing that is straight up or down, so a null here
+  // is the test for "this end of the joint is vertical".
+  const targetVertical = targetYaw === null;
+  const childVertical = childYaw === null;
+
+  if (targetVertical !== childVertical) {
     throw new AssemblyError(
-      'Cannot resolve this joint: one of the snaps faces straight up or down, so there is '
-      + 'no yaw that would align them. Horizontal facings only.',
-      { code: 'VERTICAL_FACING' },
+      'Cannot resolve this joint: one snap lies flat and the other stands upright, and no '
+      + 'rotation about the vertical brings them together.',
+      { code: 'FACING_AXIS_MISMATCH' },
     );
   }
 
-  // Rotate the child so its snap ends up pointing at targetFacing.
-  const rotation = quatFromYaw(targetYaw - childYaw);
+  let rotation;
+  if (targetVertical) {
+    // Both flat. Yaw cannot change either facing, so unlike the horizontal case
+    // the solver CANNOT rescue a mismatch by turning the part around - two
+    // upward faces stay two upward faces. Check it rather than place a part
+    // through the thing it was supposed to sit on.
+    if (dot(normalise(targetFacing), normalise(childSnap.facing)) < 0.99) {
+      throw new AssemblyError(
+        'Cannot resolve this joint: both faces point the same way up. One has to look down '
+        + 'onto the other.',
+        { code: 'FACING_SAME_VERTICAL' },
+      );
+    }
+    // Yaw is free, so it comes from the product rather than from the joint.
+    // See the note above on why inheriting the parent's would be wrong.
+    rotation = quatFromYaw(0);
+  } else {
+    // Rotate the child so its snap ends up pointing at targetFacing.
+    rotation = quatFromYaw(targetYaw - childYaw);
+  }
 
   // Then translate so the two snap centres land on the same point.
   const translation = sub(parentSnapWorldPos, rotateVec(rotation, childSnap.position));
