@@ -792,6 +792,45 @@ probe. Everything else in the range is symmetric in depth — a shelf, a cabinet
 a rack, a hook strip all read the same either way — so this is the office
 assembly alone, which is also why nothing caught it for two sessions.
 
+### It is not one number. What an hour of trying established
+
+**The arm is a HANDED part.** Its contact sheet is a constant 50 × 50 L-section
+310 long — not the taper the sheet's oblique views suggest — and **only its
+z = −155 end carries the two slots**: the vertical one the clamping angle bolts
+through, and a horizontal one at y 10. The z = +155 end has nothing but corner
+radii. Its web holes are symmetric about z = +5, but its Ø5 plate bolts (z −130
+and +120) are not symmetric about anything. So the arm has a definite wall end.
+
+**Which means the current bay is impossible, not merely backwards.** The two
+plates come out mirrored, so the two arms do, so the two clamping angles land at
+**z −142.9 and z +142.9** — one at the wall, one at the front. A desk has one
+back edge. Both stops have to be at the same end, and no pair of mirrored
+placements of a handed part can do that.
+
+**And the sheet appears to agree.** `Office solution` step 1's two right-hand
+thumbnails draw both ladders **identically** — same orientation, same visible
+face, the wall keyhole in the same corner on both — rather than as a mirrored
+pair. Kesseböhmer seem to fit both plates the same way round, which would put
+both clamp ends at the same z. *Appears* and *seem* are doing real work in that
+sentence: a repeated thumbnail may be one symbol drawn twice.
+
+**Which face of the rung the plate hangs on is what decides it.** The probe puts
+ladder 1's plate on marker 0 and ladder 2's on marker 3, and those are opposite
+faces. Ladder 2's arm is already **correct** — its clamp end is at +z, the wall.
+Ladder 1's is the wrong way round.
+
+**But fixing ladder 1 moves its arm OUTBOARD**, to x −42.2, because the plate
+turns with it. The two arms then sit 920.1 mm apart — the full ladder spacing —
+where the desktop's width was derived on the assumption that both are inboard at
+835.6 (§5.9). So the width follows the handedness, and one of {both inboard,
+both same-way-round} has to be wrong.
+
+**Stopping here rather than guessing.** This is the office assembly's handedness,
+the desktop's width, and the probe's marker choices, all one question — and
+§5.9's "mirrored, one part serves both ladders" was read off what the probe
+happened to click rather than off a drawing. The next pass starts at the sheet's
+assembly figures, not at the spec.
+
 **The foot, 237023, measured from `mounting instructions Foot.pdf` and the STEP:**
 
 - **50 × 99.8 × 20 mm**, a 2.5 mm top plate over the legs.
