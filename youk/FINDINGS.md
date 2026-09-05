@@ -559,3 +559,201 @@ nine hang accessories — carry snap planes, are declared, and load as component
 with no blocker and one optional warning (`NO_COLLISION_BOX`). The remaining 23
 sit as `.converted.glb` inputs waiting for a row in the spec, or, in the shoe
 racks' case, waiting for a product the configurator does not model.
+
+---
+
+# Every remaining joint, from the instruction sheets — 5 September 2026
+
+Matt named the sheets and the specific steps. This section is what they say, and
+it settles most of the open joint questions in one pass. Read together, they also
+reveal a pattern the individual sheets do not: **the 1.5 mm packer is a
+system-wide constant.**
+
+## The 1.5 mm packer appears in four separate sheets
+
+`hook rail` step 3, `Suspension elements` step 2, `Carcass holder` step 5,
+`Office solution` step 7 — every one of them puts a 1.5 mm shim between a metal
+bracket and the underside of the board or panel it is screwed up into, and every
+one ships it as a bag of four.
+
+So it is not a quirk of one part. **The rule is: whenever a YouK metal element is
+fixed up into a panel above it, there is a 1.5 mm gap.** That is a modelling
+constant, not a per-part measurement, and it means the snap between any accessory
+and any board must sit 1.5 mm below the board's underside rather than flush.
+
+Worth noting the collision consequence: a hook rail and a shelf **share a rung**
+by design. The shelf sits on the rung, the accessory hooks over the same rung and
+hangs below it, and then the two are bolted together through the packer. So a
+rung socket must **not** be exclusive — the current "already occupied" refusal
+would block a configuration Kesseböhmer's own instructions show being built.
+
+## Correction: the shoe rack does not touch the ladders at all
+
+The table above lists the shoe rack as a span accessory with a plug at each end.
+**That is wrong.** `mounting instructions Shoe rack.pdf` steps 1 and 2 show it
+marked out with a spirit level against a bare wall, drilled, plugged and screwed
+**directly to the wall**. There is no ladder anywhere in the sheet.
+
+| | |
+|---|---|
+| Lengths | 448 / 598 / 898 / 1198 mm (nominal 450/600/900/1200 less 2) |
+| Height | 48.5 mm |
+| Fixings | 3 × Ø6.5 mm holes, first 50 mm from the end, rest equally spaced |
+| Supplied | Nothing — plugs and screws are the customer's |
+
+In the photography it lines up with the ladders and looks like part of the bay.
+It is not. **This is the first part in the range whose only attachment is the
+wall**, and it forces the open question in the project doc — does the
+configurator need a wall entity? — to have an answer rather than a shrug.
+
+## Hook rail and clothes rail: two modes, and the mode changes the fixing
+
+Both sheets show the same two-mode pattern, and Matt flagged it before I read
+them.
+
+**Without a shelf** — the rail's end brackets hook onto the ladders and are
+**bolted**: M4 screw plus M4 nut through the bracket.
+
+**With a shelf above** — the rail is **screwed up into the shelf from below**,
+through the 1.5 mm packer, and the screws are not supplied (`= shopping cart`).
+
+`hook rail`: widths 450 / 600 / 900 / 1200 mm, **max 18 kg**, 1 rail + 2 × M4
+screw + 2 × M4 nut + 1 bag of packers.
+
+`Coat rail` step 1a/1b is the more interesting one, because it answers the
+accessory-to-accessory question the engine has been dodging:
+
+| | parts |
+|---|---|
+| **1a — one bay** | 1 rail, 1 left end bracket, 1 right end bracket, 4 × M4 |
+| **1b — two bays** | 2 rails, 1 left, 1 right, **1 middle joining bracket**, 8 × M4 |
+
+So a clothes-rail extension does **not** join rail to rail. A third bracket sits
+on the middle ladder and both rails bolt into it. **That is a coupler part, not a
+new joint class** — it is an ordinary component with a socket to the ladder and a
+plug at each side. The engine needs no new capability for it, which is a better
+answer than the "accessory-to-accessory joint" the project doc has been carrying
+as an open risk.
+
+## Top panel bracket 008552 — how a board sits on top of the ladders
+
+`Cover shelf holder`, 2 pages, and the simplest joint in the range.
+
+- **2 × brackets**, one per ladder. A small L that drops down over the **top end
+  of the ladder stile** (the sheet's green arrow points straight down onto it).
+- The ledge is **30 mm** across and stands **15 mm** proud, so the panel's
+  underside sits 15 mm above the stile top.
+- The panel is then screwed down into the bracket. Screws not supplied.
+
+This is the third distinct way a board attaches, and it is the one that produces
+the flush top seen in most of the marketing photography. The other two are: on a
+rung like the metal shelf, and on the office-solution arms.
+
+## Carcase bracket 008557–008560 — how a cabinet hangs
+
+`Carcass holder`, 5 pages. Two bracket types and they are not interchangeable.
+
+| Step | What |
+|---|---|
+| 1a | **Outer** bracket (008557/8) — **2 ×** — drops down over the ladder stile |
+| 1b | **Extension** bracket (008559/60) — **1 ×** — the middle ladder, rotated into place |
+| 2 | Bolted: 4 × M4 screw + 4 × M4 nut |
+| 3 | Carcase sits on the brackets, screwed **up from below**; screws not supplied |
+| 4 | 2 × dowels, Ø5 drill, **19 mm** in from the edge, **≈50 mm** back, **9 mm** deep |
+| 5 | The 1.5 mm packers again, bracket to carcase underside |
+
+**The cabinet's own limits, stated by Kesseböhmer:**
+
+- Width **≤ 1200 mm**
+- Height **≤ 450 mm**
+- Depth **≥ the ladder depth** — so ≥ 200 mm or ≥ 320 mm
+
+Those are real constraints for a rules engine to enforce later, and the first
+numeric limits in the range that a customer could violate by choosing badly.
+
+## Office solution 008551 — the desktop, and one rule nothing else states
+
+`Office solution`, 6 pages. Three separate 008551 parts fitted in sequence:
+
+| Step | Part | Count | Fixing |
+|---|---|---|---|
+| 1–2 | Shelf support (*Grundhalterung*) | 2 × | 4 × M4 + 4 nuts |
+| 3 | Base bracket (*Bodenträger*), the long arm | 2 × | 4 × M4 + 4 nuts |
+| 4 | Clamping angle (*Klemmwinkel*) | 2 × | 2 × M4 × 6 |
+| 5 | Desktop laid on, screwed **up from below**; screws not supplied |
+| 6 | Rear edge must sit **against** the bracket upstand — the sheet draws a tick and a cross |
+| 7 | 1.5 mm packers, bracket to desktop underside |
+
+**The desktop geometry, and Kesseböhmer annotate the thickness themselves:**
+
+- Thickness **25 mm**, printed five times on page 4. Matt specified 25 mm before
+  I opened the sheet; it is their number too.
+- Heights **650** or **750 mm**; a third variant is 750 mm with **100 mm** of
+  clearance beneath — which is the frame on feet.
+- Depths **600** or **700 mm**.
+- An angled option at **9°**, dropping the front edge to 560/540 (from 650) or
+  660/640 (from 750).
+
+**And the rule that appears nowhere else in the range.** Page 3 opens with a tick
+and cross diagram over four ladders of different heights: the green dashed line
+runs across their **tops**, the red dashed lines across their bottoms. For an
+office solution the ladders are hung so their **top edges align**, and their
+bottoms do not.
+
+That is the opposite of a floor-standing run, where the bottoms align because
+they are all on the floor. So "staggered frames" is not one behaviour with a free
+choice of level — **it is two alignment rules, and which one applies depends on
+how the run is mounted.** Worth building the level chooser knowing that.
+
+## The foot 237023, restated from the sheet
+
+- **100 or 150 mm**, ±10 mm on the levelling nut. Only the 100 has CAD.
+- **One per ladder**, screwed to the underside of the bottom rail at the end,
+  2 × M4.
+- Page 1's isometric puts it at the **front** corner. The bedroom photograph
+  confirms it: wall-fixed at the back, one foot at the front, skirting board
+  running behind untouched.
+
+## The shelf is screwed up into the frame too
+
+`mounting instructions.pdf` step 4, which I had not read: after the shelf is
+dropped in, it is **screwed upward into the frame from below**, screws not
+supplied. The accompanying note repeats the bearing widths — **169 mm on a 200
+frame, 289 mm on a 320** — which the converted geometry already agreed with.
+
+Page 5 of the same sheet is the rung-position master drawing for all six frames.
+It is the page that would have saved most of two sessions, and it agrees with the
+measured heights above to 0.1 mm.
+
+---
+
+# The timber parts — Matt's specification, 5 September 2026
+
+None of this is Kesseböhmer's. Their brochure (page 3) says the wooden shelves
+*"are made individually by a carpenter (or woodworker) and are therefore not
+included in the YouK range"*, so there is no CAD, no article number and no price
+list. These are ours to model and, for now, **shown but not priced** — they quote
+as POA and the bill of materials reports a partial total rather than inventing a
+number.
+
+| | |
+|---|---|
+| **Shelves and desktops** | **25 mm** thick, always |
+| **Lengths** | 450 / 600 / 900 / 1200 mm — the standard YouK bay widths |
+| **Cabinets** | Six-piece box construction, small chamfer, no internal detail |
+
+Three notes on why these are the right numbers rather than round ones:
+
+1. **25 mm is Kesseböhmer's own figure**, annotated five times on page 4 of the
+   office-solution sheet. Matt specified it independently before I read the
+   sheet. So the timber matches the system rather than merely fitting it.
+2. **The lengths are the bay widths**, which is what makes a timber shelf a drop-in
+   alternative to 008561–008564 rather than a special order.
+3. **The cabinets have a ceiling, not just a size.** The carcase bracket sheet caps
+   them at 1200 × 450 and requires depth ≥ the ladder depth. A six-piece box is
+   therefore parameterised by width from the standard list, height ≤ 450 and
+   depth 200 or 320 to match its brackets.
+
+A cabinet modelled as six panels is also the right level of detail for AR: the
+triangle budget is assembly-wide (`src/engine/ar.js`), and a drawer front with
+real hardware would spend it on something nobody inspects on a phone.

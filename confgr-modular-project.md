@@ -750,18 +750,38 @@ Corrections from experience:
   rung as its own marker; moving asks which of the part's own snaps you are
   grabbing before asking where it goes. Fixes the unreachable rung choice and the
   180° flip in one change, because they are the same bug.
+  **And it is not a free choice of level.** The office-solution sheet opens with a
+  tick-and-cross diagram: for a wall-hung run the ladders align by their **tops**,
+  not their bottoms, while a floor-standing run aligns by its bottoms because they
+  all stand on the floor. So the level chooser has a default that depends on the
+  mounting, and offering a bare list of rungs would be offering the wrong one half
+  the time.
 - **Palette entries must show the measured size**, not the supplier's description
   (§5.3). Four of six ladders are currently indistinguishable.
 - **`MOUNTING` gains a third state, `FEET`** (§5.1 correction) — 100/150 mm, one
   priced foot per ladder, and the common case in any UK room with a skirting board.
 - **An accessory-to-span joint**: hook strip bolted under a shelf with 1.5 mm
-  packers (§5.2b), which also unblocks the clothes-rail extensions.
+  packers. The packer is a **system-wide constant** — four separate instruction
+  sheets put the same 1.5 mm shim between a bracket and the panel above it — so
+  it belongs in the snap geometry, not in per-part measurements.
+- **A wall entity, and it is no longer optional.** The shoe rack (008553–56)
+  screws **only to the wall** and never touches a ladder. It is the first part in
+  the range with no attachment to the assembly at all, so "does the configurator
+  need a wall?" now has a part that answers it.
+- **Sockets must stop being exclusive.** A shelf and a hanging accessory **share
+  a rung** by design: the shelf sits on it, the accessory hooks over the same rung
+  and is then bolted up into the shelf through the packer. The current
+  `ALREADY_OCCUPIED` refusal would block a configuration Kesseböhmer's own
+  instructions show being assembled.
 - **Timber parts as unpriced components** — shown, snapped, quoted as "POA".
   Matt's call; the quote module already reports partial totals rather than
-  inventing a number, so it degrades honestly.
-- **Collision boxes and overlap refusal** belong here. Every part already reports
-  `NO_COLLISION_BOX`, and there is a concrete case: a tray on a middle frame's
-  inner face cantilevers straight through a shelf and the app allows it.
+  inventing a number, so it degrades honestly. Spec in `youk/FINDINGS.md`: 25 mm
+  boards, 450/600/900/1200, cabinets as six-piece boxes with a small chamfer.
+- **Collision boxes and overlap refusal** belong here, but the rule is subtler
+  than "nothing overlaps". Every part already reports `NO_COLLISION_BOX`, and
+  there is a concrete case: a tray on a middle frame's inner face cantilevers
+  straight through a shelf and the app allows it. That one is wrong; a hook rail
+  1.5 mm under a shelf is right. The test cannot be proximity alone.
 
 ### Phase 2 — The runtime, the embed, mobile and AR — **NOT STARTED**
 
@@ -879,6 +899,28 @@ this session's value came from that, not from me.
 Decisions taken: timber parts shown but unpriced; all four remaining part
 families in scope; feet as a third ground state; two-ended snap picking next.
 
+**Then Matt named nine instruction sheets and the exact steps to read.** That one
+message closed more open questions than any session so far — all of it is written
+up in `youk/FINDINGS.md`. The four that change the build:
+
+- **The 1.5 mm packer is a system constant**, not a quirk of the hook rail. Four
+  separate sheets specify the same shim between a bracket and the panel above it.
+- **A shelf and a hanging accessory share a rung by design**, so sockets must stop
+  being exclusive. The current refusal would block an assembly Kesseböhmer
+  document.
+- **The shoe rack screws only to the wall.** The first part with no attachment to
+  the assembly, which turns "does the configurator need a wall?" from a question
+  into a requirement. It also corrects `FINDINGS.md`, which had listed the shoe
+  rack as a span accessory.
+- **Wall-hung runs align by their tops, floor-standing runs by their bottoms** —
+  a tick-and-cross diagram on the office-solution sheet, stated nowhere else. The
+  level chooser therefore has a mounting-dependent default.
+
+Also: the clothes-rail extension turned out to be a **coupler bracket**, not an
+accessory-to-accessory joint, which retires an open engine risk. And Matt's 25 mm
+timber thickness is Kesseböhmer's own figure, printed five times on the
+office-solution sheet — specified independently before either of us read it.
+
 ### Session 4 — 4 September 2026
 
 The doc, then AR and mounting. Commits `78296e7` → `b154c39`.
@@ -966,9 +1008,15 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 **Product**
 
-- ~~How does a frame actually mount to a wall~~ — answered: two options, floor or
-  floating, no height (§5.1). Whether the configurator should ever *draw* a wall
-  is still open, and probably "no": AR draws the real one.
+- ~~How does a frame actually mount to a wall~~ — answered: floor, floating or on
+  feet, no height (§5.1).
+- ~~Whether the configurator needs a wall~~ — **it does, and a part forces it.**
+  The shoe rack screws only to the wall and never touches a ladder. Whether the
+  wall is *drawn* is still a choice; whether it exists as a thing to attach to is
+  no longer one.
+- The clothes rail's 1.00 mm of bracket inside the rung, reported by `check-joint`
+  on all three sizes, is now the **only** joint question the instruction sheets do
+  not settle. Everything else Matt listed is answered in `youk/FINDINGS.md`.
 - Should a span accessory record **both** of its ends?
 - Should the app refuse a part that would hang below the floor — still needed for
   floor standing, and it does not apply when floating.
@@ -979,8 +1027,11 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 - How the clothes rail's bracket engages the rung: `check-joint` reports 1.00 mm
   of it inside the rung on all three sizes, and the drawings admit two readings.
   A question for Kesseböhmer, not for more measuring.
-- The clothes rail extensions need an **accessory-to-accessory** joint, which
-  nothing in the engine does yet.
+- ~~The clothes rail extensions need an **accessory-to-accessory** joint~~ —
+  **answered, and cheaper than feared.** `Coat rail` step 1b: two rails do not
+  join to each other, they both bolt into a **third bracket** on the middle
+  ladder. That is an ordinary coupler component — socket to the ladder, a plug
+  each side — so the engine needs no new capability. One fewer open risk.
 
 **Commercial**
 
