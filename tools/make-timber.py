@@ -288,6 +288,44 @@ def bracket_plug_offset_mm(folder, depth):
     return plug_offset_mm(folder, ids[depth])
 
 
+def snap_x_mm(folder, part_id, ends_with):
+    """The x offset of one named snap on a snapped part, in millimetres."""
+    import trimesh
+
+    glb = folder / f"{part_id}.glb"
+    if not glb.exists():
+        raise SystemExit(
+            f"{glb.name} is not there. The timber is sized from the brackets that "
+            f"carry it, so those have to be snapped first: npm run youk:snap"
+        )
+    scene = trimesh.load(str(glb), force="scene")
+    for name in scene.graph.nodes_geometry:
+        if name.endswith(ends_with):
+            return float(scene.graph.get(name)[0][0, 3]) * 1000.0
+    raise SystemExit(f"{glb.name} has no snap ending '{ends_with}' - re-run npm run youk:snap")
+
+
+def office_arm_inset_mm(folder):
+    """How far inboard of its ladder an office ARM ends up, along the whole chain.
+
+    Not one number: the arm is three joints away from the ladder, so this walks
+    them. Ladder centre -> the plate's rung plug -> the plate's bolt face -> the
+    arm's own bolt face.
+
+    THE REASON THIS IS A FUNCTION AND NOT A CONSTANT. The desktop's width used to
+    come from the arm's RUNG plug offset, 15.0 mm, because the arm was wrongly
+    authored as hooking a rung. Fixing that moved the arm from 15.0 mm inboard to
+    42.25, and the desktop went on overshooting the second arm by 54.5 mm while
+    still looking perfectly reasonable from the front. Deriving it from the
+    parts, every time, is what stops the next such change being silent.
+    """
+    plate = "008551-base-brackets-for-office-solution"
+    arm = "008551-shelf-supports-for-office-solution"
+    return (abs(snap_x_mm(folder, plate, ".mount"))
+            + snap_x_mm(folder, plate, ".arm-650")
+            + abs(snap_x_mm(folder, arm, ".bolt-flat")))
+
+
 def plug_offset_mm(folder, part_id):
     """How far from its own centre a hang part's rung plug sits, read off the GLB.
 
@@ -376,7 +414,9 @@ def main():
     # arm's offset, not the cabinet bracket's - see plug_offset_mm.
     print()
     depth = DESKTOP_LADDER_DEPTH_MM
-    offset = plug_offset_mm(folder, "008551-shelf-supports-for-office-solution")
+    offset = office_arm_inset_mm(folder)
+    print(f"  office arm sits {offset:.2f} mm inboard of its ladder "
+          f"(plate rung plug + plate bolt face + arm bolt face)")
     for nominal, shelf_length in SHELF_LENGTH_MM.items():
         width = round(shelf_length - FRAME_THICKNESS_MM - 2 * offset, 4)
         for board_depth in DESKTOP_DEPTHS_MM:

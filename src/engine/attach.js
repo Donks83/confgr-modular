@@ -258,10 +258,24 @@ export function isFlatMount(placement) {
  * therefore which way the rest of it runs. So say that instead.
  */
 export function mountLabel(placement) {
-  if (!isFlatMount(placement)) return `${mountHeightMm(placement)} mm up the part`;
+  // A declared roll is the third thing to arrive that two options can differ by
+  // while reading identically — after the rung height and after which end of a
+  // carcase lands where. The office plate offers a level pair of holes and a
+  // 9-degree pair AT THE SAME HEIGHT, so height alone would print the same
+  // words twice, which is the exact failure the chooser exists to prevent.
+  const roll = placement?.mountSnap?.roll || 0;
+  const tilt = roll ? `tilted ${Math.abs(roll)}°` : 'flat';
+
+  if (!isFlatMount(placement)) {
+    const height = `${mountHeightMm(placement)} mm up the part`;
+    return roll ? `${height}, ${tilt}` : height;
+  }
+
   const offset = mountOffsetMm(placement);
-  if (offset === 0) return 'centred on this point';
-  return offset < 0 ? 'running to the right' : 'running to the left';
+  const where = offset === 0
+    ? 'centred on this point'
+    : (offset < 0 ? 'running to the right' : 'running to the left');
+  return roll ? `${where}, ${tilt}` : where;
 }
 
 /**

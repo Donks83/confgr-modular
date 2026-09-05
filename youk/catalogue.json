@@ -533,17 +533,6 @@
       "costEach": null,
       "priceEach": {}
     },
-    "008551-shelf-supports-for-office-solution": {
-      "article": "008551",
-      "description": "YouK Shelf supports for office solution",
-      "sizeMm": [
-        50,
-        50,
-        310
-      ],
-      "costEach": null,
-      "priceEach": {}
-    },
     "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm": {
       "article": null,
       "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
@@ -836,7 +825,7 @@
       "article": null,
       "description": "Timber office desktop 450 mm, 600 mm deep, 25 mm",
       "sizeMm": [
-        440.1,
+        385.6,
         25,
         600
       ],
@@ -848,7 +837,7 @@
       "article": null,
       "description": "Timber office desktop 450 mm, 700 mm deep, 25 mm",
       "sizeMm": [
-        440.1,
+        385.6,
         25,
         700
       ],
@@ -860,7 +849,7 @@
       "article": null,
       "description": "Timber office desktop 600 mm, 600 mm deep, 25 mm",
       "sizeMm": [
-        589.5,
+        535,
         25,
         600
       ],
@@ -872,7 +861,7 @@
       "article": null,
       "description": "Timber office desktop 600 mm, 700 mm deep, 25 mm",
       "sizeMm": [
-        589.5,
+        535,
         25,
         700
       ],
@@ -884,7 +873,7 @@
       "article": null,
       "description": "Timber office desktop 900 mm, 600 mm deep, 25 mm",
       "sizeMm": [
-        890.1,
+        835.6,
         25,
         600
       ],
@@ -896,7 +885,7 @@
       "article": null,
       "description": "Timber office desktop 900 mm, 700 mm deep, 25 mm",
       "sizeMm": [
-        890.1,
+        835.6,
         25,
         700
       ],
@@ -908,7 +897,7 @@
       "article": null,
       "description": "Timber office desktop 1200 mm, 600 mm deep, 25 mm",
       "sizeMm": [
-        1190.1,
+        1135.6,
         25,
         600
       ],
@@ -920,11 +909,22 @@
       "article": null,
       "description": "Timber office desktop 1200 mm, 700 mm deep, 25 mm",
       "sizeMm": [
-        1190.1,
+        1135.6,
         25,
         700
       ],
       "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008551-shelf-supports-for-office-solution": {
+      "article": "008551",
+      "description": "YouK Shelf supports for office solution",
+      "sizeMm": [
+        50,
+        50,
+        310
+      ],
       "costEach": null,
       "priceEach": {}
     }

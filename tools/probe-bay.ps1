@@ -17,7 +17,7 @@
 
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
-               'cabinets', 'carcase', 'office', 'condition', 'timber')]
+               'cabinets', 'carcase', 'office', 'officetilt', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -157,30 +157,59 @@ $clicks = @{
             'part:008558,marker:4,part:008558,marker:11,dump,' +
             'part:pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm,marker:0,' +
             'choices,choose:0,dump,layout'
-  # The office desktop - the last timber part, and the second user of the
-  # vertical joint. Two office arms on rung 3 of their own ladder, then a 900 x
-  # 600 desktop laid on them (`Office solution` step 5, screwed up from below).
+  # The office solution, all four joints of it. Bay, a PLATE hooked on rung 3 of
+  # each ladder, an ARM bolted to each plate, then the desktop laid on the arms.
   #
-  # The number to watch is the THIRD one. The desktop is 600mm deep on a 320mm
-  # ladder, so unlike a cabinet it cannot sit centred on the brackets - its plugs
-  # hang 140mm behind its own middle so that its back edge lands on the wall
-  # line, which is step 6's tick and cross. It should come out at z 140.0: back
-  # edge at -160, exactly the ladder's own back. Centred would put 140mm of desk
-  # inside the wall and still look fine from the front.
+  # Every one of those is a different joint: the plate hooks a rung (hang), the
+  # arm bolts to a face (bolted, and the family that exists because the arm was
+  # once wrongly authored as hooking a rung), the desktop is laid on top
+  # (vertical). Three of the five families in one four-part assembly.
+  #
+  # Numbers to watch: plates at 3.6 and 916.5 - mirrored, so the same part serves
+  # both ladders - arms at 42.3 and 877.9, and the desktop CENTRED between them
+  # at 460.1. That last one is the check that its width follows the whole chain
+  # rather than one bracket: it was 890.1mm wide when the arm was thought to hook
+  # a rung and it overshot the far arm by 54.5mm while looking entirely right.
+  #
+  # And z 145.0, not 0: a 600mm desktop on a 320mm ladder cannot sit centred on
+  # its brackets, so its plugs hang 140mm behind its own middle and its back edge
+  # lands on the wall line - step 6's tick and cross. Centred would put 140mm of
+  # desk inside the wall and still look fine from the front.
   office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-           'part:008551-shelf-supports,marker:5,part:008551-shelf-supports,marker:12,dump,' +
+           'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+           'part:008551-shelf-supports,marker:0,choose:0,' +
+           'part:008551-shelf-supports,marker:1,choose:0,dump,' +
            'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
-  # The `condition` field's first use, on a 1500 frame. The office arm may only
+  # The same desk as a drawing board. Identical clicks except `choose:1` at each
+  # arm, which takes the tilted bolt hole instead of the level one - Kesseboehmer
+  # sell both from the same kit and the plate's second hole pair is 9.000 degrees
+  # off the first.
+  #
+  # Two things it proves. The arms drop from y 575.0 to 554.9, which is the roll
+  # actually being applied rather than declared and ignored. And the desktop
+  # RESOLVES at all: its underside is exactly vertical, the tilted arm's top face
+  # is not, and the solver refused that pairing outright until it learned to
+  # align two facings by the shortest arc instead of by yaw alone.
+  officetilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-shelf-supports,marker:0,choose:1,' +
+               'part:008551-shelf-supports,marker:1,choose:1,dump,' +
+               'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
+  # The `condition` field's first use, on a 1500 frame. The office PLATE may only
   # be fitted at rung 3 and above, so a bare 1500 ladder should offer it FOUR
   # markers (rungs 3 and 4, two faces each) where a shelf gets twelve. If it
   # offers twelve the rule is not being read; if it offers none it is failing
   # closed on something and the message will say which.
   #
+  # It was the ARM until the arm turned out not to touch a rung at all. The rule
+  # is the same and it always belonged to whichever part meets the ladder.
+  #
   # Run the other half by hand, because the anchor has to change:
-  #     -Demo 236750-ladder-depth-320mm -Steps "part:008551-shelf-supports,dump"
-  # The 550 frame has only rungs 1 and 2, both forbidden, so the arm is disabled
-  # outright - the knock-on Kesseboehmer's sheet implies and never states.
-  condition = 'part:008551-shelf-supports,marker:0,dump,layout'
+  #     -Demo 236750-ladder-depth-320mm -Steps "part:008551-base-brackets,dump"
+  # The 550 frame has only rungs 1 and 2, both forbidden, so the plate is
+  # disabled outright - the knock-on Kesseboehmer's sheet implies and never
+  # states, and with it the whole desk becomes unbuildable on a short ladder.
+  condition = 'part:008551-base-brackets,marker:0,dump,layout'
   # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
   # should go straight in without waiting for a marker, add NO joint, and land
   # centred on the bay. If the joint count goes up, it has been attached to

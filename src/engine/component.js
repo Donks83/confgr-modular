@@ -296,6 +296,10 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       facing: snapFacing(node),
       required: false,   // set in the editor, not in the model
       condition,
+      // A declared turn about the joint's own axis, in degrees. Zero for every
+      // joint that has one sensible orientation; 9 on the office plate, whose
+      // second set of holes tilts the desk. See solveChildTransform.
+      roll: Number(desc.extras?.confgrRolls?.[node.name]) || 0,
       role,
       // {cols, rows} when this snap occupies a rectangle of grid cells, else
       // null meaning a single point or a single cell.

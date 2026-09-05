@@ -54,6 +54,14 @@ SNAP_SIZE_MM = 30.0              # drawn size of a snap plane; cosmetic only
 # part, because a tall accessory has other geometry at the same z.
 SLOT_SEARCH_MM = 25.0
 
+# For the `bolted` family. How far off a face plane a vertex can be and still
+# count as on it, and how far a declared hole may be from real geometry before
+# the whole part is refused. The second is deliberately TIGHT: the point of
+# declaring a hole is that it can be checked, and a loose check is the same as
+# no check - which is how the office arm ended up in the wrong family.
+HOLE_PLANE_TOL_MM = 0.6
+HOLE_FIND_TOL_MM = 3.5
+
 # glTF quaternions are [x, y, z, w]. A snap's facing is its local +Z, so these
 # rotate +Z onto each axis.
 ROOT_HALF = math.sqrt(0.5)
@@ -290,25 +298,37 @@ def hang_snaps(mesh, part, spec):
             ),
         }
 
-    if part.get("carries"):
-        packer = float(spec.get("topSheetMm", 1.5))
-        snaps.append({
-            "name": f"md-snap.youk-{part['carries']}-d{depth}.carries",
-            "position_mm": (0.0, top_y + packer, 0.0),
-            "facing": "+y",
-            "role": "socket",
-        })
-
     reach = float(v[:, 0].max()) - x
     return snaps, {
         "mask": mask,
-        "carriesY_mm": round(top_y + float(spec.get("topSheetMm", 1.5)), 2)
-        if part.get("carries") else None,
         "plug_mm": (round(x, 2), round(y, 2)),
         "slotWidth_mm": round(float(slot[:, 0].max() - slot[:, 0].min()), 2),
         "sheet_mm": round(sheet, 2),
         "reach_mm": round(reach, 1),
     }
+
+
+def carries_socket(mesh, part, spec):
+    """A flat socket on the face this part carries something on.
+
+    Was written inside hang_snaps, because the first two parts that carried
+    anything - the cabinet brackets - were hang parts. The office arm is not: it
+    bolts to a plate. Moving this out of the family and composing it in build()
+    is the same fix as the bolted sockets, and for the same reason. WHAT A PART
+    CARRIES IS INDEPENDENT OF HOW IT IS HELD.
+
+    `Carcass holder` step 5 and `Office solution` step 7 both put the usual
+    1.5mm packer between bracket and the underside above it, so the socket sits
+    a packer above the part's own highest point - measured, not declared.
+    """
+    top_y = float(mesh.vertices[:, 1].max()) * 1000.0
+    packer = float(spec.get("topSheetMm", 1.5))
+    return [{
+        "name": f"md-snap.youk-{part['carries']}-d{part['depth']}.carries",
+        "position_mm": (0.0, top_y + packer, 0.0),
+        "facing": "+y",
+        "role": "socket",
+    }], {"carriesY_mm": round(top_y + packer, 2)}
 
 
 def carcase_snaps(mesh, part, spec):
@@ -353,6 +373,83 @@ def carcase_snaps(mesh, part, spec):
                    "plugZ_mm": round(z, 2), "spacing_mm": round(2 * half, 2)}
 
 
+def bolted_snaps(mesh, part, spec):
+    """A part bolted flat against another part's face, through named holes.
+
+    THE FAMILY THAT EXISTS BECAUSE OF A MISTAKE. The office arm was authored as
+    a `hang` part because the slot search found a ~6mm feature near its top and
+    reported a mounting slot. It is a hole the DESKTOP screws into. The sheet
+    said all along that the arm bolts to the plate; a geometric search overruled
+    a drawing that had already been read.
+
+    So this family inverts the relationship. The SPEC names the hole - which is
+    a decision, and a decision a person can check against the drawing - and this
+    script VERIFIES that a hole is really there before authoring anything. The
+    search no longer decides; it corroborates, and it fails loudly when the
+    geometry and the decision disagree.
+
+    Spec shape:
+
+        face:  "-x" | "+x" | "-z" | "+z"   which face bolts on
+        holes: [ { label, y, z, roll?, role? }, ... ]   positions ON that face
+
+    `roll` is a turn about the joint axis, in degrees. The plate carries two
+    sets of holes: level, and dropping 39.11mm over 246.92mm, which is 9.000
+    degrees exactly. Same parts, two angles - a desk or a drawing board.
+    """
+    import numpy as np
+
+    face = part.get("face")
+    if face not in FACING_QUAT:
+        raise RuntimeError(f'bolted part needs a face, one of {sorted(FACING_QUAT)}')
+    axis = {"x": 0, "y": 1, "z": 2}[face[1]]
+    v = mesh.vertices * 1000.0
+    plane = v[:, axis].max() if face[0] == "+" else v[:, axis].min()
+
+    # The two in-plane axes, in the order the spec writes them.
+    across = [i for i in (0, 1, 2) if i != axis]
+    on = v[np.abs(v[:, axis] - plane) <= HOLE_PLANE_TOL_MM]
+    if len(on) < 8:
+        raise RuntimeError(
+            f"face {face} at {plane:.2f}mm has only {len(on)} vertices - wrong face?"
+        )
+
+    mask = f"youk-{part['boltMask']}"
+    snaps = []
+    for hole in part.get("holes", []):
+        # Take the two in-plane coordinates in axis order, so the spec writes
+        # (y, z) for an x-face and (x, y) for a z-face without saying which.
+        want = np.array([float(hole["xyz"[a]]) for a in across])
+        near = on[:, across]
+        d = np.linalg.norm(near - want, axis=1)
+        if d.min() > HOLE_FIND_TOL_MM:
+            raise RuntimeError(
+                f'no hole within {HOLE_FIND_TOL_MM}mm of {hole["label"]} at '
+                f'{tuple(want)} on face {face} - nearest vertex is {d.min():.2f}mm '
+                f"away. The spec names holes; if the geometry moved, the spec is "
+                f"what has to change, deliberately."
+            )
+        pos = [0.0, 0.0, 0.0]
+        pos[axis] = plane
+        for i, a in enumerate(across):
+            pos[a] = float(want[i])
+        snaps.append({
+            "name": f'md-snap.{mask}.{hole["label"]}',
+            "position_mm": tuple(pos),
+            "facing": face,
+            "role": hole.get("role", "socket"),
+            "roll": float(hole.get("roll", 0.0)),
+            "_found_mm": round(float(d.min()), 2),
+        })
+
+    if not snaps:
+        raise RuntimeError("bolted part declares no holes")
+    return snaps, {
+        "mask": mask, "face": face, "plane_mm": round(float(plane), 2),
+        "holes": [(s["name"].split(".")[-1], s["roll"], s["_found_mm"]) for s in snaps],
+    }
+
+
 def build(glb, part, spec, kind, out_path):
     """Rotate if asked, add the snap nodes, write the GLB."""
     import numpy as np
@@ -374,8 +471,23 @@ def build(glb, part, spec, kind, out_path):
 
     snaps, detail = {
         "frame": frame_snaps, "span": span_snaps, "hang": hang_snaps,
-        "carcase": carcase_snaps,
+        "carcase": carcase_snaps, "bolted": bolted_snaps,
     }[kind](mesh, part, spec)
+
+    # A part can be in one family AND be something else's bolt-on host. The
+    # office plate hooks a rung (so it is `hang`) and offers the four sockets the
+    # arm bolts to. Composed here rather than special-cased inside hang_snaps,
+    # so any family can host a bolted part without knowing about it.
+    if kind != "bolted" and part.get("holes"):
+        extra, extra_detail = bolted_snaps(mesh, part, spec)
+        snaps = list(snaps) + extra
+        detail = {**detail, "bolted": extra_detail}
+
+    # And what it carries, for the same reason - see carries_socket.
+    if part.get("carries"):
+        extra, extra_detail = carries_socket(mesh, part, spec)
+        snaps = list(snaps) + extra
+        detail = {**detail, **extra_detail}
 
     scene = trimesh.Scene()
     scene.add_geometry(mesh, node_name="body", geom_name="body")
@@ -435,6 +547,7 @@ def main():
             + [("span", p) for p in spec.get("span", [])]
             + [("hang", p) for p in spec.get("hang", [])]
             + [("carcase", p) for p in spec.get("carcase", [])]
+            + [("bolted", p) for p in spec.get("bolted", [])]
             + [("wall", p) for p in spec.get("wall", [])])
     if not jobs:
         print("spec lists no parts", file=sys.stderr)
@@ -488,7 +601,18 @@ def main():
             print(f'  {part["id"]:<46} {kind:<5} '
                   f'{dims[0]:>7.1f} x {dims[1]:>7.1f} x {dims[2]:>6.1f} mm  '
                   f'{len(snaps):>2} snaps, {nodes} nodes')
-            if kind == "frame":
+            bolt = detail if kind == "bolted" else detail.get("bolted")
+            if bolt:
+                print(f'  {"":<46}       bolts on face {bolt["face"]} '
+                      f'at {bolt["plane_mm"]} mm')
+                for label, roll, off in bolt["holes"]:
+                    tilt = f'roll {roll:+.0f} deg' if roll else 'flat'
+                    print(f'  {"":<46}         {label:<18} {tilt:<12} '
+                          f'hole verified, {off} mm from real geometry')
+
+            if kind == "bolted":
+                pass
+            elif kind == "frame":
                 print(f'  {"":<46}       {detail["rungs"]} rungs at '
                       f'{", ".join(f"{t:.0f}" for t in detail["rungTops"])} mm')
             elif kind == "span":
@@ -504,9 +628,12 @@ def main():
                 print(f'  {"":<46}       plug at x {px}, y {py} mm from a '
                       f'{detail["slotWidth_mm"]} mm slot in a {detail["sheet_mm"]} mm '
                       f'sheet; reaches {detail["reach_mm"]} mm out')
-                if detail.get("carriesY_mm") is not None:
-                    print(f'  {"":<46}       carries a part at y '
-                          f'{detail["carriesY_mm"]} mm (plate top + packer)')
+
+            # Outside the family branches: what a part carries no longer depends
+            # on how it is held.
+            if detail.get("carriesY_mm") is not None:
+                print(f'  {"":<46}       carries a part at y '
+                      f'{detail["carriesY_mm"]} mm (its own top + packer)')
 
             # The roles go in the sidecar, which declare.mjs then applies. Kept
             # separate on purpose: the sidecar is what a human reviews.
@@ -526,6 +653,14 @@ def main():
                 existing["confgrConditions"] = conditions
             else:
                 existing.pop("confgrConditions", None)
+            # Roll travels the same way, replaced rather than merged. A stale
+            # 9 degrees left on a snap whose spec entry went back to flat would
+            # tilt a desk with nothing saying why.
+            rolls = {s["name"]: s["roll"] for s in snaps if s.get("roll")}
+            if rolls:
+                existing["confgrRolls"] = rolls
+            else:
+                existing.pop("confgrRolls", None)
             sidecar.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf8")
 
         except Exception as err:  # noqa: BLE001

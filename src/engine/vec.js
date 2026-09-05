@@ -14,6 +14,11 @@ export const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 export const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 export const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 export const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+export const cross = (a, b) => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0],
+];
 export const length = (a) => Math.hypot(a[0], a[1], a[2]);
 
 export function normalise(a) {
@@ -51,6 +56,22 @@ export function multiplyQuat(a, b) {
 export function quatFromYaw(angle) {
   const h = angle / 2;
   return [0, Math.sin(h), 0, Math.cos(h)];
+}
+
+/**
+ * A rotation of `angle` radians about an arbitrary unit axis, as [x,y,z,w].
+ *
+ * Needed for ROLL — turning a part about the axis of the joint it sits on.
+ * Every other rotation in this engine is a yaw, because every other joint is
+ * solved by opposing two facings and yaw is the only freedom left. A joint that
+ * also declares a roll needs the axis to be the joint's own, which is any
+ * direction the parts happen to meet along.
+ */
+export function quatFromAxisAngle(axis, angle) {
+  const [x, y, z] = normalise(axis);
+  const h = angle / 2;
+  const s = Math.sin(h);
+  return [x * s, y * s, z * s, Math.cos(h)];
 }
 
 /**

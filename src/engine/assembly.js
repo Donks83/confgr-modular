@@ -13,7 +13,8 @@
 // every change. It is O(parts) with a single breadth-first pass.
 
 import {
-  add, sub, rotateVec, multiplyQuat, quatFromYaw, yawOf, normalise, scale, dot,
+  add, sub, rotateVec, multiplyQuat, quatFromYaw, quatFromAxisAngle,
+  normalise, scale, dot, cross, EPS,
 } from './vec.js';
 import {
   isGridCellId, parseGridCellId, gridAttachPoint, expandGridCells, cellsCovered,
@@ -78,41 +79,92 @@ export function solveChildTransform(parentTransform, parentSnap, childSnap) {
   // The child's snap must look back down the parent's snap normal.
   const targetFacing = scale(parentSnapWorldFacing, -1);
 
-  const targetYaw = yawOf(targetFacing);
-  const childYaw = yawOf(childSnap.facing);
+  // ONE ALIGNMENT, not three special cases.
+  //
+  // This was a horizontal branch (yaw the child until the facings oppose), a
+  // vertical branch (yaw zero, since yaw cannot change a vertical facing), and a
+  // refusal for anything mixed. The refusal is what broke: once a joint can
+  // carry a ROLL, the face a part is bolted to is no longer square to the world.
+  // The office arm tilts 9 degrees and its top face tilts with it, so the desk
+  // that sits on that face meets a socket 9 degrees off vertical against a plug
+  // that is exactly vertical — "mixed", refused, and the desktop ended up at the
+  // origin with nothing said.
+  //
+  // Rotating the child by the SHORTEST ARC from its own facing onto the target
+  // reproduces both old branches exactly and handles the tilt for free:
+  //   - two horizontal facings: the shortest arc between them is about the
+  //     vertical, which IS the yaw the old code computed.
+  //   - two vertical facings already opposed: no rotation, as before.
+  //   - a 9-degree tilt: a 9-degree turn about the horizontal axis between
+  //     them, which is the thing that was missing.
+  const a = normalise(childSnap.facing);
+  const b = normalise(targetFacing);
+  const d = dot(a, b);
 
-  // yawOf returns null for a facing that is straight up or down, so a null here
-  // is the test for "this end of the joint is vertical".
-  const targetVertical = targetYaw === null;
-  const childVertical = childYaw === null;
-
-  if (targetVertical !== childVertical) {
+  // How far a joint may be off square and still count as the same KIND of
+  // joint. The original refusal was worth keeping in spirit: a face meant to be
+  // sat on should not end up bolted to a wall, tipped ninety degrees, because
+  // somebody authored the wrong facing. The range's only real tilt is 9, so
+  // anything approaching a right angle is a different joint rather than a
+  // tilted one.
+  const MAX_TILT = Math.cos((30 * Math.PI) / 180);
+  const aVertical = Math.hypot(a[0], a[2]) < EPS;
+  const bVertical = Math.hypot(b[0], b[2]) < EPS;
+  if (aVertical !== bVertical && Math.abs(d) < MAX_TILT) {
     throw new AssemblyError(
-      'Cannot resolve this joint: one snap lies flat and the other stands upright, and no '
-      + 'rotation about the vertical brings them together.',
+      'Cannot resolve this joint: one snap lies flat and the other stands upright. A joint '
+      + 'may be tilted, but a face meant to be sat on cannot be bolted to a wall.',
       { code: 'FACING_AXIS_MISMATCH' },
     );
   }
 
   let rotation;
-  if (targetVertical) {
-    // Both flat. Yaw cannot change either facing, so unlike the horizontal case
-    // the solver CANNOT rescue a mismatch by turning the part around - two
-    // upward faces stay two upward faces. Check it rather than place a part
-    // through the thing it was supposed to sit on.
-    if (dot(normalise(targetFacing), normalise(childSnap.facing)) < 0.99) {
+  if (d > 1 - EPS) {
+    // Already pointing the right way. For a flat joint this is also the case
+    // where yaw is undetermined, and it comes from the product rather than from
+    // the parent — see the note above on why inheriting the parent's is wrong.
+    rotation = quatFromYaw(0);
+  } else if (d < -1 + EPS) {
+    // Facing dead against the target. For a horizontal joint that is the
+    // everyday "turn the part around", and turning it about the VERTICAL is the
+    // only sensible reading — the shortest arc has no defined axis here, so it
+    // must not be used.
+    if (aVertical) {
       throw new AssemblyError(
         'Cannot resolve this joint: both faces point the same way up. One has to look down '
         + 'onto the other.',
         { code: 'FACING_SAME_VERTICAL' },
       );
     }
-    // Yaw is free, so it comes from the product rather than from the joint.
-    // See the note above on why inheriting the parent's would be wrong.
-    rotation = quatFromYaw(0);
+    rotation = quatFromYaw(Math.PI);
   } else {
-    // Rotate the child so its snap ends up pointing at targetFacing.
-    rotation = quatFromYaw(targetYaw - childYaw);
+    rotation = quatFromAxisAngle(cross(a, b), Math.acos(Math.max(-1, Math.min(1, d))));
+  }
+
+  // ROLL — a declared turn about the joint's own axis, on top of the solve.
+  //
+  // Kesseböhmer's office arm is the case. It bolts to the plate through two
+  // holes 250 mm apart, and the plate offers two sets of holes: one level, one
+  // dropping 39.11 mm over 246.92 mm, which is 9.000 degrees. Same parts, two
+  // angles, and the sheet prices it as a feature — a flat desk or a drawing
+  // board. Nothing about the FACINGS differs between them, so the solver alone
+  // cannot tell them apart: rolling a part about the axis it mates along leaves
+  // that axis pointing exactly where it was. It has to be declared.
+  //
+  // Either end may declare it and the two add, because which end "owns" the
+  // angle is a modelling choice rather than a fact. Here it is the plate's,
+  // since the plate's holes are what set it.
+  //
+  // Applied about the joint axis in WORLD space and AFTER the yaw solve. The
+  // axis runs through the snap centre, so the centres still coincide exactly
+  // and the translation below is unaffected — which is why this can be a
+  // post-multiplication rather than a change to the solve.
+  const rollDeg = (parentSnap.roll || 0) + (childSnap.roll || 0);
+  if (rollDeg) {
+    rotation = multiplyQuat(
+      quatFromAxisAngle(parentSnapWorldFacing, (rollDeg * Math.PI) / 180),
+      rotation,
+    );
   }
 
   // Then translate so the two snap centres land on the same point.

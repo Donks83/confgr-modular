@@ -352,15 +352,25 @@
       "depth": 320,
       "rotateYdeg": 90,
       "minRung": 3,
-      "minRungBecause": "The office desktop assembly fits at rung 3 and above only — Kesseboehmer mark rungs 1 and 2 with a red line."
-    },
-    {
-      "id": "008551-shelf-supports-for-office-solution",
-      "depth": 320,
-      "rotateYdeg": 0,
-      "carries": "desktop",
-      "minRung": 3,
-      "minRungBecause": "The office desktop assembly fits at rung 3 and above only — Kesseboehmer mark rungs 1 and 2 with a red line."
+      "minRungBecause": "The office desktop assembly fits at rung 3 and above only — Kesseboehmer mark rungs 1 and 2 with a red line.",
+      "face": "+x",
+      "boltMask": "office-arm",
+      "holes": [
+        {
+          "label": "arm-650",
+          "x": 13.65,
+          "y": 83.5,
+          "z": -125,
+          "role": "socket"
+        },
+        {
+          "label": "arm-750",
+          "x": 13.65,
+          "y": 183.5,
+          "z": -125,
+          "role": "socket"
+        }
+      ]
     }
   ],
   "_youboxx": [
@@ -525,6 +535,32 @@
       "id": "pws-timber-desktop-1200mm-d700mm",
       "depth": 320,
       "carriedBy": "desktop"
+    }
+  ],
+  "bolted": [
+    {
+      "id": "008551-shelf-supports-for-office-solution",
+      "boltMask": "office-arm",
+      "face": "-x",
+      "holes": [
+        {
+          "label": "bolt-flat",
+          "x": -25,
+          "y": 20,
+          "z": -130,
+          "role": "plug"
+        },
+        {
+          "label": "bolt-tilt9",
+          "x": -25,
+          "y": 20,
+          "z": -130,
+          "role": "plug",
+          "roll": 9
+        }
+      ],
+      "carries": "desktop",
+      "depth": 320
     }
   ]
 }

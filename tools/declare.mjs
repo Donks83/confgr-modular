@@ -38,7 +38,7 @@ const GRID_PREFIX = 'md-grid.';
 // The keys this tool owns in scene extras. Anything else already there is left
 // alone — a supplier's own extras are not ours to discard.
 const OWNED = ['confgr', 'confgrGrids', 'confgrSpans', 'confgrRoles',
-               'confgrConditions', 'confgrOptions'];
+               'confgrConditions', 'confgrRolls', 'confgrOptions'];
 
 /** The reviewable declaration that lives next to a model in git. */
 const sidecarPath = (glbPath) => join(dirname(glbPath), `${basename(glbPath, extname(glbPath))}.confgr.json`);
@@ -168,6 +168,10 @@ function measureDeclaration(report, existing = null) {
     // the hardest kind of wrong to notice.
     if (existing.confgrConditions) declaration.confgrConditions = existing.confgrConditions;
 
+    // And roll, for the same reason. Dropping a roll does not break anything
+    // either — it just quietly straightens a desk that is meant to be tilted.
+    if (existing.confgrRolls) declaration.confgrRolls = existing.confgrRolls;
+
     // How the part is HELD is a decision, not a measurement, and losing it is
     // worse than losing a role: a part declared mounting "wall" is allowed to
     // have no snaps, so dropping the declaration turns a legitimate part into
@@ -204,6 +208,7 @@ function existingDeclaration(glbPath, report) {
     ...(c.spans ? { confgrSpans: c.spans } : {}),
     ...(c.roles ? { confgrRoles: c.roles } : {}),
     ...(c.conditions ? { confgrConditions: c.conditions } : {}),
+    ...(c.rolls ? { confgrRolls: c.rolls } : {}),
     ...(c.options ? { confgrOptions: c.options } : {}),
   };
 }

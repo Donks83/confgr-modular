@@ -438,6 +438,7 @@ export function inspect(path) {
       spans: extras?.confgrSpans || null,
       roles: extras?.confgrRoles || null,
       conditions: extras?.confgrConditions || null,
+      rolls: extras?.confgrRolls || null,
       options: extras?.confgrOptions || null,
       bodyNode: body ? { min: body.min, max: body.max } : null,
       snapNodes: snapNodes.map((n) => n.name),
@@ -802,7 +803,10 @@ function render(report, result) {
   for (const n of c.snapNodes) {
     const role = c.roles?.[n] ? ` [${c.roles[n]}]` : '';
     const span = c.spans?.[n] ? ` span ${c.spans[n].cols}x${c.spans[n].rows}` : '';
-    line(`                     ${n}${role}${span}`);
+    // A roll is a turn about the joint's own axis. Invisible in a screenshot and
+    // invisible in the status line, and it tilts a whole desk.
+    const roll = c.rolls?.[n] ? ` roll ${c.rolls[n] > 0 ? '+' : ''}${c.rolls[n]} deg` : '';
+    line(`                     ${n}${role}${span}${roll}`);
     // A condition is invisible in a screenshot and invisible in the status
     // line, and it makes a part refuse to fit. Show it wherever the model is
     // being explained, or the first symptom is "why won't this go anywhere".
