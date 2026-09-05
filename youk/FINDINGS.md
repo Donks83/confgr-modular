@@ -700,7 +700,48 @@ numeric limits in the range that a customer could violate by choosing badly.
 - An angled option at **9°**, dropping the front edge to 560/540 (from 650) or
   660/640 (from 750).
 
-**And the rule that appears nowhere else in the range.** Page 3 opens with a tick
+**Measured, session 5, when the parts were authored.** The 650 / 750 mm figures
+are **floor-to-top heights, not variants of the desktop** — where a desk ends up
+depends on how high the ladder is hung, and the third figure is that with 100 mm
+of feet under it. Only the depth (600 / 700) is a property of the board.
+
+Which family each part belongs to was decided by offering all four to
+`add-snaps` as `hang` in both rotations and letting the slot search answer,
+rather than by reading the drawings and choosing:
+
+| Part | Overall (mm) | Result |
+|---|---|---|
+| Base bracket — *Bodenträger*, the plate | 27.3 × 300 × 315 (rotated 90°) | Slot found. Plug at **y 298.5**: hooks a rung and hangs 300 mm beneath it. |
+| Shelf support — *Grundhalterung*, the arm | 50 × 50 × 310 (unrotated) | Slot found. Plug at **y 48.5, x 15.0**. The standard rung bracket in a 50 mm section; its top face carries the desktop at y 51.5 (50 + the 1.5 mm packer). |
+| Clamping angle — *Klemmwinkel* | 20 × 60 × 20 | **No slot, either rotation.** |
+| Top panel bracket 008552 | 60 × 18 × 20 | **No slot, either rotation.** |
+
+The last two join part-to-part. Nothing in the range did that before and the
+engine has no family for it, so they are **not authored** — a fact about the
+engine rather than a step somebody forgot.
+
+**The arm's offset is 15.0 mm, not the cabinet bracket's 15.1.** So a bay whose
+ladders sit 920.1 mm apart puts the two arms 890.1 mm apart, where the two
+cabinet brackets sit 889.9. A tenth of a millimetre, and the reason the desktop
+reads its own bracket rather than borrowing the cabinet's number.
+
+**Step 6's tick and cross is a placement rule.** The desktop's rear edge must sit
+against the bracket upstand, so a carried part sits **back flush** with the back
+of the ladder rather than centred on the brackets. A cabinet is as deep as its
+ladder and so comes out centred anyway; a 600 mm desktop on a 320 mm ladder needs
+its plugs 140 mm behind its own middle, or 140 mm of desk ends up inside the wall
+while still looking right from the front.
+
+**Still open on this assembly:** the arm bolts to the plate (step 3) and the
+clamping angle to the arm (step 4), and neither joint is modelled. Placed on the
+same rung the plate lands at x ±3.6 and the arm at ±15.0, so they interpenetrate
+and nothing refuses it.
+
+**And the rule that appears nowhere else in the range.** ⚠ **The next four
+paragraphs are WRONG and are kept only because the correction later in this file
+refers to them — see "CORRECTION — the office-solution tick-and-cross is not an
+alignment rule". Matt caught it. The markers mark which RUNGS the desktop may be
+fitted at, not how the ladders align.** Page 3 opens with a tick
 and cross diagram over four ladders of different heights: the green dashed line
 runs across their **tops**, the red dashed lines across their bottoms. For an
 office solution the ladders are hung so their **top edges align**, and their
