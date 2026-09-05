@@ -166,7 +166,12 @@
     { "id": "008545-youboxx-set-2", "depth": 200, "rotateYdeg": 0 },
     { "id": "008546-youboxx-set-3", "depth": 320, "rotateYdeg": 0 },
     { "id": "008547-youboxx-set-4", "depth": 320, "rotateYdeg": 0 },
-    { "id": "008548-youboxx-set-5", "depth": 320, "rotateYdeg": 0 }
+    { "id": "008548-youboxx-set-5", "depth": 320, "rotateYdeg": 0 },
+
+    { "id": "008557-outer-cabinet-bracket-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
+    { "id": "008558-outer-cabinet-bracket-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 },
+    { "id": "008559-cabinet-bracket-for-ladder-depth-200mm", "depth": 200, "rotateYdeg": 90 },
+    { "id": "008560-cabinet-bracket-for-ladder-depth-320mm", "depth": 320, "rotateYdeg": 90 }
   ],
 
   "_youboxx": [

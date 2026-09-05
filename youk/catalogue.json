@@ -338,6 +338,50 @@
       "costEach": null,
       "priceEach": {}
     },
+    "008557-outer-cabinet-bracket-for-ladder-depth-200mm": {
+      "article": "008557",
+      "description": "YouK outer cabinet bracket for ladder depth 200 mm",
+      "sizeMm": [
+        195,
+        8,
+        50.3
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008558-outer-cabinet-bracket-for-ladder-depth-320mm": {
+      "article": "008558",
+      "description": "YouK outer cabinet bracket for ladder depth 320 mm",
+      "sizeMm": [
+        315,
+        8,
+        50.3
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008559-cabinet-bracket-for-ladder-depth-200mm": {
+      "article": "008559",
+      "description": "YouK cabinet bracket for ladder depth 200 mm",
+      "sizeMm": [
+        195,
+        8,
+        80.5
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008560-cabinet-bracket-for-ladder-depth-320mm": {
+      "article": "008560",
+      "description": "YouK cabinet bracket for ladder depth 320 mm",
+      "sizeMm": [
+        315,
+        8,
+        80.5
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
     "008553-shoe-rack-450mm": {
       "article": "008553",
       "description": "YouK shoe rack 450 mm, Schuhablage 450 mm",

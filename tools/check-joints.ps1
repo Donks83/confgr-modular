@@ -25,6 +25,8 @@ foreach ($job in @(
   @($f320, 'youk/008546-youboxx-set-3.glb', 'mount', 'rung-3-right'),
   @($f320, 'youk/008547-youboxx-set-4.glb', 'mount', 'rung-3-right'),
   @($f320, 'youk/008548-youboxx-set-5.glb', 'mount', 'rung-3-right'),
+  @($f320, 'youk/008558-outer-cabinet-bracket-for-ladder-depth-320mm.glb', 'mount', 'rung-1-right'),
+  @($f320, 'youk/008560-cabinet-bracket-for-ladder-depth-320mm.glb', 'mount', 'rung-1-right'),
   @($f200, 'youk/008536-hook-strip-for-ladder-depth-200mm.glb', 'mount', 'rung-1-right'),
   @($f200, 'youk/008542-rack-for-ladder-depth-200mm.glb', 'mount', 'rung-1-right'),
   @($f200, 'youk/008545-youboxx-set-2.glb', 'mount', 'rung-3-right'),

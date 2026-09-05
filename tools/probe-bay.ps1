@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed')]
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed', 'cabinets')]
   [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
@@ -99,7 +99,13 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:30'
+  palette = 'palette:34'
+  # Cabinet brackets. Two outer brackets on the two frames of a bay, which is
+  # what a carcase sits on. They are hang parts - each mounts on ONE frame and
+  # cantilevers - so each should add a part and a joint, and land 6.5mm below
+  # its rung (8mm plate less the 1.5mm top sheet).
+  cabinets = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +
+             'part:008558,marker:0,dump,part:008558,marker:9,dump,layout'
   # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
   # should go straight in without waiting for a marker, add NO joint, and land
   # centred on the bay. If the joint count goes up, it has been attached to
