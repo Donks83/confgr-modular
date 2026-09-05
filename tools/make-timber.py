@@ -107,17 +107,24 @@ def board(length_mm, thickness_mm, depth_mm, chamfer_mm=CHAMFER_MM):
     ]
     verts = np.array(lo + top, dtype=float)
 
+    # Wound counter-clockwise seen from OUTSIDE, so every normal points out of
+    # the board. The first version had all twenty backwards - consistently, so
+    # nothing complained: trimesh reported the mesh watertight and the winding
+    # consistent, the snap planes were unaffected, and the checks all passed.
+    # Matt spotted it in a screenshot. Hence the assertion in write(): a signed
+    # volume is the cheap test that would have caught it, and consistency alone
+    # is not the same thing as correctness.
     faces = [
-        (0, 2, 1), (0, 3, 2),                    # base
-        (0, 1, 5), (0, 5, 4),                    # sides of the main section
-        (1, 2, 6), (1, 6, 5),
-        (2, 3, 7), (2, 7, 6),
-        (3, 0, 4), (3, 4, 7),
-        (4, 5, 9), (4, 9, 8),                    # the chamfer band
-        (5, 6, 10), (5, 10, 9),
-        (6, 7, 11), (6, 11, 10),
-        (7, 4, 8), (7, 8, 11),
-        (8, 9, 10), (8, 10, 11),                 # top
+        (0, 1, 2), (0, 2, 3),                    # base, facing down
+        (0, 5, 1), (0, 4, 5),                    # sides of the main section
+        (1, 6, 2), (1, 5, 6),
+        (2, 7, 3), (2, 6, 7),
+        (3, 4, 0), (3, 7, 4),
+        (4, 9, 5), (4, 8, 9),                    # the chamfer band
+        (5, 10, 6), (5, 9, 10),
+        (6, 11, 7), (6, 10, 11),
+        (7, 8, 4), (7, 11, 8),
+        (8, 10, 9), (8, 11, 10),                 # top, facing up
     ]
 
     mesh = trimesh.Trimesh(vertices=verts, faces=np.array(faces), process=False)
@@ -133,6 +140,21 @@ def board(length_mm, thickness_mm, depth_mm, chamfer_mm=CHAMFER_MM):
 
 def write(mesh, path):
     import trimesh
+
+    # The three things a hand-wound mesh can get wrong, checked before it leaves.
+    # Watertight and consistent were BOTH true of the inside-out first version -
+    # the signed volume is the one that catches it. Nothing downstream looks at
+    # normals (snaps come from the spec, joints from vertex positions), so
+    # without this the only detector is somebody noticing the lighting.
+    if not mesh.is_watertight:
+        raise SystemExit(f"{path.name}: not watertight")
+    if not mesh.is_winding_consistent:
+        raise SystemExit(f"{path.name}: winding is not consistent")
+    if mesh.volume <= 0:
+        raise SystemExit(
+            f"{path.name}: signed volume {mesh.volume:.6f} - the normals point "
+            f"inward, so the board renders inside out"
+        )
 
     scene = trimesh.Scene()
     scene.add_geometry(mesh, node_name="body", geom_name="body")
