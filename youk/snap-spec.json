@@ -83,7 +83,23 @@
     "",
     "The rails' widths agree with the shelves' to within 0.6mm at every size, so",
     "a rail and a shelf ask for the same bay - which they must, or a bay could",
-    "not carry both."
+    "not carry both.",
+    "",
+    "008538-41 are the hook strips sold BY LADDER WIDTH, and they belong here",
+    "rather than with the hang family. 008536/7 are the ones sold by ladder",
+    "DEPTH: those mount depthways on a single frame and hang off it. These span",
+    "between two frames exactly like a shelf, which is why the app's hooks looked",
+    "wrong with only the depth pair loaded.",
+    "",
+    "Widths measured off the converted geometry: 450 -> 500.2, 600 -> 649.6,",
+    "900 -> 950.2, 1200 -> 1250.2. The 900 is 950.2 and so is the 900 shelf, to",
+    "0.0mm, so a bay carries either.",
+    "",
+    "Bearing is \"top\", and measured rather than reasoned. Counting vertices in",
+    "1mm bands down from the top gives the hook strip the same profile as the",
+    "clothes rail - dense at 0-2mm, tailing to 3mm, then a gap to 5mm - which is",
+    "the 1.5mm top sheet with its bend radius. The rail is already verified at",
+    "\"top\", so the strip presenting an identical sheet settles it."
   ],
   "span": [
     { "id": "008561-shelf-450mm-for-ladder-depth-320mm", "depth": 320, "bearing": "base" },
@@ -93,7 +109,12 @@
 
     { "id": "008530-clothes-rail-600mm",  "depth": 320, "bearing": "top" },
     { "id": "008531-clothes-rail-900mm",  "depth": 320, "bearing": "top" },
-    { "id": "008532-clothes-rail-1200mm", "depth": 320, "bearing": "top" }
+    { "id": "008532-clothes-rail-1200mm", "depth": 320, "bearing": "top" },
+
+    { "id": "008538-hook-strip-for-ladder-width-450mm", "depth": 320, "bearing": "top" },
+    { "id": "008539-hook-strip-for-ladder-width-600mm", "depth": 320, "bearing": "top" },
+    { "id": "008540-hook-strip-for-ladder-width-900mm", "depth": 320, "bearing": "top" },
+    { "id": "008541-hook-strip-for-ladder-width-1200mm", "depth": 320, "bearing": "top" }
   ],
 
   "_hang": [

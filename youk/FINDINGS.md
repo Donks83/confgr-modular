@@ -844,3 +844,80 @@ alone disproves it — and I did not measure where the lines fell.
 of a pattern at insufficient resolution, written up as fact. The measurement that
 settles it took one script. The rule I invented was more interesting than the real
 one, which should itself have been the warning.
+
+---
+
+# The width hook strips are in — 5 September 2026
+
+008538 / 008539 / 008540 / 008541, "hook strip for ladder width 450 / 600 / 900 /
+1200 mm". They belong to the **span** family, not the hang family: they run
+lengthways between two frames exactly as a shelf does. 008536 and 008537, sold by
+ladder *depth*, are the ones that mount depthways on a single frame — and with
+only those loaded, the app's hooks looked wrong, which is what Matt reported.
+
+**Widths, measured off the converted geometry, against the shelves:**
+
+| Nominal | Hook strip | Shelf |
+|---|---|---|
+| 450 | 500.2 | 500.1 |
+| 600 | 649.6 | — |
+| 900 | **950.2** | **950.2** |
+| 1200 | 1250.2 | — |
+
+The 900s agree to 0.0 mm, so one bay carries either. Snapping derives plugs at
+x = ±460.05, giving frames 920.1 mm apart — the same spacing the 900 shelf sets,
+which is the check that matters.
+
+**Bearing is "top", and measured rather than reasoned.** Counting vertices in
+1 mm bands down from the top gives the hook strip the same profile as the clothes
+rail — dense at 0–2 mm, tailing to 3 mm, then nothing until 5 mm — which is the
+top sheet plus its bend radius. The rail is already verified at "top", so a strip
+presenting the identical sheet settles it without a separate measurement.
+
+Placed in the app: bay of two 1500 frames at 0 and 920.1, then a 900 strip on
+rung 3. It lands at **x 460.1, y 761.5** — centred in the bay like the shelf, and
+810 − 48.5, which is the rung's top face less the plug offset. It asks no
+question when placed, because there is only one distinct outcome.
+
+## The 1.00 mm is now narrowed, and it is not random
+
+The clothes rail's unexplained 1.00 mm of bracket inside the rung — logged in
+session 3 as "two readings possible, a question for Kesseböhmer" — appears on the
+hook strips too, at **exactly 1.00 mm**, on all three sizes checked.
+
+Sorting every checked joint by what its plug is derived from:
+
+| Family | Plug derived from | Deepest inside the member |
+|---|---|---|
+| Shelves (span, bearing `base`) | `y = 0`, the part's own base | **0 verts** |
+| Clothes rails (span, bearing `top`) | `maxY − topSheetMm` | **1.00 mm** ×3 |
+| Width hook strips (span, bearing `top`) | `maxY − topSheetMm` | **1.00 mm** ×3 |
+| Hang family (tray, YouboXx, depth strips) | the measured slot | 0.00–0.13 mm |
+
+**The 1.00 mm tracks one thing: span parts whose plug is computed as
+`maxY − topSheetMm`.** Everything whose plug is *measured* — the shelves off
+their own base, the hang family off the slot — is clean. Two independent product
+families landing on precisely the same 1.00 mm is not a coincidence in the metal.
+
+That does not yet say what the right number is. The obvious suspects — a bearing
+face 2.5 mm below the top rather than 1.5, or the ±15 mm inset being wrong for a
+bracket that wraps the stile — predict different corrections, and the depth hook
+strip has the *same* 50 mm height and the *same* 48.5 mm plug yet seats cleanly,
+which argues against a simple height error. So it stays open.
+
+What has changed is that it is a **better-specified question**: not "why is the
+clothes rail 1 mm out" but "why is a plug derived from the top sheet 1 mm out
+when a plug derived from the slot is not". The next move is to derive the span
+`top` plug from the slot as the hang family already does, and see whether the
+1.00 mm disappears. That is a one-line change to `span_snaps` and a re-run of
+`npm run joints`.
+
+## One thing not explained
+
+`check-joint` reports the 450 strip's lowest material near the joint at 10.00 mm
+below the socket, where the 900 and 1200 both read 46.00 mm. All three report the
+identical 174 vertices at the identical 1.00 mm inside the member, so the bracket
+geometry is the same and the joint is the same; the difference is in a diagnostic
+window, most likely the nearest hook to the end sitting further inboard on the
+short one. Recorded rather than explained, because it is not the acceptance
+number and guessing at it would be the same mistake as the locating lugs.

@@ -45,6 +45,7 @@
     "236746-leiterregal-ladder-depth-200mm": {
       "article": "236746",
       "description": "YouK ladder frame, depth 200 mm, height 668 mm",
+      "descriptionOverride": "YouK ladder frame, depth 200 mm, height 668 mm",
       "sizeMm": [
         200,
         668,
@@ -52,7 +53,6 @@
       ],
       "costEach": null,
       "priceEach": {},
-      "descriptionOverride": "YouK ladder frame, depth 200 mm, height 668 mm",
       "notes": "Supplier filename leaves the German Leiterregal in the English half. Renamed to match the other five frames so the palette reads consistently."
     },
     "236748-ladder-depth-2000mm": {
@@ -192,6 +192,50 @@
       "costEach": null,
       "priceEach": {},
       "notes": "Filename puts 'YouK' on the German side only."
+    },
+    "008538-hook-strip-for-ladder-width-450mm": {
+      "article": "008538",
+      "description": "YouK hook strip for ladder width 450 mm",
+      "sizeMm": [
+        500.1,
+        50,
+        72
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008539-hook-strip-for-ladder-width-600mm": {
+      "article": "008539",
+      "description": "YouK hook strip for ladder width 600 mm",
+      "sizeMm": [
+        649.5,
+        50,
+        72
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008540-hook-strip-for-ladder-width-900mm": {
+      "article": "008540",
+      "description": "YouK hook strip for ladder width 900 mm",
+      "sizeMm": [
+        950.1,
+        50,
+        72
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008541-hook-strip-for-ladder-width-1200mm": {
+      "article": "008541",
+      "description": "YouK hook strip for ladder width 1200 mm",
+      "sizeMm": [
+        1250.1,
+        50,
+        72
+      ],
+      "costEach": null,
+      "priceEach": {}
     },
     "008536-hook-strip-for-ladder-depth-200mm": {
       "article": "008536",

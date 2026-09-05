@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks')] [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -98,7 +98,14 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:22'
+  palette = 'palette:26'
+  # The width hook strips, which is what Matt was missing when he said the hooks
+  # looked wrong. Build a bay, then hang a 900 strip across it: it should ask
+  # nothing (one distinct outcome) and land level, spanning the same 920.1mm the
+  # 900 shelf sets. If it turns up depthways on one frame, it went in the hang
+  # family by mistake.
+  hooks = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +
+          'part:008540,marker:4,dump,layout'
   # The bug Matt hit. Anchor a 1500 frame, hang a 900 shelf on it, then offer a
   # second frame at the shelf's free end. The engine has always found several
   # placements there - one per rung of the arriving frame - and the UI used to
