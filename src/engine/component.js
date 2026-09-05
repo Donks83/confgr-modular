@@ -325,10 +325,34 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     grids.push(grid);
   }
 
-  if (!snaps.length && !grids.length) {
+  // ---- How this part is held, when it is not held by the product ---------
+  //
+  // Almost everything in a modular range joins something else, so no attach
+  // points is almost always a missing authoring step rather than a fact about
+  // the part - which is why it throws.
+  //
+  // The exception is real and Kesseböhmer document it: the YouK shoe rack
+  // (008553-56) is marked out with a spirit level and screwed STRAIGHT TO THE
+  // WALL. No ladder appears anywhere in its instruction sheet. It is sized to
+  // the bay and sits inside the composition, but it touches none of it.
+  //
+  // So a part may say so, and then having no snaps is a declaration rather than
+  // an omission. Saying it explicitly keeps the check strict for the other 40-odd
+  // parts: a shelf that lost its snaps still fails loudly.
+  const mounting = declared?.mounting ?? null;
+  if (mounting !== null && mounting !== 'wall') {
+    throw new ComponentError(
+      `Declared mounting "${mounting}" is not recognised. Use "wall", or leave it out `
+      + 'for a part that joins the product.',
+      { code: 'MOUNTING_INVALID', detail: { mounting } },
+    );
+  }
+
+  if (!snaps.length && !grids.length && mounting !== 'wall') {
     throw new ComponentError(
       `No attach points found. Add at least one node named ${SNAP_PREFIX}.<mask>.<label> `
-      + `or ${GRID_PREFIX}.<mask>.<label>.`,
+      + `or ${GRID_PREFIX}.<mask>.<label> — or declare mounting "wall" if this part `
+      + 'fixes to the wall and joins nothing.',
       { code: 'NO_SNAPS' },
     );
   }
@@ -375,6 +399,9 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     // "how should it sit?" chooser tells a real choice from a flipped duplicate
     // (see distinctPlacements). Collision will want the same thing.
     body: { min: [...body.min], max: [...body.max] },
+    // null for anything that joins the product; 'wall' for a part that fixes to
+    // the wall and joins nothing, like the YouK shoe rack.
+    mounting,
     snaps,
     grids,
     options,

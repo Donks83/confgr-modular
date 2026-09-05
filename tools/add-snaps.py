@@ -327,7 +327,8 @@ def main():
 
     jobs = ([("frame", p) for p in spec.get("frames", [])]
             + [("span", p) for p in spec.get("span", [])]
-            + [("hang", p) for p in spec.get("hang", [])])
+            + [("hang", p) for p in spec.get("hang", [])]
+            + [("wall", p) for p in spec.get("wall", [])])
     if not jobs:
         print("spec lists no parts", file=sys.stderr)
         return 1
@@ -342,6 +343,37 @@ def main():
             continue
 
         try:
+            if kind == "wall":
+                # Nothing to author, because this part joins nothing. The YouK
+                # shoe rack is marked out with a spirit level and screwed
+                # straight to the wall - no ladder appears anywhere in its
+                # instruction sheet - so the absence of snaps is a fact about
+                # the part rather than a step somebody forgot.
+                #
+                # It still goes through here rather than being copied by hand,
+                # so the spec stays the single list of what is authored, and so
+                # the declaration that MAKES the absence legal is written by the
+                # same pass that decides it.
+                import shutil
+
+                mesh = load_body(source)
+                shutil.copyfile(source, target)
+                dims = [round(float(v) * 1000, 1) for v in mesh.extents]
+                print(f'  {part["id"]:<46} {kind:<5} '
+                      f'{dims[0]:>7.1f} x {dims[1]:>7.1f} x {dims[2]:>6.1f} mm  '
+                      f'no snaps, fixes to the wall')
+
+                sidecar = folder / f'{part["id"]}{args.suffix}.confgr.json'
+                existing = json.loads(sidecar.read_text(encoding="utf8")) if sidecar.exists() else {}
+                existing["confgr"] = {
+                    "widthMm": dims[0], "heightMm": dims[1], "depthMm": dims[2],
+                    "unitScale": "metres",
+                    "mounting": "wall",
+                }
+                existing.pop("confgrRoles", None)
+                sidecar.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf8")
+                continue
+
             snaps, detail, mesh = build(source, part, spec, kind, target)
             nodes = verify(target, snaps)
 

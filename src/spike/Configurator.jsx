@@ -25,6 +25,7 @@ import {
   whyNothingFits, attachAt, detach, pointKey,
   canMove, moveTargets, moveTo,
   placementsAt, mountHeightMm, distinctPlacements,
+  placeFree, freePositionFor,
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
 import {
@@ -823,7 +824,36 @@ export default function Configurator() {
     commitPlacement(options[0]);
   }, [matrix, assembly, components, commitPlacement]);
 
+  /**
+   * Add a part that joins nothing — currently the shoe rack, which screws
+   * straight to the wall and touches no ladder.
+   *
+   * It goes in as a second anchor at a derived position, not by dragging: free
+   * placement in 3D is what this interaction deliberately removed. The status
+   * line says it is wall-fixed, because the picture cannot.
+   */
+  const placeWallFixed = useCallback((componentId) => {
+    const component = components.get(componentId);
+    const selections = {};
+    for (const opt of component.options) selections[opt.id] = opt.defaultValueId;
+
+    const id = nextId();
+    const at = freePositionFor(assembly, components, transforms, component);
+    setAssembly((a) => placeFree(a, id, componentId, at, selections));
+    setSelectedId(id);
+    setPendingPart(null);
+    setPendingPoint(null);
+    setStatus(`Added ${componentId} — fixed to the wall, not to the product.`);
+  }, [assembly, components, transforms]);
+
   const choosePart = (componentId) => {
+    // A wall-fixed part joins nothing, so neither flow applies: it does not
+    // wait for a marker and it never becomes the anchor by accident.
+    if (components.get(componentId)?.mounting === 'wall') {
+      placeWallFixed(componentId);
+      return;
+    }
+
     // Nothing placed yet: the first choice becomes the product itself.
     if (!assembly.instances.length) {
       const id = nextId();
@@ -1204,8 +1234,12 @@ export default function Configurator() {
 
         <div className="cfg-palette">
           {catalogueForPanel.filter(Boolean).map((c) => {
+            // A wall-fixed part fits nowhere by definition, so the usual
+            // "nowhere for this" greying-out would disable it permanently.
+            const wallFixed = c.mounting === 'wall';
             const places = assembly.instances.length ? pointsForComponent(matrix, c.id).length : 1;
-            const disabled = assembly.instances.length > 0 && places === 0 && !pendingPoint;
+            const disabled = !wallFixed
+              && assembly.instances.length > 0 && places === 0 && !pendingPoint;
             return (
               <button
                 key={c.id}
@@ -1222,7 +1256,9 @@ export default function Configurator() {
                   {articleFor(c) ? `${articleFor(c)} · ` : ''}
                   {c.grids.length ? `${c.grids[0].cols}×${c.grids[0].rows} grid` : ''}
                   {c.snaps[0]?.span ? `span ${c.snaps[0].span.cols}×${c.snaps[0].span.rows}` : ''}
-                  {assembly.instances.length && !pendingPoint ? ` · ${places} place${places === 1 ? '' : 's'}` : ''}
+                  {wallFixed
+                    ? 'fixes to the wall'
+                    : (assembly.instances.length && !pendingPoint ? ` · ${places} place${places === 1 ? '' : 's'}` : '')}
                 </span>
               </button>
             );

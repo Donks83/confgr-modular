@@ -413,6 +413,103 @@ export function attachAt(assembly, placement, instanceId, selections = {}) {
 }
 
 /**
+ * Add a part that joins nothing, at a position of its own.
+ *
+ * The YouK shoe rack is the first of these and Kesseböhmer's sheet is
+ * unambiguous: a spirit level, a drill and wall plugs, with no ladder in it. It
+ * is sized to the bay and sits inside the composition, but it touches none of
+ * it — which is why it looks attached in the photography and is not.
+ *
+ * Matt's call on how to handle that: place it in space as a wall-fixed item, so
+ * it is there when AR puts the whole thing on a real wall, rather than
+ * pretending it bolts to the ladders.
+ *
+ * So it becomes a SECOND ANCHOR. The assembly model already allowed this — an
+ * instance with a real position and `freeMove` is a root, and `resolveTransforms`
+ * walks from every root rather than from one — it had simply never been used for
+ * anything but the first part. Nothing new in the data model; a use for something
+ * that was already true.
+ *
+ * The position is derived rather than asked for. Free 3D dragging is the thing
+ * this whole interaction removed, and reintroducing it for one part would bring
+ * back the four bugs that went with it.
+ */
+export function placeFree(assembly, instanceId, componentId, position, selections = {}) {
+  return {
+    ...assembly,
+    instances: [
+      ...assembly.instances,
+      {
+        instanceId,
+        componentId,
+        selections,
+        position: [...position],
+        rotation: [0, 0, 0, 1],
+        freeMove: true,
+      },
+    ],
+    connections: [...(assembly.connections || [])],
+  };
+}
+
+/**
+ * Where to put a wall-fixed part so it reads as part of the composition.
+ *
+ * Centred on the product in X, set back to the product's own back face in Z, and
+ * a little above the floor — which is where a shoe rack goes, and near enough
+ * for everything else that the customer can see what they have bought.
+ *
+ * Deliberately not clever. The honest position is the one the installer chooses
+ * with a spirit level, and no amount of arithmetic here knows it.
+ */
+export function freePositionFor(assembly, components, transforms, component) {
+  const bounds = assemblyBounds(assembly, components, transforms);
+  if (!bounds) return [0, 0, 0];
+
+  // Work from the body's OWN bounds rather than assuming it starts at the
+  // origin. The pipeline puts a part's origin at its base centre, so a shoe
+  // rack's body runs from -449 to +449 in x - subtracting half its width from
+  // the product's centre would offset it by a whole width. The first version
+  // did exactly that and a test fixture caught it.
+  const min = component?.body?.min || [0, 0, 0];
+  const max = component?.body?.max || [0, 0, 0];
+  const bodyCentreX = (min[0] + max[0]) / 2;
+
+  return [
+    (bounds.min[0] + bounds.max[0]) / 2 - bodyCentreX,
+    bounds.min[1] + DEFAULT_WALL_HEIGHT_M - min[1],
+    bounds.min[2] - min[2],
+  ];
+}
+
+/** 150 mm off the floor: clear of a skirting board, under the lowest shelf. */
+const DEFAULT_WALL_HEIGHT_M = 0.15;
+
+/** World-space bounds of everything currently placed, or null if nothing is. */
+function assemblyBounds(assembly, components, transforms) {
+  const lo = [Infinity, Infinity, Infinity];
+  const hi = [-Infinity, -Infinity, -Infinity];
+  let any = false;
+
+  for (const instance of assembly?.instances || []) {
+    const t = transforms?.get(instance.instanceId);
+    const body = components?.get(instance.componentId)?.body;
+    if (!t || !body) continue;
+    any = true;
+    for (let a = 0; a < 3; a += 1) {
+      // Axis-aligned is enough here: this decides where to park a part, not
+      // whether anything fits.
+      const min = body.min[a] + (t.translation?.[a] || 0);
+      const max = body.max[a] + (t.translation?.[a] || 0);
+      if (min < lo[a]) lo[a] = min;
+      if (max > hi[a]) hi[a] = max;
+    }
+  }
+
+  return any ? { min: lo, max: hi } : null;
+}
+
+/**
  * Remove a part, and everything hanging off it.
  *
  * A pouch on a panel has nothing under it, but a shelf carrying a divider does,

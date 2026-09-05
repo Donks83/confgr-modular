@@ -95,7 +95,11 @@ function main(argv) {
 
   const sources = new Map(report.parts.map((p) => [p.id, p]));
   const configurable = [
+    // `wall` too: a part that joins nothing is still a part somebody is billed
+    // for. Leaving it out would put the shoe rack in the app with a raw model
+    // id for a name and no line on the quote.
     ...(spec.frames || []), ...(spec.span || []), ...(spec.hang || []),
+    ...(spec.wall || []),
   ].map((row) => row.id);
 
   const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};

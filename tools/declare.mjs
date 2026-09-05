@@ -159,6 +159,13 @@ function measureDeclaration(report, existing = null) {
     }
     if (existing.confgrSpans) declaration.confgrSpans = existing.confgrSpans;
     if (existing.confgrOptions) declaration.confgrOptions = existing.confgrOptions;
+
+    // How the part is HELD is a decision, not a measurement, and losing it is
+    // worse than losing a role: a part declared mounting "wall" is allowed to
+    // have no snaps, so dropping the declaration turns a legitimate part into
+    // one that fails to load with NO_SNAPS. Same trap as the roles above, one
+    // step further along.
+    if (existing.confgr?.mounting) declaration.confgr.mounting = existing.confgr.mounting;
   }
 
   return declaration;

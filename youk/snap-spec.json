@@ -117,6 +117,32 @@
     { "id": "008541-hook-strip-for-ladder-width-1200mm", "depth": 320, "bearing": "top" }
   ],
 
+  "_wall": [
+    "Parts that join NOTHING. They are screwed straight to the wall, so they",
+    "have no snap planes at all, and their instruction sheets contain no ladder.",
+    "",
+    "The shoe racks are the whole family today. MA 406213 steps 1 and 2 are a",
+    "spirit level, a pencil, a drill and wall plugs: 3 holes of 6.5mm, the first",
+    "50mm from the end, the rest equally spaced. Lengths 448 / 598 / 898 /",
+    "1198mm, height 48.5mm, and nothing supplied.",
+    "",
+    "They are sized to the bay and sit inside the composition, which is why they",
+    "look attached in the photography. They are not. Matt's call: place them in",
+    "space as wall-fixed items so they are there when AR puts the whole thing on",
+    "a real wall, rather than pretending they bolt to the ladders.",
+    "",
+    "add-snaps copies these through untouched and writes mounting: \"wall\" into",
+    "the sidecar. That declaration is what makes having no snaps legal - without",
+    "it component.js refuses the file with NO_SNAPS, which is the right default",
+    "for the other 40-odd parts."
+  ],
+  "wall": [
+    { "id": "008553-shoe-rack-450mm" },
+    { "id": "008554-shoe-rack-600mm" },
+    { "id": "008555-shoe-rack-900mm" },
+    { "id": "008556-shoe-rack-1200mm" }
+  ],
+
   "_hang": [
     "Accessories that hang on ONE frame and cantilever off it (MA 406209, MA",
     "406210). They lie across the frame's depth, so like the frames they are",

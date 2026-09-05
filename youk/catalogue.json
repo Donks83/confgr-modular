@@ -337,6 +337,50 @@
       ],
       "costEach": null,
       "priceEach": {}
+    },
+    "008553-shoe-rack-450mm": {
+      "article": "008553",
+      "description": "YouK shoe rack 450 mm, Schuhablage 450 mm",
+      "sizeMm": [
+        448,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008554-shoe-rack-600mm": {
+      "article": "008554",
+      "description": "YouK shoe rack 600 mm, Schuhablage 600 mm",
+      "sizeMm": [
+        598,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008555-shoe-rack-900mm": {
+      "article": "008555",
+      "description": "YouK shoe rack 900 mm, Schuhablage 900 mm",
+      "sizeMm": [
+        898,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008556-shoe-rack-1200mm": {
+      "article": "008556",
+      "description": "YouK shoe rack 1200 mm, Schuhablage 1200 mm",
+      "sizeMm": [
+        1198,
+        76.6,
+        110.1
+      ],
+      "costEach": null,
+      "priceEach": {}
     }
   }
 }

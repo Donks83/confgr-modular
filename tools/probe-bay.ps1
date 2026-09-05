@@ -16,7 +16,8 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed')]
+  [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -43,7 +44,7 @@ if ($stale) { Start-Sleep -Seconds 1 }
 # palette. Reading the spec rather than a second list here means the two cannot
 # drift apart. These copies are gitignored: derived supplier geometry.
 $spec = Get-Content 'youk\snap-spec.json' -Raw | ConvertFrom-Json
-$ids = @($spec.frames + $spec.span + $spec.hang | Select-Object -ExpandProperty id)
+$ids = @($spec.frames + $spec.span + $spec.hang + $spec.wall | Select-Object -ExpandProperty id)
 "--- copying $($ids.Count) snapped YouK components into test-assets ---"
 foreach ($id in $ids) {
   if (Test-Path "youk\$id.glb") { Copy-Item "youk\$id.glb" "test-assets\$id.glb" -Force }
@@ -98,7 +99,13 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:26'
+  palette = 'palette:30'
+  # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
+  # should go straight in without waiting for a marker, add NO joint, and land
+  # centred on the bay. If the joint count goes up, it has been attached to
+  # something and the whole point has been missed.
+  wallfixed = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +
+              'part:008555,dump,layout'
   # The width hook strips, which is what Matt was missing when he said the hooks
   # looked wrong. Build a bay, then hang a 900 strip across it: it should ask
   # nothing (one distinct outcome) and land level, spanning the same 920.1mm the

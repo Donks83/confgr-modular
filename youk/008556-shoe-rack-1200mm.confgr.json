@@ -1,8 +1,9 @@
 {
   "confgr": {
-    "widthMm": 1198,
+    "widthMm": 1198.0,
     "heightMm": 76.6,
     "depthMm": 110.1,
-    "unitScale": "metres"
+    "unitScale": "metres",
+    "mounting": "wall"
   }
 }

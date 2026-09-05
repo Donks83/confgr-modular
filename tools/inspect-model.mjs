@@ -580,12 +580,26 @@ export function audit(report) {
   }
 
   // ---- Snaps ------------------------------------------------------------
-  if (!c.snapNodes.length && !c.gridNodes.length) {
+  //
+  // A part may declare that it fixes to the wall and joins nothing, and then no
+  // snaps is the correct answer rather than a missing authoring step. The YouK
+  // shoe rack is the case: its sheet is a spirit level, a drill and wall plugs,
+  // with no ladder in it anywhere. Everything else still fails loudly.
+  const wallMounted = c.declared?.mounting === 'wall';
+
+  if (!c.snapNodes.length && !c.gridNodes.length && !wallMounted) {
     add(blockers, 'NO_SNAPS',
       'none found',
       `Add flat 4-vertex planes named ${SNAP_PREFIX}<mask>.<label>, local +Z facing outward, `
       + 'at each place the part joins another. This is the authoring step no converter does '
       + 'for you — see tools/AUTHORING.md.');
+  }
+
+  if (wallMounted && (c.snapNodes.length || c.gridNodes.length)) {
+    add(warnings, 'MOUNTING_WALL_WITH_SNAPS',
+      `declared mounting "wall" but carries ${c.snapNodes.length + c.gridNodes.length} attach point(s)`,
+      'A wall-fixed part joins nothing. Either drop the declaration or drop the snaps — '
+      + 'as it stands the app will offer it both ways.');
   }
 
   for (const name of c.snapNodes) {
