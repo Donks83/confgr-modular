@@ -24,6 +24,7 @@ import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
   whyNothingFits, attachAt, detach, pointKey,
   canMove, moveTargets, moveTo,
+  placementsAt, mountHeightMm, distinctPlacements,
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
 import {
@@ -70,6 +71,10 @@ export default function Configurator() {
   // Which of the two foot SKUs, not a free height. Only read when mounting is
   // FEET; kept across a switch away and back so the choice is not lost.
   const [footHeightMm, setFootHeightMm] = useState(FOOT.heightsMm[0]);
+  // The SECOND END OF THE JOINT, when there is more than one answer. A joint
+  // has two ends; the point names one and this names the other. Null whenever
+  // the answer is unambiguous, which is most of the time.
+  const [pendingChoice, setPendingChoice] = useState(null);
 
   const catalogue = useMemo(() => [...components.keys()], [components]);
 
@@ -763,13 +768,9 @@ export default function Configurator() {
   }, [markers, pendingPoint, pendingPart, showMarkers, movingId]);
 
   // ------------------------------------------------------------- attach flows
-  const place = useCallback((componentId, key) => {
-    const placement = matrix.placements.find(
-      (p) => p.componentId === componentId && p.pointKey === key,
-    );
-    if (!placement) { setStatus('That part does not fit there.'); return; }
-
-    const component = components.get(componentId);
+  /** Commit one specific placement. Both ends of the joint already decided. */
+  const commitPlacement = useCallback((placement) => {
+    const component = components.get(placement.componentId);
     const selections = {};
     for (const opt of component.options) selections[opt.id] = opt.defaultValueId;
 
@@ -778,8 +779,49 @@ export default function Configurator() {
     setSelectedId(id);
     setPendingPart(null);
     setPendingPoint(null);
-    setStatus(`Added ${componentId}.`);
-  }, [matrix, components]);
+    setPendingChoice(null);
+    setStatus(`Added ${placement.componentId}.`);
+  }, [components]);
+
+  /** Re-hang a part on a placement whose both ends are already decided. */
+  const applyMove = useCallback((instanceId, placement) => {
+    setPendingChoice(null);
+    try {
+      setAssembly((a) => moveTo(a, instanceId, placement));
+      setStatus('Moved.');
+    } catch (err) {
+      setStatus(err.message);
+    }
+  }, []);
+
+  /**
+   * Put a part at a point — asking HOW if there is more than one answer.
+   *
+   * This used to be `matrix.placements.find(...)`, which took whichever row came
+   * first. That is the bug Matt hit: a second ladder offered at a shelf's free
+   * end fits by any of its own rungs, and only one of those heights was ever
+   * reachable. The other seven are the staggered layouts in Kesseböhmer's own
+   * photography.
+   *
+   * One option still places immediately. A chooser that appears when there is
+   * nothing to choose is just a click in the way.
+   */
+  const place = useCallback((componentId, key) => {
+    const all = placementsAt(matrix, key, componentId);
+    if (!all.length) { setStatus('That part does not fit there.'); return; }
+
+    // Only the ones that look different. Mating a symmetric shelf by its far
+    // plug is a legal second placement and an identical picture, and asking
+    // about it would put a dialog in front of nearly every click.
+    const options = distinctPlacements(assembly, components, all);
+
+    if (options.length > 1) {
+      setPendingChoice({ kind: 'place', componentId, key, placements: options });
+      setStatus(`${options.length} ways it can sit there — pick one.`);
+      return;
+    }
+    commitPlacement(options[0]);
+  }, [matrix, assembly, components, commitPlacement]);
 
   const choosePart = (componentId) => {
     // Nothing placed yet: the first choice becomes the product itself.
@@ -966,14 +1008,25 @@ export default function Configurator() {
    * the state that would have filled that memo in. Asking the engine costs
    * nothing at this scale and removes the race entirely.
    */
-  const moveTargetAt = (instanceId, key) => {
+  const moveTargetsAt = (instanceId, key) => {
     const { assembly: current, components: loaded, transforms: t } = live.current;
-    if (!loaded?.size) return null;
+    if (!loaded?.size) return [];
     try {
       const targets = moveTargets(current, loaded, t, instanceId);
-      return targets.placements.find((pl) => pl.pointKey === key) || null;
+      // Every way it could sit there, not the first. A shelf dragged to the far
+      // side of a ladder can mate by either end, and letting the engine pick is
+      // what span the part round: the solver satisfies facing by yawing the
+      // child 180 degrees, so the "wrong" end always fits, backwards.
+      const here = targets.placements
+        .filter((pl) => pl.pointKey === key)
+        .sort((a, b) => mountHeightMm(a) - mountHeightMm(b));
+      // Same rule as placing: distinct outcomes, not distinct wirings. The
+      // probe is a fresh instance attached at each candidate, so the part's
+      // existing copy sitting in `current` is irrelevant - only the probe's own
+      // resolved pose is read.
+      return distinctPlacements(current, loaded, here);
     } catch {
-      return null;
+      return [];
     }
   };
 
@@ -1055,9 +1108,21 @@ export default function Configurator() {
 
     if (!marker) { setStatus('Left where it was.'); return; }
 
-    const placement = moveTargetAt(d.instanceId, marker.userData.pointKey);
-    if (!placement) { setStatus('It cannot go there.'); return; }
+    const options = moveTargetsAt(d.instanceId, marker.userData.pointKey);
+    if (!options.length) { setStatus('It cannot go there.'); return; }
 
+    if (options.length > 1) {
+      setPendingChoice({
+        kind: 'move',
+        instanceId: d.instanceId,
+        componentId: assembly.instances.find((i) => i.instanceId === d.instanceId)?.componentId,
+        placements: options,
+      });
+      setStatus(`${options.length} ways it can sit there — pick one.`);
+      return;
+    }
+
+    const [placement] = options;
     try {
       setAssembly((a) => moveTo(a, d.instanceId, placement));
       // The camera must NOT re-frame: the parts are the same, so the framing
@@ -1100,6 +1165,37 @@ export default function Configurator() {
           Drag the background to orbit · right-drag or two fingers to pan ·
           scroll to zoom
         </p>
+
+        {/* The other end of the joint. Only ever shown when there is a real
+            choice: one option places straight away, because a chooser with one
+            item in it is a click in the way. */}
+        {pendingChoice && (
+          <>
+            <h2>
+              How should it sit?
+              <button className="cfg-clear" onClick={() => { setPendingChoice(null); setStatus(''); }}>cancel</button>
+            </h2>
+            <p className="cfg-note cfg-dim">
+              {labelFor({ id: pendingChoice.componentId })} can meet this point in{' '}
+              {pendingChoice.placements.length} places. The number is how far up
+              the part its own joint sits, so a taller number hangs it lower.
+            </p>
+            <div className="cfg-palette cfg-choices">
+              {pendingChoice.placements.map((p) => (
+                <button
+                  key={p.mountSnapId}
+                  data-mount={p.mountSnapId}
+                  onClick={() => (pendingChoice.kind === 'move'
+                    ? applyMove(pendingChoice.instanceId, p)
+                    : commitPlacement(p))}
+                >
+                  <strong>{mountHeightMm(p)} mm up the part</strong>
+                  <span className="cfg-meta">{p.mountSnap?.label || p.mountSnapId}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         <h2>
           {pendingPoint ? 'Fits here' : assembly.instances.length ? 'Add a part' : 'Start from'}

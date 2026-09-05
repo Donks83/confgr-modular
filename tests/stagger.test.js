@@ -27,7 +27,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describeGltf } from '../src/three/loadGlb.js';
 import { extractComponent } from '../src/engine/component.js';
 import { resolveTransforms } from '../src/engine/assembly.js';
-import { attachMatrix, attachAt, pointKey } from '../src/engine/attach.js';
+import {
+  attachMatrix, attachAt, pointKey, placementsAt, mountHeightMm,
+  distinctPlacements,
+} from '../src/engine/attach.js';
 
 const ASSETS = join(dirname(fileURLToPath(import.meta.url)), '..', 'test-assets');
 const loader = new GLTFLoader();
@@ -115,6 +118,99 @@ describe('a shelf spanning two uprights', () => {
     // All at the same point, differing only in which socket the upright uses.
     expect(new Set(onShelf.map((p) => pointKey(p.point))).size).toBe(1);
     expect(new Set(onShelf.map((p) => p.mountSnapId)).size).toBe(onShelf.length);
+  });
+
+  // The UI used to call .find() on this list and take whichever came first, so
+  // seven of the eight staggered layouts were unreachable. placementsAt is the
+  // query that hands a person the choice instead of making it for them.
+  it('hands over every one of those placements rather than the first', () => {
+    const { assembly } = withShelfAt(300);
+    const { matrix } = build(assembly);
+
+    const onShelf = matrix.placements.filter(
+      (p) => p.componentId === UPRIGHT && p.point.instanceId === 'shelf',
+    );
+    const key = pointKey(onShelf[0].point);
+    const offered = placementsAt(matrix, key, UPRIGHT);
+
+    expect(offered.length).toBe(onShelf.length);
+    expect(new Set(offered.map((p) => p.mountSnapId)).size).toBe(offered.length);
+
+    // And what tells them apart is a height they can read, not an opaque id.
+    // The fixture's levels are at 300/700/1100/1500 on each of two faces.
+    expect([...new Set(offered.map(mountHeightMm))].sort((a, b) => a - b))
+      .toEqual([300, 700, 1100, 1500]);
+  });
+
+  // The rule that keeps the chooser worth reading. Two placements that put the
+  // part in the same place at the same angle are one choice, however
+  // differently they are wired underneath.
+  it('collapses a shelf’s two ends into one choice, because they land identically', () => {
+    const { matrix } = build(seed());
+    const key = pointKey(matrix.placements.find((p) => p.componentId === SHELF).point);
+
+    const offered = placementsAt(matrix, key, SHELF);
+    expect(offered.length).toBeGreaterThan(1);   // two plugs, both legal
+
+    const real = distinctPlacements(seed(), components, offered);
+    expect(real.length).toBe(1);                 // one visible outcome
+  });
+
+  // Eight placements, four choices - and four is the right number. Written
+  // expecting eight, which was wrong: the left and right socket of ONE level
+  // put the upright in the same space, so offering both would be offering the
+  // same picture twice. What survives is exactly one option per height, which
+  // is what a person staggering a run is actually choosing between.
+  it('reduces an arriving upright to one choice per height, not one per socket', () => {
+    const { assembly } = withShelfAt(300);
+    const { matrix } = build(assembly);
+    const key = pointKey(matrix.placements.find(
+      (p) => p.componentId === UPRIGHT && p.point.instanceId === 'shelf',
+    ).point);
+
+    const offered = placementsAt(matrix, key, UPRIGHT);
+    const real = distinctPlacements(assembly, components, offered);
+
+    expect(offered.length).toBe(8);              // 4 levels x 2 faces
+    expect(real.length).toBe(4);                 // 4 visible outcomes
+    expect(real.map(mountHeightMm)).toEqual([300, 700, 1100, 1500]);
+  });
+
+  it('leaves the assembly it probes with untouched', () => {
+    const start = seed();
+    const before = JSON.stringify(start);
+    const { matrix } = build(start);
+    const key = pointKey(matrix.placements.find((p) => p.componentId === SHELF).point);
+
+    distinctPlacements(start, components, placementsAt(matrix, key, SHELF));
+    expect(JSON.stringify(start)).toBe(before);
+  });
+
+  it('offers those choices in bottom-to-top order, like the thing itself', () => {
+    const { assembly } = withShelfAt(300);
+    const { matrix } = build(assembly);
+    const key = pointKey(matrix.placements.find(
+      (p) => p.componentId === UPRIGHT && p.point.instanceId === 'shelf',
+    ).point);
+
+    const heights = placementsAt(matrix, key, UPRIGHT).map(mountHeightMm);
+    expect(heights).toEqual([...heights].sort((a, b) => a - b));
+  });
+
+  // Millimetres, not metres. The engine works in metres and the label is in
+  // millimetres, so a missing x1000 would read "0 mm" for every option and make
+  // the whole chooser useless while looking like it worked.
+  it('reports mount heights in millimetres', () => {
+    const { assembly } = withShelfAt(300);
+    const { matrix } = build(assembly);
+    const key = pointKey(matrix.placements.find(
+      (p) => p.componentId === UPRIGHT && p.point.instanceId === 'shelf',
+    ).point);
+
+    for (const p of placementsAt(matrix, key, UPRIGHT)) {
+      expect(mountHeightMm(p)).toBeGreaterThan(100);
+      expect(mountHeightMm(p)).toBe(Math.round(p.mountSnap.position[1] * 1000));
+    }
   });
 
   it('puts the second upright at a different height for each level chosen', () => {

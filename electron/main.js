@@ -115,6 +115,8 @@ function createWindow() {
           //   mount:floor|wall      drive the mounting dropdown for real
           //   ground                print the ground and AR state FROM THE SCENE
           //   palette[:N]           print the first N palette entries: id => label
+          //   choices               print the "how should it sit" options on offer
+          //   choose:N              take the Nth of them
           //   dump                  print the status line and the counts
           // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
@@ -145,6 +147,28 @@ function createWindow() {
                        })()`
                     : kind === 'ground'
                     ? 'window.__cfgGround ? window.__cfgGround() : "no ground dump"'
+                    // The other end of the joint. `choices` lists what the app is
+                    // offering; `choose:N` takes the Nth. Separate steps on
+                    // purpose - a probe that only ever clicked would not notice
+                    // the list quietly shrinking to one.
+                    : kind === 'choices'
+                    ? `(() => {
+                         const b = [...document.querySelectorAll('.cfg-choices button')];
+                         if (!b.length) return 'no choice offered';
+                         return b.length + ' choices: ' + b.map((x) =>
+                           x.dataset.mount + ' (' + (x.querySelector('strong')?.textContent || '?') + ')'
+                         ).join(', ');
+                       })()`
+                    : kind === 'choose'
+                    ? `(() => {
+                         const b = [...document.querySelectorAll('.cfg-choices button')];
+                         if (!b.length) return 'no choice offered';
+                         const n = Number(${JSON.stringify(value)}) || 0;
+                         if (!b[n]) return 'only ' + b.length + ' choices, asked for ' + n;
+                         const picked = b[n].dataset.mount;
+                         b[n].click();
+                         return 'chose ' + picked;
+                       })()`
                     // What the palette actually SAYS. A wrong label is invisible
                     // in a screenshot and invisible in the status line, which is
                     // how four ladders read as the same part for a whole session.

@@ -344,6 +344,12 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
   return {
     name: desc.name,
     dimsMm: { ...measured },
+    // The body's local bounds, in metres, as the geometry actually sits - not
+    // derived from dimsMm, which says how big it is but not where. Needed to
+    // work out the space a part would occupy once placed, which is how the
+    // "how should it sit?" chooser tells a real choice from a flipped duplicate
+    // (see distinctPlacements). Collision will want the same thing.
+    body: { min: [...body.min], max: [...body.max] },
     snaps,
     grids,
     options,

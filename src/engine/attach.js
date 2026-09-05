@@ -120,6 +120,10 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
           point,
           componentId,
           mountSnapId: mount.id,
+          // The snap itself, not just its id. Two placements at one point differ
+          // ONLY by this, so anything asking a person to choose between them
+          // needs its label and its height without a second lookup.
+          mountSnap: mount,
           span: mount.span || null,
         });
       }
@@ -140,6 +144,156 @@ export function pointsForComponent(matrix, componentId) {
     out.push(p);
   }
   return out;
+}
+
+/**
+ * EVERY way one component could sit at one point — one row per mount snap.
+ *
+ * A joint has two ends and the matrix has always known both: `pointKey` names
+ * the end on the product, `mountSnapId` names the end on the part arriving.
+ * `pointsForComponent` and `componentsForPoint` both dedupe, which is right for
+ * "where can this go" and "what fits here" — and wrong the moment more than one
+ * answer shares a point.
+ *
+ * It usually does. A second ladder offered at a shelf's free end fits by ANY of
+ * its own rungs: eight placements, one point, eight heights (see
+ * tests/stagger.test.js). The old UI called `.find()` and silently took the
+ * first, so the staggered layouts in Kesseböhmer's own photography were
+ * unreachable — and, worse, a part could be spun 180° to make the chosen end
+ * fit, because the solver always satisfies facing by yawing the child. Matt
+ * reported both, separately, and they are the same bug: the interaction named
+ * one end and let the engine guess the other.
+ *
+ * Ordered by how far up the arriving part its snap sits, so a list of these
+ * reads bottom-to-top like the thing itself.
+ */
+export function placementsAt(matrix, key, componentId) {
+  return matrix.placements
+    .filter((p) => p.pointKey === key && p.componentId === componentId)
+    .sort((a, b) => mountHeightMm(a) - mountHeightMm(b));
+}
+
+/**
+ * How far up the ARRIVING part its own snap sits, in mm.
+ *
+ * This is the number that distinguishes one placement from another at a shared
+ * point, and it is the one a person is actually choosing between: mate by the
+ * rung 810 mm up the frame and the frame hangs 810 mm below the shelf.
+ *
+ * Yaw does not affect it. The solver's only freedom is rotation about the
+ * vertical to oppose the facings, and that leaves local y alone — which is why
+ * this can be read straight off the component without resolving a transform.
+ */
+export function mountHeightMm(placement) {
+  // Snap positions are in metres — glTF's unit, and what the scene uses. Only
+  // the declarations are in millimetres. Getting this backwards would put a
+  // frame 810 metres below a shelf and the label would say "0 mm".
+  const metres = placement?.mountSnap?.position?.[1];
+  return typeof metres === 'number' ? Math.round(metres * 1000) : 0;
+}
+
+/**
+ * Of those placements, the ones that actually put the part somewhere different.
+ *
+ * Found by probing rather than by reasoning: attach each candidate to a scratch
+ * copy of the assembly, resolve, and keep the first of each distinct resulting
+ * pose. Two placements that land the part in the same place at the same angle
+ * are the same choice however differently they are wired underneath.
+ *
+ * This exists because the first version of the chooser asked a question on
+ * nearly every click. A 900 shelf meeting a rung can mate by its left plug or
+ * its right one; the rung's face already fixes which way the shelf runs, so both
+ * end up in the identical place and the question was noise. The frame arriving
+ * at that shelf's far end is the opposite case: six rungs, six real heights, and
+ * that is the choice worth stopping for.
+ *
+ * A chooser that fires when there is nothing to choose trains people to click
+ * through it, and then it is not there when it matters.
+ */
+export function distinctPlacements(assembly, components, placements) {
+  const seen = new Map();
+
+  for (const p of placements) {
+    let key;
+    try {
+      const probe = attachAt(assembly, p, PROBE_ID);
+      const t = resolveTransforms(probe, components).transforms.get(PROBE_ID);
+      key = t ? occupiedKey(t, components.get(p.componentId)) : `unresolved:${p.mountSnapId}`;
+    } catch {
+      // An option the resolver cannot place is still an option the person could
+      // pick, and hiding it would be worse than showing it. Keyed by its own id
+      // so it survives to be offered - and to fail visibly if chosen.
+      key = `unresolved:${p.mountSnapId}`;
+    }
+    if (!seen.has(key)) seen.set(key, p);
+  }
+
+  return [...seen.values()];
+}
+
+const PROBE_ID = '__distinct-probe__';
+
+/**
+ * WHERE THE PART ENDS UP, not how it is oriented to get there.
+ *
+ * The first version of this compared poses and was wrong in the case it was
+ * written for: mating a symmetric shelf by its right plug instead of its left
+ * yaws it 180°, so the quaternions differ while the shelf occupies exactly the
+ * same space. A person choosing between those is choosing between two identical
+ * pictures.
+ *
+ * So the key is the part's world-space bounding box, to 0.1 mm. A different
+ * height, a different side or a different reach all move it; an end-for-end flip
+ * of something symmetric does not.
+ *
+ * The honest limit: a part whose asymmetry does not change its bounding box - a
+ * hook rail with the hooks along one edge, say - would be collapsed when the two
+ * options really do look different. Nothing in the range does that today. The
+ * fix, when something does, is to compare the silhouette rather than the box;
+ * that costs real geometry work and buys nothing yet.
+ */
+function occupiedKey(t, component) {
+  const min = component?.body?.min;
+  const max = component?.body?.max;
+  if (!min || !max) return `nobody|${(t.translation || []).join(',')}`;
+
+  const lo = [Infinity, Infinity, Infinity];
+  const hi = [-Infinity, -Infinity, -Infinity];
+
+  // All eight corners, because a rotation turns a box into a box with different
+  // extents - transforming just min and max would miss that entirely.
+  for (let i = 0; i < 8; i += 1) {
+    const corner = [
+      i & 1 ? max[0] : min[0],
+      i & 2 ? max[1] : min[1],
+      i & 4 ? max[2] : min[2],
+    ];
+    const w = rotateByQuat(corner, t.rotation);
+    for (let a = 0; a < 3; a += 1) {
+      const v = w[a] + (t.translation?.[a] || 0);
+      if (v < lo[a]) lo[a] = v;
+      if (v > hi[a]) hi[a] = v;
+    }
+  }
+
+  const r = (v) => Math.round(v * 10000) / 10;   // metres -> 0.1 mm
+  return `${lo.map(r).join(',')}|${hi.map(r).join(',')}`;
+}
+
+/** v rotated by quaternion q = [x, y, z, w]. */
+function rotateByQuat(v, q) {
+  if (!q || q.length < 4) return v;
+  const [x, y, z, w] = q;
+  const [vx, vy, vz] = v;
+  // t = 2 * (q_vec x v); v' = v + w*t + q_vec x t
+  const tx = 2 * (y * vz - z * vy);
+  const ty = 2 * (z * vx - x * vz);
+  const tz = 2 * (x * vy - y * vx);
+  return [
+    vx + w * tx + (y * tz - z * ty),
+    vy + w * ty + (z * tx - x * tz),
+    vz + w * tz + (x * ty - y * tx),
+  ];
 }
 
 /** Distinct components that could go at this point. Point-first flow. */

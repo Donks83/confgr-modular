@@ -758,10 +758,17 @@ Corrections from experience:
 - **Move snap roles into the snap name and derive size from the `dim` cube**, so a
   plain Blender export is a complete component and `tools/declare.mjs` goes away
   (§4.2a). Small, and it should happen before the next range rather than after.
-- **Two-ended snap picking** (§5.2a) — **the top item.** Placing shows every valid
-  rung as its own marker; moving asks which of the part's own snaps you are
-  grabbing before asking where it goes. Fixes the unreachable rung choice and the
-  180° flip in one change, because they are the same bug.
+- ~~Two-ended snap picking~~ — **done** (§5.2a). Both flows now ask *how* a part
+  should sit when there is more than one answer, instead of taking the first
+  silently. A second 1500 frame at a shelf's free end offers **100 / 455 / 810 /
+  1405 mm** — Kesseböhmer's own rung heights, reached from the geometry — and
+  choosing 1405 puts the frame's base at −1305 mm, which is 100 − 1405 exactly.
+  **The part that was not obvious:** the first version asked a question on nearly
+  every click, because a symmetric shelf mating by its far plug is a second legal
+  placement and an identical picture. `distinctPlacements` now compares the space
+  a part would occupy rather than how it is wired, so eight placements on a frame
+  collapse to the four heights that actually differ. A chooser that fires when
+  there is nothing to choose trains people to click through it.
   **And it is not a free choice of level, though not for the reason I first gave.**
   I claimed the office-solution sheet set an alignment rule — tops for wall-hung,
   bottoms for floor-standing. That was a misreading and Matt corrected it; the

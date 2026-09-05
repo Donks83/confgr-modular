@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger')] [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -89,6 +89,14 @@ $clicks = @{
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
   palette = 'palette:22'
+  # The bug Matt hit. Anchor a 1500 frame, hang a 900 shelf on it, then offer a
+  # second frame at the shelf's free end. The engine has always found several
+  # placements there - one per rung of the arriving frame - and the UI used to
+  # take the first silently, so only one of the staggered layouts in
+  # Kesseboehmer's own photography was reachable. `choices` prints what is on
+  # offer; `choose:3` takes a rung that is NOT the first, and `layout` proves
+  # the second frame landed at a different height because of it.
+  stagger = 'part:008563,marker:0,dump,part:236758,marker:0,choices,choose:3,dump,layout'
 }
 $env:CONFGR_CLICK = $clicks[$Scenario]
 
