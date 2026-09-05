@@ -27,7 +27,8 @@
     "joints": "powershell -ExecutionPolicy Bypass -File tools/check-joints.ps1",
     "inspect": "node tools/inspect-model.mjs",
     "declare": "node tools/declare.mjs",
-    "verify": "vitest run"
+    "verify": "vitest run",
+    "holes": "tools\\\\.venv-step\\\\Scripts\\\\python tools/find-holes.py"
   },
   "dependencies": {
     "immer": "^10.1.1",

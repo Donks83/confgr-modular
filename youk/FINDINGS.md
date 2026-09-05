@@ -737,10 +737,63 @@ while still looking right from the front.
 rung labels on the part's plug. On a 1500 ladder the arm is offered four markers
 instead of twelve; on the 550 it is refused outright, in those words.
 
-**Still open on this assembly:** the arm bolts to the plate (step 3) and the
-clamping angle to the arm (step 4), and neither joint is modelled. Placed on the
-same rung the plate lands at x ±3.6 and the arm at ±15.0, so they interpenetrate
-and nothing refuses it.
+## ⚠ CORRECTION — the office ARM does not hook a rung, and I authored it as if it did
+
+**Matt asked whether I had read the desktop sheet, because of the 9° angled
+option. I had. Checking it properly turned up something worse.**
+
+`Office solution` **step 3 bolts the arm to the PLATE**, 4 × M4 with nuts, going
+horizontally through the plate into the arm's web. **Only the plate touches the
+ladder.** The arm never meets a rung at all.
+
+I authored it as a `hang` part anyway. The reason is worth recording, because the
+method that produced it is the one this project has been relying on:
+
+> All four office parts were offered to `add-snaps` as `hang` in both rotations
+> and the slot search "decided". For the arm it found a ~6 mm feature at z ±95
+> within 25 mm of the top and reported a mounting slot. **It is not one.** It is
+> one of the row of holes along the arm's top flange that the *desktop* screws up
+> into (step 5). A false positive.
+
+**The rule "the pipeline decides, not the author" is too broad.** The pipeline can
+see *"there is a 6 mm hole here"*. It cannot see *"this hole is for a bolt, not a
+rung"*. That distinction was in the drawing, and the drawing had already been read
+— the correct stack, *plate on ladder → arm on plate*, was written down before the
+search was run and then quietly overruled by it. **The pipeline decides only what
+the pipeline can actually see.**
+
+What this costs today: the office arm attaches straight to a rung, lands at a
+plausible height, carries the desktop, and looks entirely right. That is why it
+survived — the same reason the palette label bug survived a session.
+
+### Measured for the joint that should replace it
+
+`tools/find-holes.py` (new) reports bolt holes on a named face.
+
+**The arm's web, x = −25.00** — the face that bolts to the plate:
+
+| Ø | Positions |
+|---|---|
+| 6 mm | two rows, **y 10.00 and y 35.00**, alternating every 45 mm of z: y35 at z −130, −40, +50, +140; y10 at z −85, +5, +95 |
+| 5 mm | **y 20.00** at z −130 and z +120 — one pair, 250 mm apart |
+
+**The plate's face, x = 13.65** — two rectangles of Ø5 holes, both 100 mm tall:
+
+| Set | z | y |
+|---|---|---|
+| 1 | ±125.00 | 83.50 and 183.50 |
+| 2 | ±121.92 | 44.39 and 144.39 |
+
+**Not yet resolved, and deliberately not guessed at.** The arm's Ø5 pair (250 mm
+apart) matches set 1's z spacing exactly, which is a strong hint. But set 2's
+non-round numbers (121.92, 44.39) look like a rotation artefact and do not fall
+out at 9°: 250·cos 9° is 246.9, not 243.84. Two level rectangles 100 mm apart
+does not obviously produce a 9° tilt either. **The next pass on this starts at the
+drawing, not at these numbers** — that is the whole lesson above.
+
+**Also still open:** the clamping angle (step 4) bolts to the arm, and that joint
+is not modelled either. Placed on the same rung today the plate lands at x ±3.6
+and the arm at ±15.0, so they interpenetrate and nothing refuses it.
 
 **And the rule that appears nowhere else in the range.** ⚠ **The next four
 paragraphs are WRONG and are kept only because the correction later in this file

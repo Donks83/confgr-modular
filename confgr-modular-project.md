@@ -382,6 +382,7 @@ This is the honest half of the document.
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
+| **A part bolted to another part's face** | **Nothing, and it is now the range's biggest gap.** The office arm bolts to the plate, the clamping angle bolts to the arm, and the 008552 top-panel bracket needs the same. **The arm is meanwhile mis-authored as hooking a rung** (§5.7's warning) — hole measurements and the unresolved questions are in `youk/FINDINGS.md`. The 9° angled desktop is one more variant of this same joint, so all four land together. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
@@ -1038,6 +1039,23 @@ The last timber piece, and the second user of the vertical joint — which is wh
 implementation.** `mounting instructions Office solution.pdf` gives the stack:
 plate on ladder → arm on plate → clamping angle on arm → desktop laid on and
 screwed up from below (step 5), rear edge against the upstand (step 6).
+
+> ### ⚠ Half of this section is wrong, and the correction matters more than it did
+>
+> **The arm does not hook a rung. It bolts to the plate** (step 3, 4 × M4 with
+> nuts). Only the plate touches the ladder. It is authored as a `hang` part
+> anyway, and the app will happily hang one off a rung today.
+>
+> The slot search found a ~6 mm feature near the arm's top at z ±95 and reported
+> a mounting slot. It is one of the row of holes the *desktop* screws up into.
+> **A false positive** — and the stack below was written out correctly *before*
+> the search was run, then overruled by it.
+>
+> So the rule this section is pleased with — *let the pipeline decide* — is too
+> broad. **The pipeline decides only what the pipeline can actually see.** It can
+> see "there is a 6 mm hole here"; it cannot see "this hole is for a bolt, not a
+> rung". Measurements for the joint that should replace it are in
+> `youk/FINDINGS.md`, along with what is still unresolved.
 
 **Then let the pipeline decide which family each part is in.** All four office
 parts were offered to `add-snaps` as `hang`, in both rotations, and the slot
