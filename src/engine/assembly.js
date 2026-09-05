@@ -90,13 +90,26 @@ export function solveChildTransform(parentTransform, parentSnap, childSnap) {
   // that is exactly vertical — "mixed", refused, and the desktop ended up at the
   // origin with nothing said.
   //
-  // Rotating the child by the SHORTEST ARC from its own facing onto the target
-  // reproduces both old branches exactly and handles the tilt for free:
-  //   - two horizontal facings: the shortest arc between them is about the
-  //     vertical, which IS the yaw the old code computed.
-  //   - two vertical facings already opposed: no rotation, as before.
-  //   - a 9-degree tilt: a 9-degree turn about the horizontal axis between
-  //     them, which is the thing that was missing.
+  // So: solve a YAW first, then whatever tilt is left over. The yaw is the old
+  // yaw-only solve, taken from the horizontal parts of the two facings; the
+  // remainder is at most a tilt, and the shortest arc handles it.
+  //   - two horizontal facings: the yaw does all of it, exactly as before.
+  //   - two vertical facings already opposed: no horizontal parts, so yaw is
+  //     zero — which is the product's orientation, as above — and nothing left.
+  //   - a 9-degree tilt: the yaw squares the part up, then a 9-degree turn
+  //     about a horizontal axis, which is the thing that was missing.
+  //
+  // The order matters, and a single shortest arc from a to b is NOT the same
+  // thing. It was what this did first, and it worked on one side of a bay and
+  // not the other: for the SECOND ladder the parts are turned round, so the
+  // child's facing starts nearly OPPOSITE its target rather than nearly along
+  // it, and the shortest arc between two nearly-opposed vectors is a ~171
+  // degree tumble about a horizontal axis instead of "turn it round, then tip
+  // it 9 degrees". The clamping angles came out 29.6 mm apart in height on a
+  // tilted desk that was otherwise perfect, which is how it was noticed at all.
+  // Yawing first removes the ambiguity: after the yaw the two facings are at
+  // most a tilt apart, and the shortest arc between near-parallel vectors is
+  // the one thing it is reliably good at.
   const a = normalise(childSnap.facing);
   const b = normalise(targetFacing);
   const d = dot(a, b);
@@ -118,27 +131,34 @@ export function solveChildTransform(parentTransform, parentSnap, childSnap) {
     );
   }
 
-  let rotation;
-  if (d > 1 - EPS) {
-    // Already pointing the right way. For a flat joint this is also the case
-    // where yaw is undetermined, and it comes from the product rather than from
-    // the parent — see the note above on why inheriting the parent's is wrong.
-    rotation = quatFromYaw(0);
-  } else if (d < -1 + EPS) {
-    // Facing dead against the target. For a horizontal joint that is the
-    // everyday "turn the part around", and turning it about the VERTICAL is the
-    // only sensible reading — the shortest arc has no defined axis here, so it
-    // must not be used.
-    if (aVertical) {
-      throw new AssemblyError(
-        'Cannot resolve this joint: both faces point the same way up. One has to look down '
-        + 'onto the other.',
-        { code: 'FACING_SAME_VERTICAL' },
-      );
-    }
-    rotation = quatFromYaw(Math.PI);
-  } else {
-    rotation = quatFromAxisAngle(cross(a, b), Math.acos(Math.max(-1, Math.min(1, d))));
+  // 1. The yaw, from the horizontal parts of the two facings. Zero when either
+  //    facing is vertical — a turn about the vertical cannot change a vertical
+  //    facing, so there is nothing for it to solve and the part takes the
+  //    product's orientation instead.
+  const yaw = (aVertical || bVertical)
+    ? 0
+    : Math.atan2(b[0], b[2]) - Math.atan2(a[0], a[2]);
+  let rotation = quatFromYaw(yaw);
+
+  // 2. The tilt that is left. After the yaw the two facings are at most a tilt
+  //    apart, so this arc is small and its axis is horizontal.
+  const yawed = rotateVec(rotation, a);
+  const left = dot(yawed, b);
+  if (left < -1 + EPS) {
+    // Nothing a tilt can fix: the two faces point the same way up. Only
+    // reachable with both facings vertical — a horizontal one would have been
+    // turned round by the yaw, and a mixed pair is refused above.
+    throw new AssemblyError(
+      'Cannot resolve this joint: both faces point the same way up. One has to look down '
+      + 'onto the other.',
+      { code: 'FACING_SAME_VERTICAL' },
+    );
+  }
+  if (left < 1 - EPS) {
+    rotation = multiplyQuat(
+      quatFromAxisAngle(cross(yawed, b), Math.acos(Math.max(-1, Math.min(1, left)))),
+      rotation,
+    );
   }
 
   // ROLL — a declared turn about the joint's own axis, on top of the solve.

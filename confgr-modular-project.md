@@ -20,7 +20,7 @@ went to GitHub.
 
 **Code:** `C:\Claude\confgr-modular` — git, 49 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
-**Tests:** 261 passing (`npm test`).
+**Tests:** 265 passing (`npm test`).
 **Components:** 77 — **37 of the 45 YouK parts, plus 40 timber parts generated
 rather than converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office
 desktops. The remaining 8 supplier parts convert cleanly and have no snaps
@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 8 modules, no UI dependencies, 261 tests across the project.
+`src/engine/` — 8 modules, no UI dependencies, 265 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -1357,6 +1357,7 @@ part has a stop bolted to it belongs on that part.
 | Scenario | Result |
 |---|---|
 | `officeclamp` | Angles at **57.2 / 862.9, y 594.5**, z ∓143.0 — mirrored with the arms. Foot underside at 594.5 + 56.98 = **651.5**, and the desktop's top at 626.5 + 25 = **651.5**: the foot lands flat on the board. 10 parts, 9 joints. |
+| `officeclamptilt` | The same with both arms tilted. Angles at **y 597.3**, z ∓142.9 — still mirrored, and 42.4 above the arm, which is the flat 19.5 turned through 9°. This one is the reason §5.11 exists. |
 | `office`, `officetilt`, `carcase` | Desktop back edge moves 145.0 → **150.0**, onto the arm's rear end. Cabinets **unchanged at 0.0**, which is the check that the stop stayed on the part that has one. |
 
 **Still not authored:** the 008552 top-panel bracket. It needs a socket at the
@@ -1364,6 +1365,50 @@ part has a stop bolted to it belongs on that part.
 sockets at rungs, and this is the first part in the range to meet the ladder
 anywhere else. Sized 60 × 18 × 20, a cranked strap with one hole in its low leg
 and two in the high one, and 30 mm of ledge standing 15 mm proud per its sheet.
+
+### 5.11 One question, one solver bug — yaw first, then tilt
+
+Matt asked whether the clamping angle tips with the board or stays flat and lets
+the board pass through it. Both scenarios that could have answered it existed —
+`officetilt` had the tilt, `officeclamp` had the angles — and **neither could see
+the bug on its own.** Putting them together took one probe.
+
+The two angles landed at **y 597.3 and y 626.9**. They should be mirror images.
+Everything else in that scene was right: arms both at 554.9, desk resolved and
+tilted, the flat case symmetric to the millimetre.
+
+**The cause is the shortest arc, used where it is least reliable.** §5.9 replaced
+three special cases with one rule — rotate the child by the shortest arc from its
+own facing onto the target — and the rule is correct when the two are roughly
+aligned. It is wrong when they are roughly **opposed**, which is what happens on
+the second ladder of a bay: the parts are turned round, so the child's facing
+starts nearly opposite its target. The shortest arc between two nearly-opposed
+vectors is a **~171° tumble about a horizontal axis**, not "turn it round, then
+tip it 9°". Both are valid alignments of the facings; only one is the part.
+
+The old code had a branch for *exactly* opposed facings (`quatFromYaw(π)`, with a
+comment saying the shortest arc "must not be used" there). One degree off exact,
+and control fell through to the thing the comment warned about.
+
+**The fix is to solve the yaw first and the tilt second.** The yaw comes from the
+horizontal parts of the two facings — which is the original yaw-only solve,
+unchanged — and after it the two are at most a tilt apart, where the shortest arc
+is reliable. Every previous case reproduces exactly: two horizontal facings are
+all yaw; two opposed verticals have no horizontal part, so yaw is zero and the
+orientation comes from the product (§5.6); the desk on a tilted arm is yaw zero
+plus a 9° arc. The 30° guard and both refusals survive unchanged.
+
+Worth noting what the arithmetic says, because it is exact rather than
+approximate: the wrong branch puts the child **29.6 mm** high, and 29.6 mm is
+what the app showed. `tests/verticalJoint.test.js` gained four tests around that
+number — the mirror, the height, that the tilt is still applied, and one guarding
+the test itself against passing on a no-op. **265 tests.**
+
+*The general lesson is not about quaternions.* A rule adopted because it
+"reproduces both old branches exactly" was verified against the cases that
+already existed. The case that broke it needed two features at once — a tilt and
+a mirrored parent — and no single scenario had both. Two correct scenarios do not
+add up to a correct pair.
 
 ---
 

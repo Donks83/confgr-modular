@@ -18,7 +18,7 @@
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
-               'condition', 'timber')]
+               'officeclamptilt', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -213,6 +213,24 @@ $clicks = @{
                 'part:008551-clamping-angles,marker:0,' +
                 'part:008551-clamping-angles,marker:0,dump,' +
                 'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
+  # Both at once: clamping angles on a TILTED desk. Matt asked whether the angle
+  # tips with the board or stays flat and lets the board through it, and asking
+  # it out loud found a solver bug that neither `officetilt` nor `officeclamp`
+  # could see on its own.
+  #
+  # The one number that matters is that the two angles land at the SAME height.
+  # They did not: 597.3 and 626.9, because the second ladder's parts are turned
+  # round, and a joint solved as one shortest arc tumbles the child ~171 degrees
+  # about a horizontal axis instead of turning it round and then tipping it 9.
+  # Both angles now sit at 597.3, z -+142.9, exactly mirrored - and 597.3 is
+  # 42.4 above the arm, which is the flat 19.5 turned through 9 degrees.
+  officeclamptilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+                    'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+                    'part:008551-shelf-supports,marker:0,choose:1,' +
+                    'part:008551-shelf-supports,marker:1,choose:1,dump,' +
+                    'part:008551-clamping-angles,marker:0,' +
+                    'part:008551-clamping-angles,marker:0,dump,' +
+                    'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
   # The `condition` field's first use, on a 1500 frame. The office PLATE may only
   # be fitted at rung 3 and above, so a bare 1500 ladder should offer it FOUR
   # markers (rungs 3 and 4, two faces each) where a shelf gets twelve. If it

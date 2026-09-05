@@ -276,3 +276,77 @@ describe('which side of a vertical snap a part sits on', () => {
     expect(snapBearingSide(CARCASE, 'left')).toBe('above');
   });
 });
+
+describe('a tilted joint on a parent that has been turned round', () => {
+  // The clamping angle bolts to the END of the office arm, and the arm can be
+  // rolled 9 degrees for the drawing-board desk. A bay has two of them, one per
+  // ladder, and the second is turned round - so the same joint has to solve
+  // with the child's facing nearly ALONG its target on one side and nearly
+  // OPPOSITE it on the other.
+  //
+  // Solving it as one shortest arc gets the first right and the second wrong:
+  // between two nearly-opposed vectors the shortest arc is a ~171 degree tumble
+  // about a horizontal axis, not "turn it round, then tip it 9 degrees". In the
+  // app the two angles came out 29.6 mm apart in height under a desk that was
+  // otherwise perfect. Yawing first and tilting second is what fixes it, and
+  // this is the test that says so.
+  const TILT = (9 * Math.PI) / 180;
+
+  /** The arm's end face, tilted 9 degrees with the arm. Faces roughly -z. */
+  const ARM_END = {
+    id: 'clamp',
+    mask: 'youk-office-clamp',
+    label: 'clamp',
+    position: [0.015, 0.0345, -0.155],
+    facing: [0, Math.sin(TILT), -Math.cos(TILT)],
+    role: 'socket',
+  };
+
+  /** The angle's leg, mating on its inner face. Faces +z, exactly. */
+  const ANGLE_LEG = {
+    id: 'clamp',
+    mask: 'youk-office-clamp',
+    label: 'clamp',
+    position: [0, 0.01498, -0.00699],
+    facing: [0, 0, 1],
+    role: 'plug',
+  };
+
+  const straight = solveChildTransform(IDENTITY, ARM_END, ANGLE_LEG);
+  const turned = solveChildTransform(
+    { translation: [0, 0, 0], rotation: yaw(Math.PI) },
+    ARM_END,
+    ANGLE_LEG,
+  );
+
+  it('lands the child mirrored, not somewhere else entirely', () => {
+    expect(turned.translation[0]).toBeCloseTo(-straight.translation[0], 9);
+    expect(turned.translation[2]).toBeCloseTo(-straight.translation[2], 9);
+  });
+
+  it('lands it at the SAME HEIGHT — the height is what gave the bug away', () => {
+    expect(turned.translation[1]).toBeCloseTo(straight.translation[1], 9);
+  });
+
+  it('still applies the tilt rather than dropping it', () => {
+    // The angle's own +z, once placed, must point back along the arm's end
+    // face — 9 degrees off horizontal, not flat and not tumbled.
+    const placed = (t) => {
+      const [x, y, z, w] = t.rotation;
+      // rotate [0,0,1] by the quaternion
+      return [
+        2 * (x * z + w * y),
+        2 * (y * z - w * x),
+        1 - 2 * (x * x + y * y),
+      ];
+    };
+    expect(placed(straight)[1]).toBeCloseTo(-Math.sin(TILT), 6);
+    expect(placed(turned)[1]).toBeCloseTo(-Math.sin(TILT), 6);
+  });
+
+  it('is a real turn-round, not a no-op that happens to mirror', () => {
+    // Guards the test itself: if the child were left unrotated on both sides
+    // the assertions above would still pass on x and z being zero.
+    expect(Math.abs(straight.translation[2])).toBeGreaterThan(0.1);
+  });
+});
