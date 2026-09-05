@@ -1,7 +1,7 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `4626c58`, not from memory. Session 5 ran in seven parts: findings
+code at commit `2efdfd9`, not from memory. Session 5 ran in eight parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
 Matt hit while using it, then twelve more parts of the range, then the timber —
 the first parts in the product that are ours rather than a supplier's — then
@@ -11,9 +11,11 @@ desktop (§5.7), which needed the same joint and one new rule, and finally the
 office assembly produced a rule that masks and roles could not express. Then Matt
 asked whether I had read the desktop sheet — I had, and checking it properly
 found that **the office arm does not hook a rung and I authored it as if it did**
-(§5.7's warning). And finally the repo went to GitHub.
+(§5.7's warning), which turned into the **`bolted` family** (§5.9): a part bolted
+to a named, verified hole in another part's face, with the 9° tilt falling out of
+it for the cost of one declared roll. And finally the repo went to GitHub.
 
-**Code:** `C:\Claude\confgr-modular` — git, 45 commits, pushed to
+**Code:** `C:\Claude\confgr-modular` — git, 49 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
 **Tests:** 261 passing (`npm test`).
 **Components:** 76 — **36 of the 45 YouK parts, plus 40 timber parts generated
@@ -22,8 +24,8 @@ desktops. The remaining 9 supplier parts convert cleanly and have no snaps
 authored — see §4.2 for what that costs.
 
 **Still to author:** the office clamping angle (008551) and top panel bracket
-(008552) — **both need a part-to-part family that does not exist**, since neither
-has a rung slot; clothes-rail extensions (008533/34/35); umbrella stand (008565
+(008552) — **both go in the `bolted` family** (§5.9), which now exists; neither
+has been measured; clothes-rail extensions (008533/34/35); umbrella stand (008565
 ×2); newspaper-rack divider (008549); the adjustable foot (237023).
 
 **All the timber is in.** Shelves, cabinets and the office desktop.
@@ -207,7 +209,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 8 modules, no UI dependencies, 227 tests across the project.
+`src/engine/` — 8 modules, no UI dependencies, 261 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -274,19 +276,24 @@ that generates parts no supplier will ever send.
 from a 138,000-triangle worst case), **36 load as components with no blocker**,
 and 40 generated timber parts make **76 components in the palette.**
 
-The spec now has five families: `frames`, `span`, `hang`, `carcase` and `wall` —
-the last for parts that join nothing at all. What is authored per part stays
-tiny, which is the point: an id, a depth, and one decision.
+The spec now has six families: `frames`, `span`, `hang`, `carcase`, `bolted` and
+`wall` — the last for parts that join nothing at all. What is authored per part
+stays tiny, which is the point: an id, a depth, and one decision.
 
 | Family | What is decided | Where the plug comes from |
 |---|---|---|
 | `frames` | depth, whether it needs turning | a socket at every rung, both faces |
 | `span` | depth, `bearing` base or top | `y = 0`, or `maxY − topSheetMm` |
-| `hang` | depth, turning, whether it `carries`, and any `minRung` | **measured**, from the mounting slot |
+| `hang` | depth, turning, and any `minRung` | **measured**, from the mounting slot |
 | `carcase` | depth, and what `carriedBy` | two plugs facing **down**, at the part's own ends, offset back-flush along the depth (§5.6, §5.7) |
+| `bolted` | which `holes` on the other part, and any declared `roll` | a plug at a **named** hole in the other part's face, **verified** against real geometry before anything is authored (§5.9) |
 | `wall` | nothing — it joins nothing | no plug; declares `mounting: "wall"` |
 
-`carries` on a `hang` part adds a second snap: a flat socket on the face the
+`holes` and `carries` are **not** part of any family: `build()` composes them
+onto whichever family a part declares, because what a part carries — and what
+bolts to it — is independent of how the part itself is held (§5.9).
+
+`carries` adds a second snap: a flat socket on the face the
 carried part rests on, its height **measured** off the plate top plus the 1.5 mm
 packer. It has its own mask, so a cabinet can only ever meet a bracket — sharing
 the rung mask would let a carcase hang straight off a ladder with nothing under
@@ -391,11 +398,11 @@ This is the honest half of the document.
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
-| **A part bolted to another part's face** | **Nothing, and it is now the range's biggest gap.** The office arm bolts to the plate, the clamping angle bolts to the arm, and the 008552 top-panel bracket needs the same. **The arm is meanwhile mis-authored as hooking a rung** (§5.7's warning) — hole measurements and the unresolved questions are in `youk/FINDINGS.md`. The 9° angled desktop is one more variant of this same joint, so all four land together. |
+| **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part. **Two parts still unauthored:** the clamping angle (008551) and the 008552 top-panel bracket. Both belong in this family; neither has been measured. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-~~There is also no git remote.~~ **Retired.** 45 commits are on
+~~There is also no git remote.~~ **Retired.** 49 commits are on
 `github.com/Donks83/confgr-modular`, private, branch `main`. Private because the
 repo carries measurements of Kesseböhmer's range and readings of their
 instruction sheets, and they are a partnership prospect. **No supplier CAD is
@@ -1053,11 +1060,11 @@ implementation.** `mounting instructions Office solution.pdf` gives the stack:
 plate on ladder → arm on plate → clamping angle on arm → desktop laid on and
 screwed up from below (step 5), rear edge against the upstand (step 6).
 
-> ### ⚠ Half of this section is wrong, and the correction matters more than it did
+> ### ⚠ Half of this section was wrong — **fixed in §5.9**, but read this first
 >
 > **The arm does not hook a rung. It bolts to the plate** (step 3, 4 × M4 with
-> nuts). Only the plate touches the ladder. It is authored as a `hang` part
-> anyway, and the app will happily hang one off a rung today.
+> nuts). Only the plate touches the ladder. It was authored as a `hang` part
+> anyway, and the app would happily hang one off a rung.
 >
 > The slot search found a ~6 mm feature near the arm's top at z ±95 and reported
 > a mounting slot. It is one of the row of holes the *desktop* screws up into.
@@ -1067,8 +1074,12 @@ screwed up from below (step 5), rear edge against the upstand (step 6).
 > So the rule this section is pleased with — *let the pipeline decide* — is too
 > broad. **The pipeline decides only what the pipeline can actually see.** It can
 > see "there is a 6 mm hole here"; it cannot see "this hole is for a bolt, not a
-> rung". Measurements for the joint that should replace it are in
-> `youk/FINDINGS.md`, along with what is still unresolved.
+> rung".
+>
+> The table below is therefore the wrong answer arrived at by the right-looking
+> method, and it is kept because the method is the point. §5.9 has the joint that
+> replaced it, and the family that inverts the relationship: the spec now names
+> the hole and the search verifies it.
 
 **Then let the pipeline decide which family each part is in.** All four office
 parts were offered to `add-snaps` as `hang`, in both rotations, and the slot
@@ -1170,6 +1181,101 @@ That second row is a knock-on their sheet implies and never states, and **nothin
 was written for it**: the 550 has only rungs 1 and 2, so no label it offers is on
 the list. `probe-bay` gained `-Demo` for it, because a rule about short ladders
 cannot be tested on a tall one.
+
+*(The rule now lives on the office **plate** rather than the arm, since §5.9
+established that the plate is the part that meets the ladder. Same rule, same
+knock-on — it always belonged to whichever part touches a rung.)*
+
+### 5.9 A part bolted to another part's face — the family that exists because of a mistake
+
+Matt asked whether I had read the desktop sheet, because of its 9° angled option.
+I had, and had recorded it as deliberately skipped. Checking it properly found
+something worse: **the office arm does not hook a rung, and I had authored it as
+if it did** (§5.7's warning).
+
+**The family inverts the relationship that produced the error.** The spec now
+**names** the hole — a decision a person can check against the drawing — and
+`add-snaps` **verifies** a hole is really there before authoring anything. The
+search no longer decides; it corroborates, and it refuses the part when geometry
+and decision disagree. Every declared hole came back **2.50 mm from real
+geometry**, which is the radius of a Ø5 hole: each declared centre is dead centre.
+
+**The 9° was far cheaper than I had claimed.** Not "a wedge and a joint that
+tilts" — the plate carries two pairs of holes, and the arm's bolt pitch is 250 mm:
+
+| Pairing | Span | Angle |
+|---|---|---|
+| flat, 650 and 750 | **250.00 mm** | **0.000°** |
+| tilted, 650 and 750 | **250.00 mm** | **9.000°** |
+
+Exactly 250.00 and exactly 9.000, four times over. And the whole stack lands on
+Kesseböhmer's own desk heights: rung 3 at 810, less the plate's 298.5 plug, plus
+the hole height, less the arm's 20, plus 50 of arm, plus a 1.5 packer, plus a
+25 mm board = **651.5** and **751.5** against their 650 and 750.
+
+**Which corrects §5.7 again.** It recorded 650/750 as floor-to-top heights set by
+how high the ladder is hung. They are the plate's two hole levels.
+
+**Three engine changes, each forced by the one before it:**
+
+1. **Roll** — a declared turn about the joint's own axis. Nothing about the
+   *facings* differs between flat and tilted, so the solver cannot tell them
+   apart: rolling a part about the axis it mates along leaves that axis pointing
+   exactly where it was. Either end may declare it; the two add.
+2. **Which end carries it, and it is not the obvious one.** The roll started on
+   the plate, since the plate's holes physically set the angle. It solved
+   correctly — the tilted arm landed at y 554.9, exactly where the arithmetic
+   said — and was **unusable**: flat and tilted share the rear hole, so those two
+   sockets sit at the *same point* and the app drew two markers on top of each
+   other. Neither the harness nor a person can click the one underneath. Moved to
+   the arm, where a person chooses it anyway, and the chooser names them: *"20 mm
+   up the part"* and *"20 mm up the part, tilted 9°"*. **The third time** an
+   option pair would have read identically, after the rung height (§5.2a) and
+   after which end of a carcase lands where (§5.6).
+3. **One alignment instead of three special cases.** A tilted arm's top face is
+   no longer square to the world, so the desk laid on it met a 9°-off socket with
+   an exactly vertical plug — "mixed", refused, and **the desktop silently went
+   to the origin**. `solveChildTransform` now rotates the child by the **shortest
+   arc** onto the target, which reproduces both old branches exactly (two
+   horizontal facings: the shortest arc *is* the old yaw; two opposed verticals:
+   no rotation) and handles the tilt for free. The old refusal survives as a 30°
+   guard, so a face meant to be sat on still cannot be bolted to a wall.
+
+**Composition, not special cases.** `carries` moved out of `hang_snaps` and joins
+`holes` as something `build()` composes onto any family. **What a part carries is
+independent of how it is held** — which only became visible when a part that
+carries a desktop stopped being a hang part.
+
+**And the desktop width was wrong again, quietly.** It came from the arm's rung
+plug offset, 15.0 mm; the arm has no rung plug. Fixing the family moved the arm
+from 15.0 mm inboard to 42.25, and the desktop went on overshooting the far arm
+by **54.5 mm** while looking entirely reasonable from the front.
+`office_arm_inset_mm` now walks the whole chain — ladder centre, the plate's rung
+plug, the plate's bolt face, the arm's bolt face — reading each number off the
+snapped GLBs. A 900 desktop went 890.1 → **835.6 mm**.
+
+**Verified in the app:**
+
+| Scenario | Result |
+|---|---|
+| `office` | Plates at 3.6 / 916.5 (mirrored — one part serves both ladders), arms at 42.3 / 877.9, desktop **centred at 460.1**, z 145.0 with its back edge on the wall line. 8 parts, 7 joints. |
+| `officetilt` | Identical clicks, `choose:1` at each arm. Arms drop to 554.9, and the desk **resolves** instead of landing at the origin. |
+
+`tools/find-holes.py` (`npm run holes`) reports the bolt holes on a named face by
+clustering vertices that lie on that plane. Reporting only — which hole means
+what stays in the spec, where a person can check it.
+
+**Still not authored:** the clamping angle (008551, step 4) and the 008552
+top-panel bracket. Both now have a family to go in; neither has been measured.
+
+**One question for Matt.** `.gitattributes` forces CRLF across the repo, and the
+reason written in it is *consistency with confgr-studio*, not a requirement of
+this repo — a tool over there string-matches source. Nothing in confgr Modular
+needs it, and it has now cost one session (a CRLF `.mjs` plus vitest's import
+hoisting puts a shebang on line 3, which is a syntax error; the narrow
+`*.mjs text eol=lf` exception is the fix that is in). Worth deciding whether the
+repo-wide policy is still earning its keep, or whether this repo should just be
+LF and leave Studio to its own rule.
 
 ---
 
@@ -1527,6 +1633,37 @@ reason is indistinguishable from one that is broken.
 The `palette` harness step had to learn to report disabled state as well. Without
 that the message was invisible to every probe — the same shape as the label bug
 in §5.3, caught this time before it could hide anything.
+
+**Then Matt's question, and the family it forced.** Commits `4626c58` →
+`7324179`, still 261 tests (§5.9). He asked whether I had read the desktop sheet,
+because of its 9° angled option. I had — and reading it properly found that **the
+office arm does not hook a rung at all**, which I had authored as if it did. The
+slot search had found a Ø6 hole near the arm's top and called it a mounting slot;
+it is one of the holes the *desktop* screws up into. A false positive that the
+correct answer, *plate on ladder → arm on plate*, had already been written down
+before the search ran and was then quietly overruled by it. **The pipeline decides
+only what the pipeline can actually see.**
+
+The fix inverts the relationship: the spec **names** the hole and `add-snaps`
+**verifies** one is there, refusing the part when they disagree. Every declared
+hole came back 2.50 mm from real geometry — the radius of a Ø5 hole, so each
+declared centre is dead centre. The 9° tilt then cost one declared **roll** rather
+than a wedge part, and the plate's four hole pairings measure exactly 250.00 mm at
+exactly 0.000° and 9.000°. Two knock-ons worth the entry on their own: the roll
+had to move from the plate to the arm because two options that share a hole draw
+two markers on the same point and neither can be clicked — the **third** time an
+option pair would have been indistinguishable — and the desktop width had been
+derived from a rung offset the arm does not have, overshooting the far arm by
+54.5 mm while looking entirely reasonable from the front.
+
+**And the repo went to GitHub.** `github.com/Donks83/confgr-modular`, private,
+because it carries measurements of Kesseböhmer's range and readings of their
+sheets and they are a partnership prospect. The line-ending pass that followed is
+its own small lesson: I replaced a `.gitattributes` that set CRLF *for a stated
+reason* instead of reading it — the same class of error as the arm, four commits
+later — then reverted and fixed the actual fault (vitest hoists imports above a
+shebang, so a CRLF `.mjs` breaks) with a narrow `*.mjs text eol=lf` exception,
+verified from a fresh checkout.
 
 ### Session 4 — 4 September 2026
 

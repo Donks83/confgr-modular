@@ -739,6 +739,10 @@ instead of twelve; on the 550 it is refused outright, in those words.
 
 ## ⚠ CORRECTION — the office ARM does not hook a rung, and I authored it as if it did
 
+*(The joint that should have been there has since been built — the `bolted`
+family, §5.9 of `confgr-modular-project.md`. Everything below is kept as written,
+with the two blocks that were open at the time now answered in place.)*
+
 **Matt asked whether I had read the desktop sheet, because of the 9° angled
 option. I had. Checking it properly turned up something worse.**
 
@@ -766,7 +770,7 @@ What this costs today: the office arm attaches straight to a rung, lands at a
 plausible height, carries the desktop, and looks entirely right. That is why it
 survived — the same reason the palette label bug survived a session.
 
-### Measured for the joint that should replace it
+### Measured for the joint that replaced it
 
 `tools/find-holes.py` (new) reports bolt holes on a named face.
 
@@ -784,16 +788,36 @@ survived — the same reason the palette label bug survived a session.
 | 1 | ±125.00 | 83.50 and 183.50 |
 | 2 | ±121.92 | 44.39 and 144.39 |
 
-**Not yet resolved, and deliberately not guessed at.** The arm's Ø5 pair (250 mm
-apart) matches set 1's z spacing exactly, which is a strong hint. But set 2's
-non-round numbers (121.92, 44.39) look like a rotation artefact and do not fall
-out at 9°: 250·cos 9° is 246.9, not 243.84. Two level rectangles 100 mm apart
-does not obviously produce a 9° tilt either. **The next pass on this starts at the
-drawing, not at these numbers** — that is the whole lesson above.
+**Resolved — the numbers were right, the reading of them was not.** Set 2 is not
+a second rectangle. It is the pair of **front** holes for the tilted position,
+and the **rear** hole is shared with set 1 — which is why the flat and the tilted
+option start from the same point. Paired that way, every span is the arm's own
+bolt pitch, exactly:
+
+| Pairing | Rear (z, y) | Front (z, y) | Span | Angle |
+|---|---|---|---|---|
+| 650, flat | −125.00, 83.50 | +125.00, 83.50 | **250.00 mm** | **0.000°** |
+| 750, flat | −125.00, 183.50 | +125.00, 183.50 | **250.00 mm** | **0.000°** |
+| 650, tilted | −125.00, 83.50 | +121.92, 44.39 | **250.00 mm** | **9.000°** |
+| 750, tilted | −125.00, 183.50 | +121.92, 144.39 | **250.00 mm** | **9.000°** |
+
+246.92 is 250·cos 9° and 39.11 is 250·sin 9°. The arithmetic above compared
+246.92 against **243.84**, which is the spacing between the two set-2 holes and
+not a span at all — a real number measured off the real part, put on the wrong
+side of the comparison. The tilt runs nose-down toward the front, the way a
+drawing board tilts.
+
+**The joint is modelled.** The `bolted` family, the roll declaration that
+distinguishes flat from tilted, and the reconciliation to Kesseböhmer's stated
+650 / 750 are in §5.9 of `confgr-modular-project.md`. **The lesson is unchanged:**
+the pass that resolved this started at the drawing. The numbers had been sitting
+here, complete and correct, for a session.
 
 **Also still open:** the clamping angle (step 4) bolts to the arm, and that joint
-is not modelled either. Placed on the same rung today the plate lands at x ±3.6
-and the arm at ±15.0, so they interpenetrate and nothing refuses it.
+is not modelled. It has a family to go in now — the same `bolted` family — but it
+has not been measured. The interpenetration described here is gone: the arm no
+longer takes a rung of its own, so it sits on the plate's face 42.25 mm inboard
+of the ladder centre rather than alongside the plate at ±15.0.
 
 **And the rule that appears nowhere else in the range.** ⚠ **The next four
 paragraphs are WRONG and are kept only because the correction later in this file
