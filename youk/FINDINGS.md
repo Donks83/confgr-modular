@@ -921,3 +921,32 @@ geometry is the same and the joint is the same; the difference is in a diagnosti
 window, most likely the nearest hook to the end sitting further inboard on the
 short one. Recorded rather than explained, because it is not the acceptance
 number and guessing at it would be the same mistake as the locating lugs.
+
+### One hypothesis tested and ruled out, same day
+
+The obvious reading of the table above is that `topSheetMm: 1.5` is simply the
+wrong number — that the bearing face sits 2.5 mm below the part's top, which
+would put every computed plug 1 mm high and produce exactly the 1.00 mm seen.
+
+**It does not survive a look at the geometry.** Sampling vertices within 25 mm of
+the plug's own x on the 900 rail and the 900 strip gives, from the top down:
+
+```
+rail   75, 74.9, 74.8, 74.6, 74.4, 74.1, 73.9, 73.5
+strip  50, 49.9, 49.8, 49.6, 49.4, 49.2, 49.1, 48.9
+shelf  68.5, 68.4, 68.3, 68.1, 68, 67.8, 67.6, 67.4
+```
+
+That is a smooth ramp, not a sheet with a flat underside at some discrete depth.
+The edge is rolled or formed, so there is no "underside of the top sheet" level
+to read off at 1.5 mm or at 2.5 mm — the number was always an approximation of a
+curve, and picking a different approximation would be guessing with extra steps.
+
+Worth noting what this also implies: the 1.00 mm may not be a Y error at all. A
+span part's end bracket wraps the frame, so material counted "inside the member"
+could be a return leg passing beside the rung in X or Z, in which case no change
+to the plug height would touch it.
+
+So the question stays open and stays with Kesseböhmer, but two readings are now
+gone: it is not a per-part quirk (two families, identical number), and it is not
+a mis-stated sheet thickness (there is no flat sheet to mis-state).
