@@ -742,6 +742,56 @@ the 650 desk reads 751.5 above the floor — Kesseböhmer's third figure. The fo
 itself is still not drawn or priced, because mounting is a product choice rather
 than a clicked part.
 
+## ⚠ WHICH END OF THE FRAME FACES THE WALL — and the office desk faces the wrong way
+
+**Nothing in the app had ever needed to know**, so nothing was wrong until the
+foot made it necessary: a foot goes at the FRONT, and to place one you have to
+say which end that is. Three measurements settle it, and they agree.
+
+**1. The wall fixing is on ONE face only.** `find-holes` on the frame's two end
+faces (236758, ladder depth 320, snapped):
+
+| Face | What is on it |
+|---|---|
+| z = **+160** | a **Ø10 hole** and a **Ø6.5 slot**, at the very bottom (y 12.50, slot 50.75–59.25) and mirrored at the very top (y 1487.50, slot 1440.75–1449.25) |
+| z = −160 | nothing but 1.95 mm corner radii |
+
+**2. Kesseböhmer's own dimension matches it.** `mounting instructions.pdf` step 2
+marks the wall **55 mm** from the top of the frame. The upper slot's centre is at
+y 1445.0 — **1500 − 1445 = 55**. Step 3 then drills, plugs 8 × 50, and pushes a
+cover cap into that slot. Two fixings per frame, top and bottom, on the +z face.
+
+**3. The foot's screws are at the other end.** The frame's UNDERSIDE carries two
+**Ø3.4** holes — M4 tapping size — at x 0.00, **z −119.00 and −81.00**. That is
+**38.00 mm** apart, and the foot's top plate has its two Ø5 fixings at x ±19.00,
+38.00 apart, one of them slotted for adjustment. They are the same joint. The
+pair sits 41–79 mm in from the **−160** end, and both the foot sheet's step 1 and
+the base of `YouK_-_Bedroom__Home_Images_02.jpg` show the foot at the FRONT.
+
+> **So z = +160 is the WALL and z = −160 is the FRONT.** The foot is 100 mm tall,
+> rotated 90° so its 50 mm plate runs along the frame's depth, centred at
+> **z = −100**. Measured, not estimated — which is the whole reason for the
+> detour: the sheet's view and the photograph are both oblique and gave
+> 55–70 mm, and the tapped holes gave 60.
+
+### ⚠ And the office solution is 180° out in depth
+
+The desktop runs from z −150 to **+450**. The wall is at +160. **290 mm of desk
+is behind the wall**, and the clamping angle — the stop the board's back edge is
+supposed to sit against — is at z −150, at the FRONT of the frame.
+
+It should be the other way round: back edge and clamping angle at the wall, board
+projecting forward into the room. The arm's rear hole (z −130) currently mates
+the plate's z −125 socket; the plate offers sockets at that end only, and the
+plate is symmetric in z, so nothing has ever contradicted the choice.
+
+**Not fixed here, and deliberately.** The plate carries the rung plug as well as
+the arm sockets, so turning it also moves which side of the ladder it hangs on;
+this is one number in `snap-spec.json` but it needs its own pass and its own
+probe. Everything else in the range is symmetric in depth — a shelf, a cabinet,
+a rack, a hook strip all read the same either way — so this is the office
+assembly alone, which is also why nothing caught it for two sessions.
+
 **The foot, 237023, measured from `mounting instructions Foot.pdf` and the STEP:**
 
 - **50 × 99.8 × 20 mm**, a 2.5 mm top plate over the legs.
