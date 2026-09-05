@@ -342,7 +342,10 @@ def carries_socket(mesh, part, spec):
     packer = float(spec.get("topSheetMm", 1.5))
     z = 0.0
     if part.get("carriesBackStop"):
-        z = float(v[:, 2].min()) + float(part["depth"]) / 2.0
+        # +z is the WALL - see carcase_snaps. Half a ladder-depth in from this
+        # part's own WALL end is where a carried part's plugs must meet it for
+        # that part's back edge to land on the end, whatever its own depth.
+        z = float(v[:, 2].max()) - float(part["depth"]) / 2.0
     return [{
         "name": f"md-snap.youk-{part['carries']}-d{part['depth']}.carries",
         "position_mm": (0.0, top_y + packer, z),

@@ -166,31 +166,31 @@ $clicks = @{
   # once wrongly authored as hooking a rung), the desktop is laid on top
   # (vertical). Three of the five families in one four-part assembly.
   #
-  # BOTH PLATES GO ON THE SAME FACE, and that is the whole of the assembly's
-  # handedness. The arm is a handed part - only one of its ends has the slots the
-  # clamping angle bolts through, and that end has to be the WALL end on both
-  # ladders. Mirroring a handed part cannot do that: it puts one stop at the wall
-  # and the other at the front. `Office solution` step 1 draws both ladders
-  # identically, and Kesseboehmer's own photograph of the desk shows it
-  # overhanging one ladder and flush at the other, which is what this produces.
+  # Numbers to watch: plates at 3.6 and 916.5 - mirrored, so both arms come out
+  # INBOARD at 42.2 and 877.9 - and the desktop centred between them at 460.1,
+  # 835.6 wide, clear of both ladders.
   #
-  # Numbers to watch: plates at -3.6 and 916.5, arms at -42.2 and 877.9 with the
-  # SAME z (-5.0, not +-5.0), and the desktop at x 417.8 - which is the midpoint
-  # of the arms, not of the bay. The arms are one ladder spacing apart because
-  # both are offset the same way, so the board is 920.1 wide.
+  # And z -140.0. +Z IS THE WALL, measured off the frame's own wall fixings:
+  # they are on its +z face only, and the upper one sits 55mm below the top of
+  # the frame, which is the dimension step 2 of the frame's sheet tells you to
+  # mark. So a 600mm board runs -440 to +160 - its back edge exactly on the wall
+  # face, 440mm projecting into the room.
   #
-  # And z -150.0: the desk's back edge sits at +150, on the arm's wall end where
-  # the clamping angle stands (step 6's tick and cross), and the other 450mm
-  # projects into the room. +z is the WALL - measured off the frame's own wall
-  # fixings, which are on that face only, 55mm from the top as step 2 of the
-  # frame's sheet dimensions them.
+  # It used to read +145, which put 290mm of desk BEHIND the wall. Nothing
+  # caught it because nothing else in the range has a front and a back: a shelf,
+  # a cabinet, a rack and a hook strip are all symmetric in depth.
   #
-  # Both of those used to be the other way round. The plates mirrored because of
-  # which markers this scenario happened to click, and the desk projected 290mm
-  # THROUGH the wall, and neither showed up because nothing else in the range has
-  # a front and a back.
+  # One thing here is still unresolved, and is deliberately not encoded. The arm
+  # is HANDED - only its z=-155 end carries the slots the clamping angle bolts
+  # through - so a mirrored pair puts one stop at the wall and one at the front,
+  # which no desk has. Fitting both plates the same way round fixes that on
+  # paper and is what step 1 appears to draw, but it also puts one arm outboard,
+  # and the board then runs straight through that ladder's uprights. A desk
+  # cannot pass through the frame holding it up, so that theory is out. See
+  # youk/FINDINGS.md - the likeliest answer is that 008551 ships as a handed
+  # PAIR and one STEP file stands in for both.
   office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-           'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
+           'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
            'part:008551-shelf-supports,marker:0,choose:0,' +
            'part:008551-shelf-supports,marker:1,choose:0,dump,' +
            'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
@@ -205,7 +205,7 @@ $clicks = @{
   # is not, and the solver refused that pairing outright until it learned to
   # align two facings by the shortest arc instead of by yaw alone.
   officetilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
                'part:008551-shelf-supports,marker:0,choose:1,' +
                'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
@@ -220,7 +220,7 @@ $clicks = @{
   # base, which is the top of a 25mm board sitting on the 1.5mm packer. In world
   # terms with the arms at y 575.0 that is y 651.5 - Kesseboehmer's own 650.
   officeclamp = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
+                'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
                 'part:008551-shelf-supports,marker:0,choose:0,' +
                 'part:008551-shelf-supports,marker:1,choose:0,dump,' +
                 'part:008551-clamping-angles,marker:0,' +
@@ -240,7 +240,7 @@ $clicks = @{
   # and that symmetry looked like a pass for an afternoon: one stop at the wall
   # and one at the front, on a desk that has one back edge.
   officeclamptilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                    'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
+                    'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
                     'part:008551-shelf-supports,marker:0,choose:1,' +
                     'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                     'part:008551-clamping-angles,marker:0,' +
@@ -257,7 +257,7 @@ $clicks = @{
   # number in the range depends on that - and the FLOOR drops to -100. Its top is
   # 626.5 + 25 = 651.5 in the product, which is 751.5 above the floor.
   officefeet = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
                'part:008551-shelf-supports,marker:0,choose:0,' +
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +

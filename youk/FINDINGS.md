@@ -825,29 +825,40 @@ where the desktop's width was derived on the assumption that both are inboard at
 835.6 (§5.9). So the width follows the handedness, and one of {both inboard,
 both same-way-round} has to be wrong.
 
-~~**Stopping here rather than guessing.**~~ **Done — §5.13.** It was the office
-assembly's handedness, the desktop's width and the probe's marker choices, all
-one question, and the answer is that **both plates go on the same face**:
+**Half done — §5.13.** The DEPTH is fixed; the handedness is not.
 
-- Both arms then point the same way, so both clamping angles are at the **wall**
-  (z +143.0) instead of one at each end.
-- The two arms are **one ladder spacing apart** — two offsets in the same
-  direction cancel — so the 900 desktop is **920.1 mm** wide, not 835.6.
-- The desk is **not centred on its bay**. It overhangs one ladder by the arm's
-  42.25 mm inset and stops short of the other, which is what Kesseböhmer's own
-  photograph of the desk shows.
-- The back-flush sign in `carcase_snaps` flipped: a carried part deeper than its
-  ladder now hangs its plugs on the **+z (wall)** side of its own centre. A
-  cabinet is exactly as deep as its ladder, so it is zero either way and the
-  cabinets are untouched at z 0.0.
+**Fixed:** the back-flush signs, in `carcase_snaps` (the carried part's plugs)
+and in `carries_socket` (the arm's back stop). A part deeper than its ladder now
+hangs its plugs on the **+z, wall** side of its own centre, so a 600 mm board
+runs −440 to **+160** — back edge exactly on the wall face, 440 projecting into
+the room. It used to run −150 to +450. A cabinet is exactly as deep as its
+ladder, so both signs come out at zero for it and the cabinets are untouched at
+z 0.0.
 
-Every scenario re-run: the four office ones changed as intended, the other
-eleven are unchanged to the millimetre, 265 tests pass.
+**NOT fixed, and I got it wrong in between.** "Both plates on the same face"
+resolves the handed-arm problem on paper, and step 1 appears to draw both ladders
+identically — so I made that change and ran the entire probe set. Every number I
+had chosen to check came out right.
 
-And §5.9's "mirrored, one part serves both ladders" was read off what a probe
-happened to click rather than off a drawing — then written down as a property of
-the parts. Same shape as the arm hooking a rung. **What caught it was a handed
-part:** geometry that cannot be symmetric about a mistake.
+**Matt looked at the render.** Both-same-way puts one arm OUTBOARD, so the
+920.1 mm board it then needs runs **straight through that ladder's uprights** and
+stops short of the other. A desk cannot pass through the frame holding it up.
+Reverted: the plates mirror, both arms sit inboard, the board is 835.6 and
+centred.
+
+Fourteen scenarios agreed with an impossible assembly, because every assertion in
+them was a coordinate I had predicted. Nothing in the probe set asks whether two
+parts occupy the same space.
+
+**So the handed-arm question stands open.** The likeliest answer is that 008551
+ships as a handed **pair** and the one STEP file stands in for both — which would
+make the mirrored mesh correct and the swapped clamping slot an artefact of using
+one model twice. That is a question for Kesseböhmer, not for the drawings.
+
+And §5.9's "mirrored, one part serves both ladders" was still read off what a
+probe happened to click rather than off a drawing — then written down as a
+property of the parts. Same shape as the arm hooking a rung. It happens to be
+right; it was not established.
 
 **The foot, 237023, measured from `mounting instructions Foot.pdf` and the STEP:**
 

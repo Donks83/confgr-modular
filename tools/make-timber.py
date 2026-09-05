@@ -418,24 +418,24 @@ def main():
     print(f"  office arm sits {offset:.2f} mm to one side of its ladder "
           f"(plate rung plug + plate bolt face + arm bolt face)")
     for nominal, shelf_length in SHELF_LENGTH_MM.items():
-        # THE TWO ARMS ARE THE LADDER SPACING APART, not that less two insets.
+        # BOTH ARMS SIT INBOARD, so the board spans the gap between them: the
+        # ladder spacing less an inset at each end.
         #
-        # The arm is a handed part - only one of its ends carries the slots the
-        # clamping angle bolts through, and that end has to be the WALL end on
-        # both ladders. A mirrored pair cannot do that: mirroring a handed part
-        # puts one stop at the wall and the other at the front. So both plates
-        # are fitted the same way round, exactly as `Office solution` step 1
-        # draws them, and both arms end up offset in the SAME direction - which
-        # cancels, leaving the arm centres one ladder spacing apart.
+        # Briefly changed to the full ladder spacing, on the theory that both
+        # plates are fitted the same way round - which would make the two arms'
+        # offsets cancel. Matt looked at the render: it puts one arm OUTBOARD, so
+        # the board runs straight through that ladder's uprights and stops short
+        # of the other. A desk cannot pass through the frame holding it up, and
+        # no reading of the drawings outranks that.
         #
-        # It also means the desk is not centred on its bay: it overhangs one
-        # ladder by the inset and stops short of the other. Kesseboehmer's own
-        # photograph of the desk (YouK_Schreibtisch201.jpg) shows exactly that,
-        # overhanging on the left and flush on the right.
-        #
-        # This used to subtract two insets, from the assumption that the plates
-        # mirror - which was read off which markers a probe happened to click.
-        width = round(shelf_length - FRAME_THICKNESS_MM, 4)
+        # What the theory was trying to solve is still open: the arm is handed -
+        # only one of its ends carries the slots the clamping angle bolts through
+        # - so a mirrored pair puts one stop at the wall and one at the front.
+        # The likeliest answer is that 008551 ships as a handed PAIR and the one
+        # STEP file stands in for both, which would make the mirrored mesh right
+        # and the swapped slot an artefact of using one model twice. Not yet
+        # confirmed, and recorded in youk/FINDINGS.md rather than guessed at.
+        width = round(shelf_length - FRAME_THICKNESS_MM - 2 * offset, 4)
         for board_depth in DESKTOP_DEPTHS_MM:
             part_id = f"pws-timber-desktop-{nominal}mm-d{board_depth}mm"
             mesh = dressed(board(width, BOARD_THICKNESS_MM, float(board_depth)))

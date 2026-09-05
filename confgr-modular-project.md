@@ -1488,49 +1488,60 @@ Three measurements settle it and they agree.
 the foot sheet's step 1 and Kesseböhmer's Bedroom photograph are both oblique and
 gave 55–70 mm, and the tapped holes gave 60.
 
-**Two things were then wrong, and both had been verified.**
+**What that fixed: the desk projected into the wall.** Back-flush (§5.7) offset a
+carried part to the −z side of its centre. With +z the wall, a 600 mm desktop ran
+from z −150 to **+450** — 290 mm of it behind the wall. Two signs: one in
+`carcase_snaps` for the carried part's plugs, one in `carries_socket` for the
+arm's back stop. A cabinet is exactly as deep as its ladder, so both come out at
+zero for it, which is why nothing showed this for three sessions.
 
-**1. The desk projected into the wall.** Back-flush (§5.7) offset a carried part
-to the −z side of its centre. With +z the wall, a 600 mm desktop ran from z −150
-to **+450** — 290 mm of it behind the wall — and the clamping angle, the stop its
-back edge is supposed to meet, stood at the *front*. One sign in `carcase_snaps`.
-A cabinet is exactly as deep as its ladder, so it comes out at zero either way,
-which is why nothing showed it for three sessions.
+The board now runs **−440 to +160**: its back edge exactly on the wall face, 440
+projecting into the room.
 
-**2. The office assembly was mirrored, and it cannot be.** The arm is a **handed
-part** — its contact sheet is a constant 50 × 50 L-section 310 long, and only its
-z = −155 end carries the slots the clamping angle bolts through. Mirroring a
-handed part puts one stop at the wall and one at the front. `officeclamptilt` had
-been reporting the two angles at z **∓142.9**, and that symmetry read as a pass
-for an afternoon; a desk has one back edge.
+**And what it did NOT fix — recorded because I got it wrong in between.** The arm
+is a **handed part**: its contact sheet is a constant 50 × 50 L-section 310 long,
+and only its z = −155 end carries the slots the clamping angle bolts through. So
+a mirrored pair puts one stop at the wall and one at the front — `officeclamp`
+reports the two angles at z **∓143.0** — and no desk has two back edges.
 
-**Both plates go on the same face**, as `Office solution` step 1 draws them —
-both ladders identical, not a mirrored pair. Then both arms point the same way,
-both stops are at the wall, and the two arms are **one ladder spacing apart**,
-because two offsets in the same direction cancel instead of adding. So the
-desktop is 920.1 mm wide rather than 835.6, and it is **not centred on its bay**:
-it overhangs one ladder by the arm's inset and stops short of the other.
-Kesseböhmer's photograph of the desk shows exactly that.
+Fitting **both plates the same way round** resolves that on paper, and
+`Office solution` step 1 appears to draw both ladders identically. I made that
+change, ran the whole probe set, and every number I had chosen to check came out
+right. **Matt looked at the render.** Same-way-round puts one arm *outboard*, so
+the 920.1 mm board it then requires runs **straight through that ladder's
+uprights** and stops short of the other. A desk cannot pass through the frame
+holding it up. Reverted.
+
+*Fourteen scenarios agreed with a physically impossible assembly, because every
+assertion in them was a coordinate I had predicted.* Nothing in the probe set
+asks whether two parts occupy the same space — §3.6 has listed collision refusal
+as missing since the first session, and this is the first time its absence has
+cost anything. The check that caught it was a person looking at a picture.
+
+**Still open, and deliberately not encoded:** which way the office assembly is
+handed. The likeliest answer is that 008551 ships as a handed **pair** and the
+one STEP file stands in for both, which would make the mirrored mesh right and
+the swapped clamping slot an artefact of using one model twice. That needs
+Kesseböhmer, not more staring at the drawings.
 
 **Verified across the whole probe set:**
 
 | Scenario | Result |
 |---|---|
-| `office` | Plates **−3.6 / 916.5**, arms **−42.2 / 877.9 both at z −5.0**, desktop at x **417.8** — the arms' midpoint, not the bay's — and **z −150.0**: back edge on the arms' wall end, 450 mm projecting into the room. |
-| `officeclamp` | Both angles at **z +143.0**, both at the wall. Their leg faces land at 149.99, and the desk's back edge at 150.0 sits against them — step 6's tick. |
-| `officetilt`, `officeclamptilt` | Arms both 554.9, angles both **y 597.3, z +142.9**. Tilted front edge still **560.9** (600 board), Kesseböhmer's 560. |
-| `officefeet` | Unchanged: `clearance=100mm floorY=-100mm`, board top 751.5 above the floor. |
-| `bay`, `run`, `shared`, `stagger`, `hooks`, `wallfixed`, `mount`, `cabinets`, `carcase`, `timber`, `condition` | **All unchanged**, to the millimetre. The cabinets in particular stay at z 0.0, which is the check that the sign flip only moved parts deeper than their ladder. |
+| `office` | Plates 3.6 / 916.5, arms 42.2 / 877.9 both inboard, desktop centred at 460.1 and 835.6 wide — clear of both ladders — at **z −140.0**, back edge on the wall face. |
+| `officeclamp` | Angles at ∓143.0. Still one at each end; see above. |
+| `officetilt`, `officeclamptilt` | Arms both 554.9, angles both y 597.3. Tilted front edge unchanged. |
+| `officefeet` | `clearance=100mm floorY=-100mm`, board top 751.5 above the floor. |
+| `bay`, `run`, `shared`, `stagger`, `hooks`, `wallfixed`, `mount`, `cabinets`, `carcase`, `timber`, `condition` | **All unchanged**, to the millimetre. The cabinets stay at z 0.0, which is the check that the sign flip only moved parts deeper than their ladder. |
 
 265 tests.
 
-*What this one is really about.* §5.9's "mirrored — one part serves both ladders"
-was never read off a drawing. It was read off which markers a probe happened to
-click, and then written into the documentation as a property of the parts. The
-same sentence pattern as the office arm hooking a rung, and as the clamping
-slot's ends: **a number that came out of the tooling, promoted to a fact about
-the range.** The check that eventually caught it was a part with a handedness —
-geometry that cannot be symmetric about a mistake.
+*The other thing worth keeping.* §5.9's "mirrored — one part serves both ladders"
+was never read off a drawing either. It was read off which markers a probe
+happened to click, then written into the documentation as a property of the
+parts. The same sentence pattern as the office arm hooking a rung, and as the
+clamping slot's ends: **a number that came out of the tooling, promoted to a fact
+about the range.**
 
 ---
 
