@@ -44,14 +44,16 @@
   "items": {
     "236746-leiterregal-ladder-depth-200mm": {
       "article": "236746",
-      "description": "YouK Leiterregal ladder depth 200 mm, height 668 mm",
+      "description": "YouK ladder frame, depth 200 mm, height 668 mm",
       "sizeMm": [
         200,
         668,
         30
       ],
       "costEach": null,
-      "priceEach": {}
+      "priceEach": {},
+      "descriptionOverride": "YouK ladder frame, depth 200 mm, height 668 mm",
+      "notes": "Supplier filename leaves the German Leiterregal in the English half. Renamed to match the other five frames so the palette reads consistently."
     },
     "236748-ladder-depth-2000mm": {
       "article": "236748",

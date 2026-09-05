@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount', 'palette')] [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -84,6 +84,11 @@ $clicks = @{
   # from React state, so a dropdown that changed and did nothing else shows up
   # as grid=true after mount:wall instead of as a pass.
   mount = 'part:008563,marker:0,ground,mount:wall,ground,mount:floor,ground'
+  # What the palette actually says. Kesseboehmer's English filenames drop the
+  # height on four of the six ladders, so the model ids alone read as the same
+  # part four times over. The label has to come from the catalogue, and this is
+  # the only way to see it without squinting at a screenshot.
+  palette = 'palette:22'
 }
 $env:CONFGR_CLICK = $clicks[$Scenario]
 
@@ -107,6 +112,6 @@ $out | Out-File (Join-Path (Get-Location) 'youk\bay-run.txt') -Encoding utf8
 # The layout dump is multi-line, so its continuation lines carry no [click]
 # prefix - match them too or the only interesting output gets filtered away.
 $out -split "`r?`n" |
-  Where-Object { $_ -match '\[click\]|\[capture\]|\[renderer:error|ERROR|refus|blocked|@ -?\d|instances$|connections$' } |
+  Where-Object { $_ -match '\[click\]|\[capture\]|\[renderer:error|ERROR|refus|blocked|@ -?\d|=>|instances$|connections$' } |
   Select-Object -First 80
 "--- full log: youk\bay-run.txt ---"

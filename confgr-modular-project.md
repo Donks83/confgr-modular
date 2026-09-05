@@ -705,17 +705,29 @@ Kesseböhmer: if those filenames feed anything else downstream, the error is not
 confined to us. Both are overridden in the catalogue, and the override survives
 regeneration.
 
-**And the same data error makes the palette unusable.** Matt's report in session 5
-was *"I'm not sure all the ladders are there"*. All six are — but the English half
-of Kesseböhmer's filenames drops the height for **four** of them, so 236750,
-236754, 236758 and 236762 all display as "ladder depth 320 mm". The 550, 905, 1500
-and 2210 mm frames appear as four identical-looking buttons. The height is the only
-thing that distinguishes them and it is the one thing not shown.
+**And the same data error made the palette unreadable.** Matt's report in session 5
+was *"I'm not sure all the ladders are there"*. All six are — but the palette
+labelled each part with its **model id**, which is the filename stem, and the
+English half of Kesseböhmer's filenames drops the height for **four** of them. So
+236750, 236754, 236758 and 236762 all read "…-ladder-depth-320mm" and the 550,
+905, 1500 and 2210 frames looked like the same part four times.
 
 **A missing part and an indistinguishable part look the same from the outside.**
-That is the argument for the palette showing the *measured* size rather than the
-supplier's description: the measured size comes from the geometry and cannot lie
-about itself.
+
+*Correction, and a smaller claim than the one first written here:* the buttons
+were not literally identical — the article number prefix differed and the
+measured `w × h × d` line underneath was correct on all four. What was identical
+was the **descriptive** half of the label, which is the part anyone actually
+reads. So this was a bad label rather than missing information, and saying "the
+height is the one thing not shown" was wrong: it was shown, just not where the
+eye goes.
+
+**Fixed in session 5.** The palette now labels a part with the catalogue
+description rather than the model id, so the two overridden filename errors
+(§5.3 above) reach the customer-facing label as well as the quote. Verified with
+a new `palette` harness step rather than a screenshot, because a wrong label is
+invisible in a picture and invisible in the status line — which is how this
+survived a whole session.
 
 ---
 
@@ -762,8 +774,9 @@ Corrections from experience:
   says what kind of thing fits, a role says which way round), so the level chooser
   has to filter on a condition, not just enumerate rungs. Every snap already
   carries an unused `condition: null` for exactly this.
-- **Palette entries must show the measured size**, not the supplier's description
-  (§5.3). Four of six ladders are currently indistinguishable.
+- ~~Palette entries must show the measured size~~ — **done.** The label now comes
+  from the catalogue description rather than the model id, so the corrected
+  heights reach the palette and not just the quote (§5.3).
 - **`MOUNTING` gains a third state, `FEET`** (§5.1 correction) — 100/150 mm, one
   priced foot per ladder, and the common case in any UK room with a skirting board.
 - **An accessory-to-span joint**: hook strip bolted under a shelf with 1.5 mm

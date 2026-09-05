@@ -529,6 +529,21 @@ export default function Configurator() {
     [assembly, components, mounting],
   );
 
+  // What a part is CALLED, and it is not the filename. Kesseböhmer's English
+  // filenames drop the height on four of the six ladders, so 550, 905, 1500 and
+  // 2210 all arrive as "ladder-depth-320mm" and the palette reads like the same
+  // part four times. The catalogue already carries the corrected description -
+  // including the two filename errors we overrode - so read it from there and
+  // fall back to the id only when there is no entry.
+  const labelFor = useCallback(
+    (c) => priceBook?.items?.[c.id]?.description || c.id,
+    [priceBook],
+  );
+  const articleFor = useCallback(
+    (c) => priceBook?.items?.[c.id]?.article || null,
+    [priceBook],
+  );
+
   // A floating product does not stand on anything. Drawing a grid and a cast
   // shadow under it says otherwise, and that is the one thing the view is for:
   // showing whether this thing reaches the floor. So the ground goes away when
@@ -1092,13 +1107,17 @@ export default function Configurator() {
             return (
               <button
                 key={c.id}
+                // The harness selects parts by this, not by the visible text, so
+                // the label can change without breaking every probe.
+                data-component={c.id}
                 className={pendingPart === c.id ? 'active' : ''}
                 disabled={disabled}
                 onClick={() => choosePart(c.id)}
               >
-                <strong>{c.id}</strong>
+                <strong>{labelFor(c)}</strong>
                 <span>{c.dimsMm.widthMm} × {c.dimsMm.heightMm} × {c.dimsMm.depthMm} mm</span>
                 <span className="cfg-meta">
+                  {articleFor(c) ? `${articleFor(c)} · ` : ''}
                   {c.grids.length ? `${c.grids[0].cols}×${c.grids[0].rows} grid` : ''}
                   {c.snaps[0]?.span ? `span ${c.snaps[0].span.cols}×${c.snaps[0].span.rows}` : ''}
                   {assembly.instances.length && !pendingPoint ? ` · ${places} place${places === 1 ? '' : 's'}` : ''}

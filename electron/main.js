@@ -114,6 +114,7 @@ function createWindow() {
           //   quote                 print the bill of materials and the totals
           //   mount:floor|wall      drive the mounting dropdown for real
           //   ground                print the ground and AR state FROM THE SCENE
+          //   palette[:N]           print the first N palette entries: id => label
           //   dump                  print the status line and the counts
           // e.g. "part:rack-shelf-900,marker:0,drag:i2:4,dump".
           if (process.env.CONFGR_CLICK) {
@@ -144,14 +145,30 @@ function createWindow() {
                        })()`
                     : kind === 'ground'
                     ? 'window.__cfgGround ? window.__cfgGround() : "no ground dump"'
+                    // What the palette actually SAYS. A wrong label is invisible
+                    // in a screenshot and invisible in the status line, which is
+                    // how four ladders read as the same part for a whole session.
+                    : kind === 'palette'
+                    ? `[...document.querySelectorAll('.cfg-palette button')]
+                         .slice(0, Number(${JSON.stringify(value)}) || 8)
+                         .map((b) => b.dataset.component + '  =>  '
+                            + (b.querySelector('strong')?.textContent || '(no label)'))
+                         .join('\\n')`
                     : kind === 'dump'
                     ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
                          .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())
                          .filter(Boolean).join(' | ')`
-                    : `(document.querySelector('.cfg-palette button strong')
-                     && [...document.querySelectorAll('.cfg-palette button')]
-                        .find((b) => b.textContent.startsWith(${JSON.stringify(value)}))
-                        ?.click(), 'clicked part ${value}')`;
+                    // Select by data-component, not by the button's text. The
+                    // label now comes from the catalogue description, which is
+                    // allowed to change; the component id is not.
+                    : `(() => {
+                         const b = document.querySelector(
+                           '.cfg-palette button[data-component^=' + JSON.stringify(${JSON.stringify(value)}) + ']');
+                         if (!b) return 'no palette entry for ${value}';
+                         if (b.disabled) return '${value} is disabled - it fits nowhere right now';
+                         b.click();
+                         return 'clicked part ' + b.dataset.component;
+                       })()`;
               // eslint-disable-next-line no-await-in-loop
               const r = await mainWindow.webContents.executeJavaScript(js);
               process.stdout.write(`[click] ${step} -> ${r}\n`);
