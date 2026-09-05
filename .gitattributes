@@ -1,7 +1,25 @@
-# confgr-studio is CRLF throughout and tooling that string-matches source
-# depends on it. Keep this repo consistent with that.
-* text=auto eol=crlf
-*.glb binary
-*.ktx2 binary
-*.png binary
-*.jpg binary
+# LINE ENDINGS, AND WHY THIS FILE EXISTS.
+#
+# Git on Windows defaults to core.autocrlf=true, so a fresh clone gets CRLF in
+# the working tree. That broke 27 tests with "SyntaxError: Invalid or unexpected
+# token" and no useful location, and it took a while to find: vitest transforms
+# a module by hoisting its imports to the top, and tools/inspect-model.mjs and
+# tools/declare.mjs both start with a `#!/usr/bin/env node` shebang. Hoisting
+# pushes the shebang to line 3, where it is a syntax error rather than a shebang.
+#
+# It surfaced here the moment a `git checkout` re-wrote those two files with
+# CRLF. On a machine that had never seen them any other way it would have been
+# the FIRST thing a new clone did, which is a poor welcome for a repo that has
+# just been published.
+#
+# So: LF in the working tree, everywhere, on every platform. The tools are run
+# by node, python and pwsh, all of which are happy with LF on Windows.
+* text=auto eol=lf
+
+# Binary, so git never tries a line-ending or diff conversion on them.
+*.glb    binary
+*.png    binary
+*.pdf    binary
+*.xlsx   binary
+*.stp    binary
+*.step   binary
