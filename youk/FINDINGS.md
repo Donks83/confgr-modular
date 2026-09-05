@@ -707,6 +707,40 @@ numeric limits in the range that a customer could violate by choosing badly.
 - An angled option at **9°**, dropping the front edge to 560/540 (from 650) or
   660/640 (from 750).
 
+**Page 4's "i" panel is five figures but only TWO bracket positions.** Matt
+pointed at it; reading which holes the green dots mark settles it:
+
+| Figure | Arm bolted at | Frame | Desk top |
+|---|---|---|---|
+| 1 | **lower** hole row | on the floor | 650 |
+| 2 | **upper** hole row | on the floor | 750 |
+| 3 | **lower** hole row | on **100 mm feet** | 750 |
+| 4 | lower row, **tilted 9°** | on the floor | 650 rear → **560 / 540** front |
+| 5 | upper row, **tilted 9°** | on the floor | 750 rear → **660 / 640** front |
+
+The rows are 100 mm apart (83.5 and 183.5 up the plate), which is why figure 3
+reaches figure 2's height from figure 1's holes — the foot makes up the row. So
+the five heights are **two positions × two angles, plus one foot**.
+
+The front-edge numbers are the tilt, rounded to the nearest 10: 600 · sin 9° =
+93.9 and 700 · sin 9° = 109.5, so 650 − 93.9 = 556 → "560" and 650 − 109.5 =
+540.5 → "540"; 750 gives 656 → "660" and 640.5 → "640". All four fall out of the
+same 9° and the same two rows, which is a second, independent confirmation of the
+angle after the hole pairings.
+
+**What the app makes of it, measured:** 650 flat lands the board's top at 651.5
+and 750 flat at 751.5. Tilted, the front edge comes out at **560.9** (600 deep)
+and **545.3** (700 deep) from the lower row, and 100 mm higher from the upper.
+The tilted REAR edge sits at 654.7 rather than 650, because the arm pivots about
+its rear bolt hole and the arm's rear end is 25 mm behind that hole — 25 · sin 9°
+of lift. Kesseböhmer's 650 on the tilted figures is the flat figure's number
+repeated; ours is what the measured holes actually do.
+
+**The one figure the app cannot build is figure 3.** The 100 mm adjustable foot
+(237023) is unauthored, and `mounting: "on feet"` is a view and AR flag rather
+than 100 mm of geometry (§5.1) — so the frame does not rise and the third flat
+height has no route.
+
 **Measured, session 5, when the parts were authored.** The 650 / 750 mm figures
 are **floor-to-top heights, not variants of the desktop** — where a desk ends up
 depends on how high the ladder is hung, and the third figure is that with 100 mm
