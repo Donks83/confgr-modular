@@ -959,6 +959,25 @@ accessory-to-accessory joint, which retires an open engine risk. And Matt's 25 m
 timber thickness is Kesseböhmer's own figure, printed five times on the
 office-solution sheet — specified independently before either of us read it.
 
+**Then built, once Matt chose depth over breadth** — fix the 22 parts rather than
+add more. Commits `a6b07a1` → `eda4151`, 211 tests:
+
+- **Palette labels from the catalogue**, so the corrected heights reach the
+  customer-facing name and not just the quote.
+- **Feet as a third ground condition**, with `isGrounded()` deciding whether the
+  view draws a floor.
+- **Two-ended snap picking**, which fixes the unreachable rung heights and the
+  180° flip together — and then `distinctPlacements` to stop it asking a question
+  on every click.
+
+Three things worth keeping from how that went. **A test caught me comparing the
+wrong thing** — poses rather than occupied space — in the exact case the code was
+written for. **A second test then failed the other way**, because I asserted eight
+options would survive and four did, and four was right. And **the palette bug was
+smaller than I had written it up as**: the buttons were never identical, only
+their descriptive halves were. Three assertions made without opening the file,
+in one session.
+
 ### Session 4 — 4 September 2026
 
 The doc, then AR and mounting. Commits `78296e7` → `b154c39`.
