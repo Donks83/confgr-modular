@@ -72,12 +72,22 @@ $env:CONFGR_CAPTURE_DELAY = '11000'
 # evenly spaced and every shelf lands level; if it is not, the error compounds
 # down the run and is obvious.
 $clicks = @{
-  bay = 'dump,part:008563,marker:0,dump,part:236758,marker:0,dump,' +
-        'part:008531,marker:3,dump,part:008543,marker:5,dump,' +
-        'part:008547,marker:2,dump,part:008537,marker:9,dump'
-  run = 'part:008563,marker:0,part:236758,marker:0,dump,' +
-        'part:008563,marker:7,part:236758,marker:0,dump,' +
-        'part:008563,marker:3,part:008563,marker:10,dump,layout,quote'
+  # `choose:0` after the second frame is not decoration. The frame can meet the
+  # shelf's free end by any of its four rung heights, and the app now ASKS
+  # rather than taking the first silently - so a script written against the old
+  # behaviour stalls with the chooser open. Taking option 0 is the lowest rung,
+  # which is what the old code picked by accident, so the bay comes out level.
+  #
+  # Marker indices moved too, and for a good reason: a rung that carries a shelf
+  # stays open underneath, so there are more live points than before.
+  bay = 'dump,part:008563,marker:0,dump,part:236758,marker:0,choose:0,dump,' +
+        'part:008531,marker:4,dump,part:008543,marker:6,dump,' +
+        'part:008547,marker:2,dump,part:008537,marker:11,dump,layout'
+  # Same reason for the choose:0 steps here: every frame joining a shelf's free
+  # end is now a question, and a level run is the lowest rung each time.
+  run = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +
+        'part:008563,marker:8,part:236758,marker:0,choose:0,dump,' +
+        'part:008563,marker:4,part:008563,marker:12,dump,layout,quote'
   # Floor standing vs floating. Builds a two-part product, reads the ground out
   # of the SCENE, drives the real dropdown, then reads it back. The `ground`
   # step reports grid and shadow-catcher visibility from three.js rather than

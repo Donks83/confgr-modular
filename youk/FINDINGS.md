@@ -220,14 +220,20 @@ captures it (`youk/bay.png`). The app's own report:
 
 ```
 1 part,  0 joints,  8 open points     <- anchored 1500 frame, 4 rungs x 2 faces
-2 parts, 1 joint,   8 open points     <- + 900 shelf
+2 parts, 1 joint,   9 open points     <- + 900 shelf
 2 parts, 1 joint,   1 open point      <- a frame fits in exactly one place
-3 parts, 2 joints, 14 open points     <- + second frame
+3 parts, 2 joints, 16 open points     <- + second frame
 ```
 
-That last count is worth keeping as an invariant: 7 unused sockets on each
-frame plus the shelf's two plugs, both taken. It comes out right only if the
-chain resolved as intended.
+**These counts changed on 5 September, and the change is the point.** They used
+to read 8 and 14. A rung that carries a shelf now stays open *underneath*,
+because a hook rail or a suspended element hooks over the same rung and hangs
+beneath it — so fitting the shelf costs the frame nothing and adds the shelf's
+own free plug, taking 8 to 9 rather than leaving it at 8.
+
+Still worth keeping as an invariant, just a different one: it comes out right
+only if the chain resolved as intended *and* shared occupancy is working. If it
+reads 8 and 14 again, sockets have gone back to being exclusive.
 
 ### Bracket against rung, measured
 
