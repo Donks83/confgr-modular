@@ -236,7 +236,7 @@ This is the honest half of the document.
 | **PDF / tear sheet** | Nothing. |
 | **AR / "view in your room" / QR** | **Readiness checks only** (§3.4). No USDZ, no GLB export of a configuration, no QR, no landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
-| **Rules and conditions engine** | Nothing. Masks and roles only. No "if X then Y", no auto-inserted connector parts. |
+| **Rules and conditions engine** | Nothing. Masks and roles only. No "if X then Y", no auto-inserted connector parts. Every snap carries `condition: null` and nothing reads it — **and there is now a real case for it**: the office-solution desktop is legal at rung 3 and forbidden at rungs 1–2 (`youk/FINDINGS.md`). |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
 | **Wall mounting** | **Decided and half-built.** Floor / floating is chosen and drives the view and the AR flags (§3.4, §5.1). No wall bracket geometry, no wall entity. |
@@ -750,12 +750,18 @@ Corrections from experience:
   rung as its own marker; moving asks which of the part's own snaps you are
   grabbing before asking where it goes. Fixes the unreachable rung choice and the
   180° flip in one change, because they are the same bug.
-  **And it is not a free choice of level.** The office-solution sheet opens with a
-  tick-and-cross diagram: for a wall-hung run the ladders align by their **tops**,
-  not their bottoms, while a floor-standing run aligns by its bottoms because they
-  all stand on the floor. So the level chooser has a default that depends on the
-  mounting, and offering a bare list of rungs would be offering the wrong one half
-  the time.
+  **And it is not a free choice of level, though not for the reason I first gave.**
+  I claimed the office-solution sheet set an alignment rule — tops for wall-hung,
+  bottoms for floor-standing. That was a misreading and Matt corrected it; the
+  correction is recorded in `youk/FINDINGS.md`. What the sheet actually marks is
+  **which rungs the desktop may be fitted at**: rung 3 only, 810 mm above the base,
+  with rungs 1 and 2 explicitly forbidden.
+  That is a better finding than the one it replaces, because it is the first
+  **conditional attach point** in the range — geometrically identical sockets, only
+  some of them legal for a given part. Masks and roles cannot express it (a mask
+  says what kind of thing fits, a role says which way round), so the level chooser
+  has to filter on a condition, not just enumerate rungs. Every snap already
+  carries an unused `condition: null` for exactly this.
 - **Palette entries must show the measured size**, not the supplier's description
   (§5.3). Four of six ladders are currently indistinguishable.
 - **`MOUNTING` gains a third state, `FEET`** (§5.1 correction) — 100/150 mm, one
@@ -912,9 +918,16 @@ up in `youk/FINDINGS.md`. The four that change the build:
   the assembly, which turns "does the configurator need a wall?" from a question
   into a requirement. It also corrects `FINDINGS.md`, which had listed the shoe
   rack as a span accessory.
-- **Wall-hung runs align by their tops, floor-standing runs by their bottoms** —
-  a tick-and-cross diagram on the office-solution sheet, stated nowhere else. The
-  level chooser therefore has a mounting-dependent default.
+- ~~Wall-hung runs align by their tops, floor-standing runs by their bottoms~~ —
+  **wrong, and Matt caught it.** I misread the office-solution tick-and-cross as
+  an alignment rule. It marks **which rungs the desktop may be fitted at**: rung 3
+  (810 mm) permitted, rungs 1 and 2 forbidden. All four ladders in that drawing
+  share one floor line, so their bottoms *are* aligned — the diagram disproves
+  what I said about it. Correction and the measurement in `youk/FINDINGS.md`.
+  The real finding is better: it is the range's first **conditional attach point**,
+  and the first use for the `condition` field that has sat unused on every snap.
+  A knock-on worth knowing: **the 550 mm frame has only rungs 1 and 2, both
+  forbidden, so it cannot carry a desk at all.**
 
 Also: the clothes-rail extension turned out to be a **coupler bracket**, not an
 accessory-to-accessory joint, which retires an open engine risk. And Matt's 25 mm

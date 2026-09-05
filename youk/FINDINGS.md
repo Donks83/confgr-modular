@@ -757,3 +757,84 @@ Three notes on why these are the right numbers rather than round ones:
 A cabinet modelled as six panels is also the right level of detail for AR: the
 triangle budget is assembly-wide (`src/engine/ar.js`), and a drawer front with
 real hardware would spend it on something nobody inspects on a phone.
+
+---
+
+# CORRECTION — the office-solution tick-and-cross is not an alignment rule
+
+**What I wrote earlier in this file and in the project doc was wrong.** I claimed
+page 3 of `mounting instructions Office solution.pdf` showed that wall-hung runs
+align by their ladder **tops** while floor-standing runs align by their bottoms,
+and that "staggering is two rules, not one". Matt corrected it: the green and red
+lines mark **the only levels at which the office-solution desktop assembly may be
+fitted** — nothing to do with alignment.
+
+He is right, and the drawing says the opposite of my claim: **all four ladders in
+it stand on one common floor line.** Their bottoms are aligned. I had described a
+diagram that shows aligned bottoms as evidence for aligning tops.
+
+## What it actually says, measured
+
+Rendered at 6× and measured rather than eyeballed. Four ladders, four different
+heights, all sharing a base line; three horizontal dashed lines cross all four.
+
+Horizontal members found on the tallest ladder (pixel y, top of page downward):
+
+```
+595/603  top cap
+650   856   1061   1404   1609   1814        <- six rungs
+1862/1870  bottom cap
+1958  ground line drawn below the frames
+```
+
+Taking the bottom cap as the frame base, the six rungs sit at these fractions of
+the frame height: 0.041, 0.202, 0.363, 0.633, 0.795, 0.957. The known rung
+heights for the 2210 frame — 100, 455, 810, 1405, 1760, 2115 — give 0.045, 0.206,
+0.367, 0.636, 0.796, 0.957. **Every rung matches to within 0.004 of frame height,
+about 9 mm.** So the tallest ladder is the 2210 and the rungs are the usual set.
+
+The rung counts identify the rest, and they match the table earlier in this file
+exactly: 6 rungs = 2210, 4 = 1500, 3 = 905, 2 = 550.
+
+| Line | Pixel y | Rung | Height above base | Meaning |
+|---|---|---|---|---|
+| **green** | 1394 (rung at 1404) | 3 | **810 mm** | permitted |
+| red | 1609 | 2 | 455 mm | forbidden |
+| red | 1814 | 1 | 100 mm | forbidden |
+
+## The rule, and its consequence
+
+**The office-solution shelf support (008551) may be fitted at rung 3, 810 mm above
+the frame base. Rungs 1 and 2 are explicitly forbidden.** Rungs 4–6 are not
+marked either way, so I am not claiming anything about them.
+
+The consequence is visible in the drawing and worth stating on its own:
+
+> **The 550 mm frame has only rungs 1 and 2 — both red. It cannot take a desk at
+> all.** The 905 frame's top rung *is* the green one, so it only just qualifies.
+
+That also explains the red **"?"** on the same page: the plate shown against a
+ladder, asking "may it go here?", answered by the green and red lines.
+
+## Why this matters more than the rule it replaces
+
+This is **the first part in the range whose attach points are conditional** — the
+rungs exist and are geometrically identical, but only some of them are legal for
+this part. Every snap in `component.js` already carries `condition: null`,
+reserved for Phase 1 and never used. This is the concrete case that needs it, and
+it arrives with a rule simple enough to be the first test: *rung index ≥ 3*.
+
+Roles and masks cannot express it. A mask says *what kind* of thing fits; a role
+says *which way round*; neither says *which of the identical sockets*.
+
+## How I got it wrong
+
+I read a low-resolution page render, saw one green line high and two red lines
+low across ladders of descending height, and constructed a rule that sounded
+plausible. I did not check whether the bottoms were aligned — they were, which
+alone disproves it — and I did not measure where the lines fell.
+
+**Same failure as the "locating lugs" earlier in this file:** a confident reading
+of a pattern at insufficient resolution, written up as fact. The measurement that
+settles it took one script. The rule I invented was more interesting than the real
+one, which should itself have been the warning.
