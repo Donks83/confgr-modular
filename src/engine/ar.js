@@ -61,10 +61,50 @@ export const AR_LIMITS = {
 export const MOUNTING = {
   FLOOR: 'floor',
   WALL: 'wall',
+  FEET: 'feet',
+};
+
+/**
+ * FEET is a third GROUND CONDITION, not a third way of fixing the thing up.
+ *
+ * The brochure reads "hang your YouK on the wall, stand it on the floor or
+ * mount it on optional feet", which sounds like three fixings. It is not.
+ * `YouK_-_Bedroom__Home_Images_02.jpg`, enlarged at the base, shows each ladder
+ * fixed to the WALL at the back and carried by ONE foot at the front, with the
+ * skirting board running behind it untouched - and `mounting instructions
+ * Foot.pdf` agrees: one foot per ladder, screwed under the bottom rail at the
+ * end. Matt spotted this; the design that nearly shipped had FEET as a peer of
+ * WALL, which would have been wrong.
+ *
+ * So everything is wall-fixed, and all that varies is what happens underneath:
+ * the rail rests on the floor, nothing does, or a foot carries the front. The
+ * reason to pick FEET is almost always that a skirting board is in the way,
+ * which for a UK market makes it the common case rather than the accessory.
+ */
+export const FOOT = {
+  /** The two SKUs. 237023 is the 100; the 150 has no CAD in the set we hold. */
+  heightsMm: [100, 150],
+  /** Range on the levelling nut, per the sheet. Not a configurator control. */
+  adjustmentMm: 10,
+  /** One per ladder, at the front. */
+  perLadder: 1,
 };
 
 export function isMounting(value) {
-  return value === MOUNTING.FLOOR || value === MOUNTING.WALL;
+  return value === MOUNTING.FLOOR
+    || value === MOUNTING.WALL
+    || value === MOUNTING.FEET;
+}
+
+/** Is this mounting one where the product reaches the ground at all? */
+export function isGrounded(mounting) {
+  return mounting === MOUNTING.FLOOR || mounting === MOUNTING.FEET;
+}
+
+/** How far the product's base sits above the floor, in mm. */
+export function groundClearanceMm(mounting, footHeightMm = FOOT.heightsMm[0]) {
+  if (mounting !== MOUNTING.FEET) return 0;
+  return FOOT.heightsMm.includes(footHeightMm) ? footHeightMm : FOOT.heightsMm[0];
 }
 
 /**

@@ -83,7 +83,7 @@ $clicks = @{
   # step reports grid and shadow-catcher visibility from three.js rather than
   # from React state, so a dropdown that changed and did nothing else shows up
   # as grid=true after mount:wall instead of as a pass.
-  mount = 'part:008563,marker:0,ground,mount:wall,ground,mount:floor,ground'
+  mount = 'part:008563,marker:0,ground,mount:wall,ground,mount:feet,ground,mount:floor,ground'
   # What the palette actually says. Kesseboehmer's English filenames drop the
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is

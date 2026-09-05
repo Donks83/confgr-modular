@@ -777,8 +777,13 @@ Corrections from experience:
 - ~~Palette entries must show the measured size~~ — **done.** The label now comes
   from the catalogue description rather than the model id, so the corrected
   heights reach the palette and not just the quote (§5.3).
-- **`MOUNTING` gains a third state, `FEET`** (§5.1 correction) — 100/150 mm, one
-  priced foot per ladder, and the common case in any UK room with a skirting board.
+- ~~`MOUNTING` gains a third state, `FEET`~~ — **done.** Floor / floating / on
+  feet, 100 or 150 mm, still no height field: choosing a foot is choosing one of
+  two SKUs, not typing a number. `isGrounded()` now decides whether the view
+  draws a floor, so feet keep the grid and only floating loses it (§5.1
+  correction). **Still to do:** one foot per ladder on the *quote*. That waits
+  for derived BOM lines, which feet, screws and the 1.5 mm packers all need, and
+  which should be built once rather than three times.
 - **An accessory-to-span joint**: hook strip bolted under a shelf with 1.5 mm
   packers. The packer is a **system-wide constant** — four separate instruction
   sheets put the same 1.5 mm shim between a bracket and the panel above it — so

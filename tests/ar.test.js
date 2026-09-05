@@ -6,8 +6,8 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  AR_LIMITS, MOUNTING, isMounting, placementFor,
-  assemblyTriangles, arReadiness,
+  AR_LIMITS, MOUNTING, FOOT, isMounting, isGrounded, groundClearanceMm,
+  placementFor, assemblyTriangles, arReadiness,
 } from '../src/engine/ar.js';
 
 const componentsWith = (spec) => new Map(
@@ -28,12 +28,43 @@ const YOUK = componentsWith({
 });
 
 describe('mounting', () => {
-  it('is two options and not a height', () => {
-    expect(Object.values(MOUNTING)).toEqual(['floor', 'wall']);
+  it('is three ground conditions and still not a height', () => {
+    expect(Object.values(MOUNTING)).toEqual(['floor', 'wall', 'feet']);
     expect(isMounting('floor')).toBe(true);
     expect(isMounting('wall')).toBe(true);
+    expect(isMounting('feet')).toBe(true);
     expect(isMounting(1400)).toBe(false);
     expect(isMounting('floating')).toBe(false);
+  });
+
+  // The distinction that nearly went in wrong. Feet do not replace the wall
+  // fixing, they sit under a product that is still wall-fixed - so for AR
+  // purposes a product on feet stands on the floor exactly like one without.
+  it('treats feet as reaching the ground, and only the wall as floating', () => {
+    expect(isGrounded(MOUNTING.FLOOR)).toBe(true);
+    expect(isGrounded(MOUNTING.FEET)).toBe(true);
+    expect(isGrounded(MOUNTING.WALL)).toBe(false);
+  });
+
+  it('places a product on feet horizontally, like any other floor-standing one', () => {
+    expect(placementFor(MOUNTING.FEET)).toEqual(placementFor(MOUNTING.FLOOR));
+    expect(placementFor(MOUNTING.FEET).sceneViewerEnableVerticalPlacement).toBe(false);
+  });
+
+  it('reports the ground clearance the chosen foot gives', () => {
+    expect(groundClearanceMm(MOUNTING.FLOOR)).toBe(0);
+    expect(groundClearanceMm(MOUNTING.WALL)).toBe(0);
+    expect(groundClearanceMm(MOUNTING.FEET, 100)).toBe(100);
+    expect(groundClearanceMm(MOUNTING.FEET, 150)).toBe(150);
+  });
+
+  // A height nobody offers must not become a height somebody gets. There are
+  // two SKUs; anything else falls back to the shorter rather than being taken
+  // at face value, because a made-up clearance would propagate into AR.
+  it('refuses a foot height that is not one of the two real ones', () => {
+    expect(FOOT.heightsMm).toEqual([100, 150]);
+    expect(groundClearanceMm(MOUNTING.FEET, 120)).toBe(100);
+    expect(groundClearanceMm(MOUNTING.FEET, 0)).toBe(100);
   });
 
   it('asks for vertical surfaces only when the product is wall-mounted', () => {

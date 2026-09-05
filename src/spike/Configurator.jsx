@@ -26,7 +26,9 @@ import {
   canMove, moveTargets, moveTo,
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
-import { MOUNTING, arReadiness } from '../engine/ar.js';
+import {
+  MOUNTING, FOOT, arReadiness, isGrounded, groundClearanceMm,
+} from '../engine/ar.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -65,6 +67,9 @@ export default function Configurator() {
   // customer places it in AR, so a height here would be a number nothing reads.
   // What this DOES decide is whether the AR handoff offers vertical surfaces.
   const [mounting, setMounting] = useState(MOUNTING.FLOOR);
+  // Which of the two foot SKUs, not a free height. Only read when mounting is
+  // FEET; kept across a switch away and back so the choice is not lost.
+  const [footHeightMm, setFootHeightMm] = useState(FOOT.heightsMm[0]);
 
   const catalogue = useMemo(() => [...components.keys()], [components]);
 
@@ -552,7 +557,7 @@ export default function Configurator() {
   useEffect(() => {
     const ctx = three.current;
     if (!ctx) return;
-    const grounded = mounting !== MOUNTING.WALL;
+    const grounded = isGrounded(mounting);
     ctx.grid.visible = grounded;
     ctx.floor.visible = grounded;
     window.__spikeRender?.();
@@ -566,10 +571,11 @@ export default function Configurator() {
       const ctx = three.current;
       if (!ctx) return 'no scene';
       return `mounting=${mounting} grid=${ctx.grid.visible} floor=${ctx.floor.visible} `
+        + `clearance=${groundClearanceMm(mounting, footHeightMm)}mm `
         + `ar=${ar.placement.vertical ? 'wall' : 'floor'} tris=${ar.triangles} `
         + `ready=${ar.ready} warnings=[${ar.warnings.map((w) => w.code).join(' ')}]`;
     };
-  }, [mounting, ar]);
+  }, [mounting, footHeightMm, ar]);
 
   // The quote, for the verification harness. Same numbers the panel shows,
   // rendered as text - so a probe can assert on a bill of materials without
@@ -1171,14 +1177,40 @@ export default function Configurator() {
 
         <h2>Mounting</h2>
         <div className="cfg-option">
-          {/* Two options, no height. The height a wall-mounted product hangs at
-              is chosen when the customer places it in AR, so asking for it here
-              would be asking for a number nothing downstream reads. */}
+          {/* Three ground conditions, no height. Everything is wall-fixed in
+              reality; what varies is what happens underneath. The height a
+              floating product hangs at is chosen when the customer places it in
+              AR, so asking for it here would be asking for a number nothing
+              downstream reads. See src/engine/ar.js for why feet are not a
+              third fixing method. */}
           <select className="cfg-mounting" value={mounting} onChange={(e) => setMounting(e.target.value)}>
             <option value={MOUNTING.FLOOR}>Floor standing</option>
-            <option value={MOUNTING.WALL}>Wall mounted</option>
+            <option value={MOUNTING.WALL}>Floating</option>
+            <option value={MOUNTING.FEET}>On feet</option>
           </select>
+          {/* Choosing a foot is choosing a PART - there are two SKUs - not
+              typing a height. That is why it is a second select rather than a
+              number field, and why it only appears when feet are in play. */}
+          {mounting === MOUNTING.FEET && (
+            <select
+              className="cfg-foot"
+              value={footHeightMm}
+              onChange={(e) => setFootHeightMm(Number(e.target.value))}
+            >
+              {FOOT.heightsMm.map((mm) => (
+                <option key={mm} value={mm}>{mm} mm foot</option>
+              ))}
+            </select>
+          )}
         </div>
+        {mounting === MOUNTING.FEET && (
+          <p className="cfg-note cfg-dim">
+            One foot per ladder, at the front; the back stays fixed to the wall.
+            Raises the base {groundClearanceMm(mounting, footHeightMm)} mm
+            (±{FOOT.adjustmentMm} mm on the levelling nut) — usually to clear a
+            skirting board.
+          </p>
+        )}
         {ar.parts > 0 && (
           <p className="cfg-note cfg-dim">
             {ar.triangles.toLocaleString()} triangles across {ar.parts} part

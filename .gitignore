@@ -40,3 +40,4 @@ youk/run.png
 # the window is not composited. The mount scenario proves itself from the scene
 # readback instead, so its capture is not evidence and is not committed.
 youk/mount.png
+youk/palette.png
