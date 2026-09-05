@@ -1456,6 +1456,10 @@ only carries the front of it.
 into the bottom of the front stile, ±10 mm on the levelling nut, in 100 and
 150 mm.
 
+*(The `office` and `officeclamp` numbers above are superseded by §5.13: the two
+plates were mirrored and the desk projected into the wall. The heights are
+unchanged; the depths and the x positions are not.)*
+
 **Still not drawn, and this is the honest gap.** There is no foot in the scene —
 the frame simply floats 100 mm above the grid. Mounting is a product-level
 choice rather than a clicked part (Matt's simplification, §5.1, and it is the
@@ -1466,6 +1470,67 @@ parts somebody clicked. **Build that once, for all of them**, rather than making
 the foot a clickable part and having two contradictory ways to say the same
 thing. Three feet-shaped things then land together: the geometry, the quote line,
 and the required-part rule.
+
+### 5.13 Which end faces the wall — and the office desk turned round
+
+Placing the foot needed one fact the app had never needed: **which end of the
+frame is the front.** Nothing was wrong until then, because nothing had asked.
+Three measurements settle it and they agree.
+
+| | |
+|---|---|
+| **The wall fixing is on one face only** | The frame's **z = +160** face carries a Ø10 hole and a Ø6.5 slot at the very bottom (y 12.50, slot 50.75–59.25) and mirrored at the top (y 1487.50, slot 1440.75–1449.25). The z = −160 face has nothing but 1.95 mm corner radii. |
+| **Kesseböhmer's own dimension** | `mounting instructions.pdf` step 2 marks the wall **55 mm from the top of the frame**. The upper slot's centre is at y 1445.0, and 1500 − 1445 = **55**. Step 3 then plugs 8 × 50 and pushes a cover cap into it. |
+| **The foot's screws are at the other end** | The frame's underside carries two **Ø3.4** holes — M4 tapping size — at x 0.00, **z −119.00 and −81.00**, exactly **38.00 mm** apart. The foot's top plate has its two Ø5 fixings at x ±19.00, 38.00 apart, one slotted for adjustment. Same joint. |
+
+**So +z is the WALL, −z is the room.** The foot sits centred at z −100, rotated
+90° so its 50 mm plate runs along the frame's depth — measured, not estimated:
+the foot sheet's step 1 and Kesseböhmer's Bedroom photograph are both oblique and
+gave 55–70 mm, and the tapped holes gave 60.
+
+**Two things were then wrong, and both had been verified.**
+
+**1. The desk projected into the wall.** Back-flush (§5.7) offset a carried part
+to the −z side of its centre. With +z the wall, a 600 mm desktop ran from z −150
+to **+450** — 290 mm of it behind the wall — and the clamping angle, the stop its
+back edge is supposed to meet, stood at the *front*. One sign in `carcase_snaps`.
+A cabinet is exactly as deep as its ladder, so it comes out at zero either way,
+which is why nothing showed it for three sessions.
+
+**2. The office assembly was mirrored, and it cannot be.** The arm is a **handed
+part** — its contact sheet is a constant 50 × 50 L-section 310 long, and only its
+z = −155 end carries the slots the clamping angle bolts through. Mirroring a
+handed part puts one stop at the wall and one at the front. `officeclamptilt` had
+been reporting the two angles at z **∓142.9**, and that symmetry read as a pass
+for an afternoon; a desk has one back edge.
+
+**Both plates go on the same face**, as `Office solution` step 1 draws them —
+both ladders identical, not a mirrored pair. Then both arms point the same way,
+both stops are at the wall, and the two arms are **one ladder spacing apart**,
+because two offsets in the same direction cancel instead of adding. So the
+desktop is 920.1 mm wide rather than 835.6, and it is **not centred on its bay**:
+it overhangs one ladder by the arm's inset and stops short of the other.
+Kesseböhmer's photograph of the desk shows exactly that.
+
+**Verified across the whole probe set:**
+
+| Scenario | Result |
+|---|---|
+| `office` | Plates **−3.6 / 916.5**, arms **−42.2 / 877.9 both at z −5.0**, desktop at x **417.8** — the arms' midpoint, not the bay's — and **z −150.0**: back edge on the arms' wall end, 450 mm projecting into the room. |
+| `officeclamp` | Both angles at **z +143.0**, both at the wall. Their leg faces land at 149.99, and the desk's back edge at 150.0 sits against them — step 6's tick. |
+| `officetilt`, `officeclamptilt` | Arms both 554.9, angles both **y 597.3, z +142.9**. Tilted front edge still **560.9** (600 board), Kesseböhmer's 560. |
+| `officefeet` | Unchanged: `clearance=100mm floorY=-100mm`, board top 751.5 above the floor. |
+| `bay`, `run`, `shared`, `stagger`, `hooks`, `wallfixed`, `mount`, `cabinets`, `carcase`, `timber`, `condition` | **All unchanged**, to the millimetre. The cabinets in particular stay at z 0.0, which is the check that the sign flip only moved parts deeper than their ladder. |
+
+265 tests.
+
+*What this one is really about.* §5.9's "mirrored — one part serves both ladders"
+was never read off a drawing. It was read off which markers a probe happened to
+click, and then written into the documentation as a property of the parts. The
+same sentence pattern as the office arm hooking a rung, and as the clamping
+slot's ends: **a number that came out of the tooling, promoted to a fact about
+the range.** The check that eventually caught it was a part with a handedness —
+geometry that cannot be symmetric about a mistake.
 
 ---
 

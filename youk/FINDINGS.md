@@ -774,7 +774,7 @@ the base of `YouK_-_Bedroom__Home_Images_02.jpg` show the foot at the FRONT.
 > detour: the sheet's view and the photograph are both oblique and gave
 > 55–70 mm, and the tapped holes gave 60.
 
-### ⚠ And the office solution is 180° out in depth
+### ⚠ And the office solution is 180° out in depth — **FIXED, §5.13**
 
 The desktop runs from z −150 to **+450**. The wall is at +160. **290 mm of desk
 is behind the wall**, and the clamping angle — the stop the board's back edge is
@@ -825,11 +825,29 @@ where the desktop's width was derived on the assumption that both are inboard at
 835.6 (§5.9). So the width follows the handedness, and one of {both inboard,
 both same-way-round} has to be wrong.
 
-**Stopping here rather than guessing.** This is the office assembly's handedness,
-the desktop's width, and the probe's marker choices, all one question — and
-§5.9's "mirrored, one part serves both ladders" was read off what the probe
-happened to click rather than off a drawing. The next pass starts at the sheet's
-assembly figures, not at the spec.
+~~**Stopping here rather than guessing.**~~ **Done — §5.13.** It was the office
+assembly's handedness, the desktop's width and the probe's marker choices, all
+one question, and the answer is that **both plates go on the same face**:
+
+- Both arms then point the same way, so both clamping angles are at the **wall**
+  (z +143.0) instead of one at each end.
+- The two arms are **one ladder spacing apart** — two offsets in the same
+  direction cancel — so the 900 desktop is **920.1 mm** wide, not 835.6.
+- The desk is **not centred on its bay**. It overhangs one ladder by the arm's
+  42.25 mm inset and stops short of the other, which is what Kesseböhmer's own
+  photograph of the desk shows.
+- The back-flush sign in `carcase_snaps` flipped: a carried part deeper than its
+  ladder now hangs its plugs on the **+z (wall)** side of its own centre. A
+  cabinet is exactly as deep as its ladder, so it is zero either way and the
+  cabinets are untouched at z 0.0.
+
+Every scenario re-run: the four office ones changed as intended, the other
+eleven are unchanged to the millimetre, 265 tests pass.
+
+And §5.9's "mirrored, one part serves both ladders" was read off what a probe
+happened to click rather than off a drawing — then written down as a property of
+the parts. Same shape as the arm hooking a rung. **What caught it was a handed
+part:** geometry that cannot be symmetric about a mistake.
 
 **The foot, 237023, measured from `mounting instructions Foot.pdf` and the STEP:**
 

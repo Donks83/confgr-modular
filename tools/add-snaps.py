@@ -368,20 +368,26 @@ def carcase_snaps(mesh, part, spec):
 
     ALONG THE DEPTH the plugs are NOT at the part's middle, and this is the rule
     that makes the office desktop work. A carried part sits with its BACK FLUSH
-    to the back of the ladder - `Office solution` step 6 draws a tick and a cross
-    over exactly that, the desktop's rear edge against the bracket upstand. The
-    brackets are centred on the ladder's depth, so a part deeper than the ladder
-    has to hang its plugs BEHIND its own centre by half the difference.
+    to the WALL end of what carries it - `Office solution` step 6 draws a tick
+    and a cross over exactly that, the desktop's rear edge against the clamping
+    angle. So a part deeper than the ladder hangs its plugs on the WALL side of
+    its own centre by half the difference, and the rest projects into the room.
 
-    A cabinet is exactly as deep as its ladder, so this comes out as zero and the
-    cabinets are unchanged by it. A 600 mm desktop on a 320 ladder comes out at
-    -140 mm, which is the difference between a desk in front of the wall and a
-    desk 140 mm inside it.
+    +Z IS THE WALL, and that is measured rather than assumed. It was assumed
+    wrongly here until the foot needed a front: the frame's wall fixings - a
+    10 mm hole and a 6.5 mm slot, top and bottom - are on its +z face ONLY, and
+    the upper slot's centre sits 55 mm below the top of the frame, which is the
+    dimension `mounting instructions.pdf` step 2 tells you to mark on the wall.
+    The sign below used to be the other way round, so a 600 mm desktop projected
+    290 mm THROUGH the wall while looking perfectly reasonable from the front.
+
+    A cabinet is exactly as deep as its ladder, so this is zero either way and
+    the cabinets never showed it.
     """
     depth_mm = float(part["depth"])
     depth = str(part["depth"])
     half = float(mesh.extents[0]) * 1000.0 / 2.0
-    z = (depth_mm - float(mesh.extents[2]) * 1000.0) / 2.0
+    z = (float(mesh.extents[2]) * 1000.0 - depth_mm) / 2.0
     mask = f"youk-{part.get('carriedBy', 'carcase')}-d{depth}"
     snaps = [
         {"name": f"md-snap.{mask}.rest-left",

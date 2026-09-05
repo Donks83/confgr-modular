@@ -166,18 +166,31 @@ $clicks = @{
   # once wrongly authored as hooking a rung), the desktop is laid on top
   # (vertical). Three of the five families in one four-part assembly.
   #
-  # Numbers to watch: plates at 3.6 and 916.5 - mirrored, so the same part serves
-  # both ladders - arms at 42.3 and 877.9, and the desktop CENTRED between them
-  # at 460.1. That last one is the check that its width follows the whole chain
-  # rather than one bracket: it was 890.1mm wide when the arm was thought to hook
-  # a rung and it overshot the far arm by 54.5mm while looking entirely right.
+  # BOTH PLATES GO ON THE SAME FACE, and that is the whole of the assembly's
+  # handedness. The arm is a handed part - only one of its ends has the slots the
+  # clamping angle bolts through, and that end has to be the WALL end on both
+  # ladders. Mirroring a handed part cannot do that: it puts one stop at the wall
+  # and the other at the front. `Office solution` step 1 draws both ladders
+  # identically, and Kesseboehmer's own photograph of the desk shows it
+  # overhanging one ladder and flush at the other, which is what this produces.
   #
-  # And z 145.0, not 0: a 600mm desktop on a 320mm ladder cannot sit centred on
-  # its brackets, so its plugs hang 140mm behind its own middle and its back edge
-  # lands on the wall line - step 6's tick and cross. Centred would put 140mm of
-  # desk inside the wall and still look fine from the front.
+  # Numbers to watch: plates at -3.6 and 916.5, arms at -42.2 and 877.9 with the
+  # SAME z (-5.0, not +-5.0), and the desktop at x 417.8 - which is the midpoint
+  # of the arms, not of the bay. The arms are one ladder spacing apart because
+  # both are offset the same way, so the board is 920.1 wide.
+  #
+  # And z -150.0: the desk's back edge sits at +150, on the arm's wall end where
+  # the clamping angle stands (step 6's tick and cross), and the other 450mm
+  # projects into the room. +z is the WALL - measured off the frame's own wall
+  # fixings, which are on that face only, 55mm from the top as step 2 of the
+  # frame's sheet dimensions them.
+  #
+  # Both of those used to be the other way round. The plates mirrored because of
+  # which markers this scenario happened to click, and the desk projected 290mm
+  # THROUGH the wall, and neither showed up because nothing else in the range has
+  # a front and a back.
   office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-           'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+           'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
            'part:008551-shelf-supports,marker:0,choose:0,' +
            'part:008551-shelf-supports,marker:1,choose:0,dump,' +
            'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
@@ -192,7 +205,7 @@ $clicks = @{
   # is not, and the solver refused that pairing outright until it learned to
   # align two facings by the shortest arc instead of by yaw alone.
   officetilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
                'part:008551-shelf-supports,marker:0,choose:1,' +
                'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
@@ -207,7 +220,7 @@ $clicks = @{
   # base, which is the top of a 25mm board sitting on the 1.5mm packer. In world
   # terms with the arms at y 575.0 that is y 651.5 - Kesseboehmer's own 650.
   officeclamp = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+                'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
                 'part:008551-shelf-supports,marker:0,choose:0,' +
                 'part:008551-shelf-supports,marker:1,choose:0,dump,' +
                 'part:008551-clamping-angles,marker:0,' +
@@ -222,10 +235,12 @@ $clicks = @{
   # They did not: 597.3 and 626.9, because the second ladder's parts are turned
   # round, and a joint solved as one shortest arc tumbles the child ~171 degrees
   # about a horizontal axis instead of turning it round and then tipping it 9.
-  # Both angles now sit at 597.3, z -+142.9, exactly mirrored - and 597.3 is
-  # 42.4 above the arm, which is the flat 19.5 turned through 9 degrees.
+  # Both angles now sit at y 597.3 and z +142.9 - the same height AND the same
+  # end, which is the wall. They read -+142.9 while the plates still mirrored,
+  # and that symmetry looked like a pass for an afternoon: one stop at the wall
+  # and one at the front, on a desk that has one back edge.
   officeclamptilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                    'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+                    'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
                     'part:008551-shelf-supports,marker:0,choose:1,' +
                     'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                     'part:008551-clamping-angles,marker:0,' +
@@ -242,7 +257,7 @@ $clicks = @{
   # number in the range depends on that - and the FLOOR drops to -100. Its top is
   # 626.5 + 25 = 651.5 in the product, which is 751.5 above the floor.
   officefeet = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:1,part:008551-base-brackets,marker:3,' +
                'part:008551-shelf-supports,marker:0,choose:0,' +
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +

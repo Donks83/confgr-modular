@@ -415,10 +415,27 @@ def main():
     print()
     depth = DESKTOP_LADDER_DEPTH_MM
     offset = office_arm_inset_mm(folder)
-    print(f"  office arm sits {offset:.2f} mm inboard of its ladder "
+    print(f"  office arm sits {offset:.2f} mm to one side of its ladder "
           f"(plate rung plug + plate bolt face + arm bolt face)")
     for nominal, shelf_length in SHELF_LENGTH_MM.items():
-        width = round(shelf_length - FRAME_THICKNESS_MM - 2 * offset, 4)
+        # THE TWO ARMS ARE THE LADDER SPACING APART, not that less two insets.
+        #
+        # The arm is a handed part - only one of its ends carries the slots the
+        # clamping angle bolts through, and that end has to be the WALL end on
+        # both ladders. A mirrored pair cannot do that: mirroring a handed part
+        # puts one stop at the wall and the other at the front. So both plates
+        # are fitted the same way round, exactly as `Office solution` step 1
+        # draws them, and both arms end up offset in the SAME direction - which
+        # cancels, leaving the arm centres one ladder spacing apart.
+        #
+        # It also means the desk is not centred on its bay: it overhangs one
+        # ladder by the inset and stops short of the other. Kesseboehmer's own
+        # photograph of the desk (YouK_Schreibtisch201.jpg) shows exactly that,
+        # overhanging on the left and flush on the right.
+        #
+        # This used to subtract two insets, from the assumption that the plates
+        # mirror - which was read off which markers a probe happened to click.
+        width = round(shelf_length - FRAME_THICKNESS_MM, 4)
         for board_depth in DESKTOP_DEPTHS_MM:
             part_id = f"pws-timber-desktop-{nominal}mm-d{board_depth}mm"
             mesh = dressed(board(width, BOARD_THICKNESS_MM, float(board_depth)))
