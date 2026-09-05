@@ -799,11 +799,17 @@ Corrections from experience:
   screws **only to the wall** and never touches a ladder. It is the first part in
   the range with no attachment to the assembly at all, so "does the configurator
   need a wall?" now has a part that answers it.
-- **Sockets must stop being exclusive.** A shelf and a hanging accessory **share
-  a rung** by design: the shelf sits on it, the accessory hooks over the same rung
-  and is then bolted up into the shelf through the packer. The current
-  `ALREADY_OCCUPIED` refusal would block a configuration Kesseböhmer's own
-  instructions show being assembled.
+- ~~Sockets must stop being exclusive~~ — **done.** Occupancy is no longer a
+  boolean: a snap records which **sides** of it are taken, and a socket is full
+  only when something rests on it *and* something hangs from it. Which side a
+  part fills is read straight off its geometry — body centre against its own
+  snap, yaw-invariant — so nothing had to be declared on 45 models.
+  Verified with real parts: a 900 shelf on rung 1 lands at **+100 mm** and a rack
+  aimed at the same rung lands at **−58.5 mm**, which is 100 − 158.5, the drop
+  measured in session 3. The app's own count goes from 8 open points to 9 when
+  the shelf is fitted, because the rung it sits on is still half free.
+  Plugs stay exclusive: a shelf's end plug holds one frame. Grid cells too — a
+  covered cell is covered.
 - **Timber parts as unpriced components** — shown, snapped, quoted as "POA".
   Matt's call; the quote module already reports partial totals rather than
   inventing a number, so it degrades honestly. Spec in `youk/FINDINGS.md`: 25 mm

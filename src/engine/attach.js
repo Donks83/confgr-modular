@@ -18,6 +18,7 @@
 
 import { worldSnaps, resolveTransforms } from './assembly.js';
 import { canConnectLogically, REASONS, REASON_TEXT } from './snapMatch.js';
+import { snapBearingSide } from './component.js';
 import { parseGridCellId, cellsCovered, spanFits } from './grid.js';
 
 /** Stable key for an attach point: which instance, which point on it. */
@@ -56,14 +57,30 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
   const rejected = [];
 
   for (const point of allPoints) {
+    // A rung carries two things at once, and Kesseböhmer's own instructions say
+    // so: a shelf RESTS ON it while a hook rail or a YouboXx HOOKS OVER the same
+    // rung and hangs beneath, the two then bolted together through a 1.5 mm
+    // packer. So a SOCKET is full only when both sides of it are taken.
+    //
+    // A plug is different and stays exclusive. A shelf's end plug holds one
+    // frame; nothing in the range hangs a second part off the same plug, and
+    // allowing it would let two frames meet one shelf end at the same instant.
+    // Grid cells are excluded: a covered cell is covered, and grid overlap is
+    // already handled properly below by cellsCovered. Letting a cell be "half
+    // taken" would put two pouches in one square.
+    const shareable = point.role === 'socket' && !point.isGridCell;
+    const takenSides = new Set(shareable ? point.occupiedSides || [] : []);
+
     // An occupied point is recorded as a rejection rather than skipped
     // silently, so whyNothingFits can answer for EVERY point. A function that
     // returns null half the time pushes that gap into the UI.
-    if (point.occupied) {
+    if (point.occupied && (!shareable || takenSides.size >= 2)) {
       rejected.push({
         point, componentId: null, mountSnapId: null,
         ok: false, reason: REASONS.ALREADY_OCCUPIED,
-        message: 'Something is already fitted here.',
+        message: shareable
+          ? 'This rung already carries something above and below it.'
+          : 'Something is already fitted here.',
       });
       continue;
     }
@@ -73,10 +90,32 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
       if (!candidate) continue;
 
       for (const mount of candidate.snaps) {
+        // The half of the point this particular part would fill.
+        if (takenSides.size) {
+          const side = snapBearingSide(candidate, mount.id);
+          if (takenSides.has(side)) {
+            rejected.push({
+              point, componentId, mountSnapId: mount.id,
+              ok: false, reason: REASONS.ALREADY_OCCUPIED,
+              message: side === 'above'
+                ? 'Something already rests on this rung.'
+                : 'Something already hangs from this rung.',
+            });
+            continue;
+          }
+        }
+
         // Stage 1: logical. Masks and conditions, no geometry. Identical to the
         // check the old drag path used, so the rules did not change with the
         // interaction.
-        const logical = canConnectLogically(mount, point, ctx);
+        //
+        // The occupancy question has already been settled above, per side, so a
+        // shareable point is presented as free here. Leaving it set would have
+        // canConnectLogically refuse on ALREADY_OCCUPIED for a rung that still
+        // has its underside going spare - the exact case this all exists for.
+        const logical = canConnectLogically(
+          mount, shareable ? { ...point, occupied: false } : point, ctx,
+        );
         if (!logical.ok) {
           rejected.push({ point, componentId, mountSnapId: mount.id, ...logical });
           continue;

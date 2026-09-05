@@ -16,7 +16,7 @@
 # a vite left listening on 5174 is what broke this twice.
 
 param(
-  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger')] [string]$Scenario = 'bay',
+  [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared')] [string]$Scenario = 'bay',
   # Price the bill of materials from the FICTIONAL example list, so a demo shows
   # the maths working. Off by default: the real catalogue has no prices yet and
   # the panel should say so rather than show invented ones.
@@ -97,6 +97,12 @@ $clicks = @{
   # offer; `choose:3` takes a rung that is NOT the first, and `layout` proves
   # the second frame landed at a different height because of it.
   stagger = 'part:008563,marker:0,dump,part:236758,marker:0,choices,choose:3,dump,layout'
+  # One rung, two parts. Kesseboehmer's suspension-elements and hook-rail sheets
+  # both show a shelf resting on a rung with an accessory hooked over the SAME
+  # rung hanging beneath, bolted together through a 1.5mm packer. The engine
+  # used to close a rung the moment anything touched it, so this configuration
+  # could not be built. Shelf on marker 0, then a rack aiming at the same rung.
+  shared = 'part:008563,marker:0,dump,part:008543,marker:0,dump,layout'
 }
 $env:CONFGR_CLICK = $clicks[$Scenario]
 

@@ -89,6 +89,31 @@ function parsePrefixedName(name, prefix) {
 }
 
 /**
+ * Which side of one of its own snaps a part's body sits on: 'above' or 'below'.
+ *
+ * This is what lets a rung carry two things at once. Kesseböhmer's sheets show
+ * it plainly - a shelf RESTS ON the rung, and a hook rail or a YouboXx HOOKS
+ * OVER the same rung and hangs beneath it, and then the two are bolted together
+ * through a 1.5 mm packer. One rung, two parts, opposite sides.
+ *
+ * A shelf's plug is on its bearing face so its body is above it; a suspended
+ * element's plug comes off its mounting slot near the top so its body is below.
+ * Nothing has to be declared: the geometry already says which is which.
+ *
+ * Read off the component with no transform, because the solver's only rotational
+ * freedom is yaw - it turns the child about the vertical to oppose the facings -
+ * and yaw leaves y alone. So local answers the question as well as world does,
+ * for a great deal less work.
+ */
+export function snapBearingSide(component, snapId) {
+  const snap = component?.snaps?.find((s) => s.id === snapId);
+  const body = component?.body;
+  if (!snap || !body) return 'above';
+  const centreY = (body.min[1] + body.max[1]) / 2;
+  return centreY >= (snap.position?.[1] ?? 0) ? 'above' : 'below';
+}
+
+/**
  * The direction a snap looks, in component-local space.
  *
  * Two snaps connect only when their facings oppose. This replaces Mimeeq's

@@ -18,6 +18,7 @@ import {
 import {
   isGridCellId, parseGridCellId, gridAttachPoint, expandGridCells, cellsCovered,
 } from './grid.js';
+import { snapBearingSide } from './component.js';
 
 export class AssemblyError extends Error {
   constructor(message, { code, detail } = {}) {
@@ -234,7 +235,27 @@ export function worldSnaps(assembly, components, transforms) {
     return snap?.span || { cols: 1, rows: 1 };
   };
 
-  const occupiedSnaps = new Set();
+  // `${instanceId}::${snapId}` -> Set of sides taken ('above' | 'below').
+  //
+  // Not a boolean any more, because a rung legitimately carries two things: a
+  // shelf resting on it and an accessory hooked over it hanging beneath. What
+  // fills a socket is a SIDE of it, and only a second part wanting the same side
+  // is refused. See snapBearingSide.
+  const occupiedSnaps = new Map();
+  const occupySnap = (instanceId, snapId, side) => {
+    const key = `${instanceId}::${snapId}`;
+    if (!occupiedSnaps.has(key)) occupiedSnaps.set(key, new Set());
+    occupiedSnaps.get(key).add(side);
+  };
+
+  // The side of A's snap that B fills is decided by B's OWN body relative to
+  // B's own snap - the two snaps end up at the same point, and yaw does not
+  // move anything in y, so the child's local geometry answers it.
+  const sideFilledBy = (instanceId, snapId) => {
+    const instance = (assembly.instances || []).find((i) => i.instanceId === instanceId);
+    const component = instance && components.get(instance.componentId);
+    return snapBearingSide(component, snapId);
+  };
   // `${instanceId}::${gridId}` -> Set of covered cell keys.
   const occupiedCells = new Map();
 
@@ -255,13 +276,13 @@ export function worldSnaps(assembly, components, transforms) {
     if (fromCell) {
       occupyCells(c.fromInstanceId, fromCell, spanOf(c.toInstanceId, c.toSnapId));
     } else {
-      occupiedSnaps.add(`${c.fromInstanceId}::${c.fromSnapId}`);
+      occupySnap(c.fromInstanceId, c.fromSnapId, sideFilledBy(c.toInstanceId, c.toSnapId));
     }
 
     if (toCell) {
       occupyCells(c.toInstanceId, toCell, spanOf(c.fromInstanceId, c.fromSnapId));
     } else {
-      occupiedSnaps.add(`${c.toInstanceId}::${c.toSnapId}`);
+      occupySnap(c.toInstanceId, c.toSnapId, sideFilledBy(c.fromInstanceId, c.fromSnapId));
     }
   }
 
@@ -287,8 +308,13 @@ export function worldSnaps(assembly, components, transforms) {
     if (!transform || !component) continue;
 
     for (const snap of component.snaps) {
+      const taken = occupiedSnaps.get(`${instance.instanceId}::${snap.id}`);
       out.push(toWorld(instance.instanceId, transform, snap, {
-        occupied: occupiedSnaps.has(`${instance.instanceId}::${snap.id}`),
+        // Kept as a boolean for every caller that only wants "is anything on
+        // this", and joined by the set of sides for the one that needs to know
+        // whether there is still room underneath.
+        occupied: !!taken?.size,
+        occupiedSides: taken ? [...taken] : [],
         isGridCell: false,
       }));
     }
