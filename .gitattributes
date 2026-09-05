@@ -1,25 +1,33 @@
-# LINE ENDINGS, AND WHY THIS FILE EXISTS.
-#
-# Git on Windows defaults to core.autocrlf=true, so a fresh clone gets CRLF in
-# the working tree. That broke 27 tests with "SyntaxError: Invalid or unexpected
-# token" and no useful location, and it took a while to find: vitest transforms
-# a module by hoisting its imports to the top, and tools/inspect-model.mjs and
-# tools/declare.mjs both start with a `#!/usr/bin/env node` shebang. Hoisting
-# pushes the shebang to line 3, where it is a syntax error rather than a shebang.
-#
-# It surfaced here the moment a `git checkout` re-wrote those two files with
-# CRLF. On a machine that had never seen them any other way it would have been
-# the FIRST thing a new clone did, which is a poor welcome for a repo that has
-# just been published.
-#
-# So: LF in the working tree, everywhere, on every platform. The tools are run
-# by node, python and pwsh, all of which are happy with LF on Windows.
-* text=auto eol=lf
+# confgr-studio is CRLF throughout and tooling that string-matches source
+# depends on it. Keep this repo consistent with that.
+* text=auto eol=crlf
+*.glb binary
+*.ktx2 binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.xlsx binary
+*.stp binary
+*.step binary
 
-# Binary, so git never tries a line-ending or diff conversion on them.
-*.glb    binary
-*.png    binary
-*.pdf    binary
-*.xlsx   binary
-*.stp    binary
-*.step   binary
+# EXCEPTION, and it costs 27 tests if it is missing.
+#
+# vitest transforms a module by hoisting its imports to the very top of the
+# file. tools/inspect-model.mjs and tools/declare.mjs both open with a
+# `#!/usr/bin/env node` shebang, which hoisting pushes to line 3 - where it is
+# not a shebang any more, it is a syntax error. Under LF vitest strips it first
+# and all is well; under CRLF it does not, and the whole of tests/inspect and
+# tests/declare fail with "SyntaxError: Invalid or unexpected token" and no
+# location to work from.
+#
+# Found the hard way: a `git checkout` of those two files re-wrote them CRLF
+# mid-session and 27 tests went red with nothing in the diff to explain it. On a
+# machine that had never seen them any other way it would have been the first
+# thing a fresh clone did.
+#
+# Narrow on purpose. The repo stays CRLF as decided above; only the modules
+# vitest actually transforms are pinned to LF. Both files are mode 100644, so
+# the shebangs are decorative and could have been deleted instead - keeping
+# them, and keeping the rule, means the next tool that opens with one is safe
+# too.
+*.mjs text eol=lf
