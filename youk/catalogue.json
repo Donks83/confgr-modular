@@ -927,6 +927,17 @@
       ],
       "costEach": null,
       "priceEach": {}
+    },
+    "008551-clamping-angles-for-office-solution": {
+      "article": "008551",
+      "description": "YouK clamping angles for office solution",
+      "sizeMm": [
+        20,
+        60,
+        20
+      ],
+      "costEach": null,
+      "priceEach": {}
     }
   }
 }

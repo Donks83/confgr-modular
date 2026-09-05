@@ -1,7 +1,7 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `2efdfd9`, not from memory. Session 5 ran in eight parts: findings
+code at commit `9832779`, not from memory. Session 5 ran in nine parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
 Matt hit while using it, then twelve more parts of the range, then the timber —
 the first parts in the product that are ours rather than a supplier's — then
@@ -13,19 +13,22 @@ asked whether I had read the desktop sheet — I had, and checking it properly
 found that **the office arm does not hook a rung and I authored it as if it did**
 (§5.7's warning), which turned into the **`bolted` family** (§5.9): a part bolted
 to a named, verified hole in another part's face, with the 9° tilt falling out of
-it for the cost of one declared roll. And finally the repo went to GitHub.
+it for the cost of one declared roll. Then the **clamping angle** (§5.10), a
+20 mm bracket that corrected the family, the tool that measured it and the
+desktop's position — and corrected §5.9's own closing paragraph. And the repo
+went to GitHub.
 
 **Code:** `C:\Claude\confgr-modular` — git, 49 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
 **Tests:** 261 passing (`npm test`).
-**Components:** 76 — **36 of the 45 YouK parts, plus 40 timber parts generated
+**Components:** 77 — **37 of the 45 YouK parts, plus 40 timber parts generated
 rather than converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office
-desktops. The remaining 9 supplier parts convert cleanly and have no snaps
+desktops. The remaining 8 supplier parts convert cleanly and have no snaps
 authored — see §4.2 for what that costs.
 
-**Still to author:** the office clamping angle (008551) and top panel bracket
-(008552) — **both go in the `bolted` family** (§5.9), which now exists; neither
-has been measured; clothes-rail extensions (008533/34/35); umbrella stand (008565
+**Still to author:** the office top panel bracket (008552) — **not a bolted part
+after all** (§5.10); it hooks the TOP of a ladder stile, which nothing in the
+range does; clothes-rail extensions (008533/34/35); umbrella stand (008565
 ×2); newspaper-rack divider (008549); the adjustable foot (237023).
 
 **All the timber is in.** Shelves, cabinets and the office desktop.
@@ -273,8 +276,8 @@ that generates parts no supplier will ever send.
 | `tools/make-timber.py` | Generates the parts that have no supplier CAD. It writes `<id>.converted.glb` — the suffix `add-snaps.py` reads — so a part we invented enters the pipeline at the same door as a supplier part rather than taking a private route nothing checks. §5.5. |
 
 **Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
-from a 138,000-triangle worst case), **36 load as components with no blocker**,
-and 40 generated timber parts make **76 components in the palette.**
+from a 138,000-triangle worst case), **37 load as components with no blocker**,
+and 40 generated timber parts make **77 components in the palette.**
 
 The spec now has six families: `frames`, `span`, `hang`, `carcase`, `bolted` and
 `wall` — the last for parts that join nothing at all. What is authored per part
@@ -286,7 +289,7 @@ stays tiny, which is the point: an id, a depth, and one decision.
 | `span` | depth, `bearing` base or top | `y = 0`, or `maxY − topSheetMm` |
 | `hang` | depth, turning, and any `minRung` | **measured**, from the mounting slot |
 | `carcase` | depth, and what `carriedBy` | two plugs facing **down**, at the part's own ends, offset back-flush along the depth (§5.6, §5.7) |
-| `bolted` | which `holes` on the other part, and any declared `roll` | a plug at a **named** hole in the other part's face, **verified** against real geometry before anything is authored (§5.9) |
+| `bolted` | which `holes`, on which `face`, with which `mask`, and any declared `roll` | a plug at a **named** hole in the other part's face, **verified** against real geometry before anything is authored (§5.9). A `slotEnds` hole is a slot, verified at both ends and on the line between them (§5.10) |
 | `wall` | nothing — it joins nothing | no plug; declares `mounting: "wall"` |
 
 `holes` and `carries` are **not** part of any family: `build()` composes them
@@ -398,7 +401,8 @@ This is the honest half of the document.
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
-| **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part. **Two parts still unauthored:** the clamping angle (008551) and the 008552 top-panel bracket. Both belong in this family; neither has been measured. |
+| **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
+| **A part on the TOP of a ladder** | **Nothing.** The 008552 top-panel bracket drops over the top of a ladder stile and carries a board across both ladders — the third way a board attaches, and the only part in the range that meets the ladder anywhere but a rung. `frames` authors sockets at rungs only. It is measured (§5.10) and not authored. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
@@ -1258,15 +1262,18 @@ snapped GLBs. A 900 desktop went 890.1 → **835.6 mm**.
 
 | Scenario | Result |
 |---|---|
-| `office` | Plates at 3.6 / 916.5 (mirrored — one part serves both ladders), arms at 42.3 / 877.9, desktop **centred at 460.1**, z 145.0 with its back edge on the wall line. 8 parts, 7 joints. |
+| `office` | Plates at 3.6 / 916.5 (mirrored — one part serves both ladders), arms at 42.3 / 877.9, desktop **centred at 460.1**, z 145.0 with its back edge on the wall line. 8 parts, 7 joints. *(z is now 150.0 — the clamping angle moved it 5 mm, §5.10.)* |
 | `officetilt` | Identical clicks, `choose:1` at each arm. Arms drop to 554.9, and the desk **resolves** instead of landing at the origin. |
 
 `tools/find-holes.py` (`npm run holes`) reports the bolt holes on a named face by
 clustering vertices that lie on that plane. Reporting only — which hole means
 what stays in the spec, where a person can check it.
 
-**Still not authored:** the clamping angle (008551, step 4) and the 008552
-top-panel bracket. Both now have a family to go in; neither has been measured.
+**Still not authored** at the time: the clamping angle (008551, step 4) and the
+008552 top-panel bracket. ~~Both now have a family to go in.~~ **Half right, and
+§5.10 says which half.** The clamping angle is in. The top-panel bracket is not a
+bolted part at all — it drops over the top of a ladder stile, which I had not
+checked when I wrote that sentence.
 
 **One question for Matt.** `.gitattributes` forces CRLF across the repo, and the
 reason written in it is *consistency with confgr-studio*, not a requirement of
@@ -1276,6 +1283,87 @@ hoisting puts a shebang on line 3, which is a syntax error; the narrow
 `*.mjs text eol=lf` exception is the fix that is in). Worth deciding whether the
 repo-wide policy is still earning its keep, or whether this repo should just be
 LF and leave Studio to its own rule.
+
+### 5.10 The clamping angle — a small part that corrected three larger things
+
+`Office solution` **step 4**, and the second part in the range to bolt to a face.
+It stands at the **rear end of the arm** and its top foot laps forward over the
+board; **step 6 draws a tick and a cross** for whether the board's back edge is
+against its upstand. So this is the first part in the range that gives the
+desktop a physical reference for where it sits, and it promptly found that the
+desktop was in the wrong place.
+
+**It also corrected §5.9's own last paragraph.** That paragraph said both
+remaining office parts "have a family to go in". One does. The other, the 008552
+top-panel bracket, **drops down over the top of a ladder stile** — its sheet's
+green arrow points straight down onto it — and bolts to nothing. Written as a
+guess about a part whose sheet I had not opened, one sentence after a section
+about exactly that mistake.
+
+**Measured, then declared, then verified:**
+
+| | |
+|---|---|
+| The arm's rear end plate | a **Ø5 vertical slot**, x 15.00, ends at **y 23.00 and 38.00** — 15 mm of travel |
+| The angle's leg | 3 mm thick; a **tapped M4 hole**, Ø4 outside and Ø3.3 core, at x 0.00, **y 14.98** |
+| Where it sits | **y 34.5**, 77% along the slot |
+
+y 34.5 is arithmetic, not preference: the arm carries at 51.5 (its own 50 plus
+the 1.5 packer), so a 25 mm board's top is 76.5; the angle's foot underside is
+56.98 up its own leg and its hole 14.98 up from its base; 76.5 − 56.98 + 14.98 =
+**34.5**. A thicker board is a different number here, not a different part — which
+is what the slot is for.
+
+**Three things the part forced, each of them a limit the family did not know it had:**
+
+1. **A part can be bolted on AND be a bolt-on host.** The arm bolts to the plate
+   on its web and hosts the angle on its end: two joints, two masks, one part.
+   `face` and `mask` are now per hole, defaulting to the part's own. Sharing one
+   mask would have let a clamping angle bolt to a plate.
+2. **The face plane is the hole's own coordinate, not the bounding box.** The
+   angle bolts on the **inner** surface of its 3 mm leg, at z −6.99 of a part
+   that runs to −9.99 — no extreme face involved. Every hole already gave all
+   three coordinates, so this removed a concept instead of adding one, and the
+   plane is still checked: a face with fewer than 8 vertices on it is refused.
+3. **A slot is a line, and `slotEnds` says so.** Both ends are verified against
+   real geometry *and* the chosen point must lie on the segment between them. A
+   slot is therefore a **tighter** check than a hole, never a way round one.
+
+**And `find-holes` was quietly reporting the wrong number.** The slot's ends went
+into the spec as 21.75 and 39.25 — **1.25 mm out at both ends** — because the tool
+reported each half arc's *bounding-box* centre, which for half a circle sits a
+quarter-diameter off. It verified anyway: 1.25 mm is well inside the 3.5 mm search
+tolerance, so the check that exists to catch exactly this said nothing. The tool
+now **fits a circle** and reports how much of it it actually saw, so an arc
+announces itself as an arc; the ends measure 23.00 and 38.00, and the joint
+verifies at **2.50 mm from real geometry** — the radius of a Ø5 hole, dead centre,
+like every other hole in the family. *A tool that reports a plausible wrong
+number is worse than one that reports nothing.*
+
+**The 5 mm it caught in the desk.** With the angle in place the board passed
+straight through it. Back-flush (§5.7) offset the desktop by half the difference
+between its depth and the **nominal ladder depth** — but the arm is 310 mm long on
+a 320 mm ladder, so the board sat 5 mm behind the end it is supposed to butt
+against. The fix is `carriesBackStop` on the arm: the socket moves half a
+ladder-depth forward of the part's own rear end, which lands the board's back edge
+on that end whatever the board's depth. **Deliberately not made universal.** The
+same formula applied to every carrier moves each cabinet 2.5 mm forward, because a
+cabinet bracket is 315 mm on a 320 mm ladder — and a cabinet has nothing to butt
+against, so centred is right and §5.6 verified it. A rule that is true because one
+part has a stop bolted to it belongs on that part.
+
+**Verified in the app:**
+
+| Scenario | Result |
+|---|---|
+| `officeclamp` | Angles at **57.2 / 862.9, y 594.5**, z ∓143.0 — mirrored with the arms. Foot underside at 594.5 + 56.98 = **651.5**, and the desktop's top at 626.5 + 25 = **651.5**: the foot lands flat on the board. 10 parts, 9 joints. |
+| `office`, `officetilt`, `carcase` | Desktop back edge moves 145.0 → **150.0**, onto the arm's rear end. Cabinets **unchanged at 0.0**, which is the check that the stop stayed on the part that has one. |
+
+**Still not authored:** the 008552 top-panel bracket. It needs a socket at the
+**top of a ladder stile**, which `frames` does not author — the frame family puts
+sockets at rungs, and this is the first part in the range to meet the ladder
+anywhere else. Sized 60 × 18 × 20, a cranked strap with one hole in its low leg
+and two in the high one, and 30 mm of ledge standing 15 mm proud per its sheet.
 
 ---
 
@@ -1664,6 +1752,29 @@ reason* instead of reading it — the same class of error as the arm, four commi
 later — then reverted and fixed the actual fault (vitest hoists imports above a
 shebang, so a CRLF `.mjs` breaks) with a narrow `*.mjs text eol=lf` exception,
 verified from a fresh checkout.
+
+**Then the clamping angle, 76 → 77 components.** Still 261 tests (§5.10). Twenty
+millimetres of bracket, and it corrected three things larger than itself: the
+`bolted` family (a part can be bolted on *and* be a bolt-on host, on a face that
+need not be the part's extreme, through a **slot** rather than a hole);
+`find-holes`, which had been reporting each half arc's bounding-box centre and so
+put the slot's ends in the spec 1.25 mm out at each end — **and they verified
+anyway**, because 1.25 mm is inside the search tolerance; and the desktop, which
+was sitting 5 mm too far back and only showed it when a physical stop was put
+where its back edge is supposed to land.
+
+The last of those is the one worth keeping. Back-flush had been derived from a
+nominal ladder depth. The arm is 310 mm on a 320 mm ladder, so the derivation was
+never checked against anything until a part existed that the board could collide
+with. The fix went on **the arm alone**: the same formula applied to every carrier
+would have moved every cabinet 2.5 mm to satisfy a piece of metal that only exists
+on the desk.
+
+And the section written two commits earlier closed by saying both remaining office
+parts had a family to go in. One did. The 008552 top-panel bracket drops over the
+top of a ladder stile — its own sheet's green arrow points straight down onto it —
+and bolts to nothing. **A guess about a part whose sheet I had not opened, one
+sentence after a section about exactly that mistake.**
 
 ### Session 4 — 4 September 2026
 

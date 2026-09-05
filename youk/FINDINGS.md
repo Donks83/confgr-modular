@@ -655,6 +655,13 @@ This is the third distinct way a board attaches, and it is the one that produces
 the flush top seen in most of the marketing photography. The other two are: on a
 rung like the metal shelf, and on the office-solution arms.
 
+**Measured, not authored.** 60 × 18 × 20: a cranked strap, a low leg with one
+hole and a high leg with two, the crank 14 mm. It needs a socket at the **top of
+a ladder stile**, and `frames` authors sockets at rungs only — so this is the
+first part in the range that meets the ladder anywhere but a rung, and the reason
+it is still out. It was briefly written down as a `bolted` part on the strength
+of a slot search that had only ever been asked about rungs; it bolts to nothing.
+
 ## Carcase bracket 008557–008560 — how a cabinet hangs
 
 `Carcass holder`, 5 pages. Two bracket types and they are not interchangeable.
@@ -720,6 +727,14 @@ The last two join part-to-part. Nothing in the range did that before and the
 engine has no family for it, so they are **not authored** — a fact about the
 engine rather than a step somebody forgot.
 
+> **Both halves of that turned out wrong, and in opposite directions.** The
+> `bolted` family exists now, so "no family for it" is retired — and the CLAMPING
+> ANGLE is authored in it (below). But the top panel bracket does **not** join
+> part-to-part at all: its own sheet drops it over the top of a ladder stile.
+> The slot search finding no slot meant only that it does not hook a *rung*.
+> Two parts came out of one search with one answer, and only one of them was
+> about the same joint.
+
 **The arm's offset is 15.0 mm, not the cabinet bracket's 15.1.** So a bay whose
 ladders sit 920.1 mm apart puts the two arms 890.1 mm apart, where the two
 cabinet brackets sit 889.9. A tenth of a millimetre, and the reason the desktop
@@ -727,10 +742,12 @@ reads its own bracket rather than borrowing the cabinet's number.
 
 **Step 6's tick and cross is a placement rule.** The desktop's rear edge must sit
 against the bracket upstand, so a carried part sits **back flush** with the back
-of the ladder rather than centred on the brackets. A cabinet is as deep as its
-ladder and so comes out centred anyway; a 600 mm desktop on a 320 mm ladder needs
-its plugs 140 mm behind its own middle, or 140 mm of desk ends up inside the wall
-while still looking right from the front.
+of the ladder rather than centred on the brackets. ⚠ **"The back of the ladder"
+is 5 mm out** — the upstand is the clamping angle, and it stands at the back of
+the ARM, which is 310 mm long on a 320 mm ladder. Corrected below.
+A cabinet is as deep as its ladder and so comes out centred anyway; a 600 mm
+desktop on a 320 mm ladder needs its plugs 140 mm behind its own middle, or
+140 mm of desk ends up inside the wall while still looking right from the front.
 
 **The rung-3 rule is now enforced.** Both 008551 parts carry `minRung: 3` in
 `youk/snap-spec.json`, which `add-snaps` expands into an explicit allow-list of
@@ -813,11 +830,39 @@ distinguishes flat from tilted, and the reconciliation to Kesseböhmer's stated
 the pass that resolved this started at the drawing. The numbers had been sitting
 here, complete and correct, for a session.
 
-**Also still open:** the clamping angle (step 4) bolts to the arm, and that joint
-is not modelled. It has a family to go in now — the same `bolted` family — but it
-has not been measured. The interpenetration described here is gone: the arm no
-longer takes a rung of its own, so it sits on the plate's face 42.25 mm inboard
-of the ladder centre rather than alongside the plate at ±15.0.
+**Also once open, now closed:** the clamping angle (step 4). It is authored, in
+the same `bolted` family — see below. The interpenetration described here is gone
+too: the arm no longer takes a rung of its own, so it sits on the plate's face
+42.25 mm inboard of the ladder centre rather than alongside the plate at ±15.0.
+
+### The clamping angle — what step 4 actually does
+
+Read off the sheet, not inferred. The angle stands at the **rear end of the arm**,
+its leg against the arm's rear end plate and its **top foot lapping forward over
+the board**. Step 6's tick and cross is whether the board's back edge is against
+that leg or short of it.
+
+| | |
+|---|---|
+| The arm's rear end plate | a **Ø5 vertical slot**, x 15.00, ends **y 23.00 and 38.00** — 15 mm of travel. (A second Ø5 slot lies horizontally at y 10.00, x −13.00 to 2.00; nothing in the sheet uses it.) |
+| The angle | 20 × 60 × 20, leg **3 mm** thick, mating on its INNER face at z −6.99 |
+| Its hole | **tapped M4** — Ø4 outside, Ø3.3 core — at x 0.00, **y 14.98** |
+| Its foot | underside at **y 56.98**, 3 mm thick, projecting 17 mm forward |
+| Fitted for a 25 mm board | hole at **y 34.5**, 77% along the slot |
+
+The slot is why the sheet needs no second part for a different board: 76.5 (a
+25 mm board's top, on the arm's 51.5 carrying face) − 56.98 + 14.98 = 34.5, and a
+thicker board is a different number, not a different bracket.
+
+**Two numbers here were wrong for an hour, both from tools rather than drawings.**
+The slot ends went in as 21.75 and 39.25, because `find-holes` reported each half
+arc's *bounding-box* centre — a quarter-diameter off for half a circle — and they
+**verified anyway**, 1.25 mm being well inside the 3.5 mm search tolerance. And
+the desktop was 5 mm too far back, because back-flush had been measured against
+the nominal ladder depth rather than against the end of the bracket the board
+actually meets. The clamping angle found the second one by having the board pass
+straight through it. `find-holes` now fits a circle and says how much of it it
+saw.
 
 **And the rule that appears nowhere else in the range.** ⚠ **The next four
 paragraphs are WRONG and are kept only because the correction later in this file

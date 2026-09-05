@@ -1,8 +1,11 @@
 {
   "confgr": {
-    "widthMm": 20,
-    "heightMm": 60,
-    "depthMm": 20,
+    "widthMm": 20.0,
+    "heightMm": 60.0,
+    "depthMm": 20.0,
     "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-office-clamp.clamp": "plug"
   }
 }

@@ -8,6 +8,7 @@
   "confgrRoles": {
     "md-snap.youk-office-arm.bolt-flat": "plug",
     "md-snap.youk-office-arm.bolt-tilt9": "plug",
+    "md-snap.youk-office-clamp.clamp": "socket",
     "md-snap.youk-desktop-d320.carries": "socket"
   },
   "confgrRolls": {

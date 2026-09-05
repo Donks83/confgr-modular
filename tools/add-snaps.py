@@ -320,15 +320,35 @@ def carries_socket(mesh, part, spec):
     `Carcass holder` step 5 and `Office solution` step 7 both put the usual
     1.5mm packer between bracket and the underside above it, so the socket sits
     a packer above the part's own highest point - measured, not declared.
+
+    IN Z the socket sits at the part's own middle, UNLESS the part declares
+    `carriesBackStop` - it has something at its rear end for the carried part to
+    sit against. The office arm does: `Office solution` step 4 bolts a CLAMPING
+    ANGLE there and step 6 draws a tick and a cross for whether the board's back
+    edge is against its upstand. The arm is 310mm long on a 320mm ladder, so
+    back-flush measured off the nominal ladder depth put the board 5mm too far
+    back and it passed straight through the angle. With the stop declared, the
+    socket moves half a ladder-depth forward of the part's own rear end, which
+    lands the board's back edge on that end whatever the board's depth.
+
+    Deliberately NOT the rule for everything. A cabinet bracket is 315mm on a
+    320mm ladder and has no stop of any kind: its cabinet is centred, which is
+    what §5.6 verified and what a symmetric part with nothing to butt against
+    should do. Making this universal would have moved every cabinet 2.5mm
+    forward to satisfy a piece of metal that only exists on the desk.
     """
-    top_y = float(mesh.vertices[:, 1].max()) * 1000.0
+    v = mesh.vertices * 1000.0
+    top_y = float(v[:, 1].max())
     packer = float(spec.get("topSheetMm", 1.5))
+    z = 0.0
+    if part.get("carriesBackStop"):
+        z = float(v[:, 2].min()) + float(part["depth"]) / 2.0
     return [{
         "name": f"md-snap.youk-{part['carries']}-d{part['depth']}.carries",
-        "position_mm": (0.0, top_y + packer, 0.0),
+        "position_mm": (0.0, top_y + packer, z),
         "facing": "+y",
         "role": "socket",
-    }], {"carriesY_mm": round(top_y + packer, 2)}
+    }], {"carriesY_mm": round(top_y + packer, 2), "carriesZ_mm": round(z, 2)}
 
 
 def carcase_snaps(mesh, part, spec):
@@ -390,8 +410,27 @@ def bolted_snaps(mesh, part, spec):
 
     Spec shape:
 
-        face:  "-x" | "+x" | "-z" | "+z"   which face bolts on
-        holes: [ { label, y, z, roll?, role? }, ... ]   positions ON that face
+        face:      "-x" | "+x" | "-y" | "+y" | "-z" | "+z"   the part's own face
+        boltMask:  the mask that face's holes join on
+        holes: [ { label, x, y, z, role?, roll?, face?, mask?, slotEnds? }, ... ]
+
+    Every hole gives all three coordinates. The one along its face's axis IS
+    the face plane - it is not read off the bounding box - so a face that is
+    not the part's extreme needs no new field: the clamping angle bolts on the
+    INNER surface of its own 3mm leg, at z -6.99 of a part that runs to -9.99.
+    The plane is then checked like everything else: a face with fewer than 8
+    vertices on it is refused, so a typo names a face that is not there.
+
+    `face` and `mask` may be given PER HOLE, defaulting to the part's own. A
+    part is not limited to one bolted joint: the office arm bolts to the plate
+    on its web (-x) and hosts the clamping angle on its rear end (-z), and the
+    two joints must not share a mask or a clamping angle would bolt to a plate.
+
+    `slotEnds` says the hole is a SLOT - two ends, and the chosen position
+    between them. The arm's rear end has one so the clamping angle can be set
+    to the thickness of the board. Both ends are verified against real geometry
+    AND the chosen point must lie on the segment between them, so declaring a
+    slot is a tighter check than declaring a hole, never a way round one.
 
     `roll` is a turn about the joint axis, in degrees. The plate carries two
     sets of holes: level, and dropping 39.11mm over 246.92mm, which is 9.000
@@ -399,55 +438,104 @@ def bolted_snaps(mesh, part, spec):
     """
     import numpy as np
 
-    face = part.get("face")
-    if face not in FACING_QUAT:
-        raise RuntimeError(f'bolted part needs a face, one of {sorted(FACING_QUAT)}')
-    axis = {"x": 0, "y": 1, "z": 2}[face[1]]
     v = mesh.vertices * 1000.0
-    plane = v[:, axis].max() if face[0] == "+" else v[:, axis].min()
+    lo, hi = v.min(axis=0), v.max(axis=0)
 
-    # The two in-plane axes, in the order the spec writes them.
-    across = [i for i in (0, 1, 2) if i != axis]
-    on = v[np.abs(v[:, axis] - plane) <= HOLE_PLANE_TOL_MM]
-    if len(on) < 8:
-        raise RuntimeError(
-            f"face {face} at {plane:.2f}mm has only {len(on)} vertices - wrong face?"
-        )
+    holes = part.get("holes", [])
+    if not holes:
+        raise RuntimeError("bolted part declares no holes")
 
-    mask = f"youk-{part['boltMask']}"
-    snaps = []
-    for hole in part.get("holes", []):
-        # Take the two in-plane coordinates in axis order, so the spec writes
-        # (y, z) for an x-face and (x, y) for a z-face without saying which.
-        want = np.array([float(hole["xyz"[a]]) for a in across])
-        near = on[:, across]
-        d = np.linalg.norm(near - want, axis=1)
-        if d.min() > HOLE_FIND_TOL_MM:
+    snaps, report = [], []
+    for hole in holes:
+        label = hole.get("label", "?")
+        face = hole.get("face", part.get("face"))
+        if face not in FACING_QUAT:
             raise RuntimeError(
-                f'no hole within {HOLE_FIND_TOL_MM}mm of {hole["label"]} at '
-                f'{tuple(want)} on face {face} - nearest vertex is {d.min():.2f}mm '
-                f"away. The spec names holes; if the geometry moved, the spec is "
-                f"what has to change, deliberately."
+                f'hole {label} needs a face, one of {sorted(FACING_QUAT)}'
             )
+        bolt_mask = hole.get("mask", part.get("boltMask"))
+        if not bolt_mask:
+            raise RuntimeError(f"hole {label} has no mask, and the part sets none")
+        mask = f"youk-{bolt_mask}"
+
+        axis = {"x": 0, "y": 1, "z": 2}[face[1]]
+        # The two in-plane axes, in the order the spec writes them, so a hole
+        # reads as (y, z) on an x-face and (x, y) on a z-face without saying so.
+        across = [i for i in (0, 1, 2) if i != axis]
+        if "xyz"[axis] not in hole:
+            raise RuntimeError(
+                f'hole {label} on face {face} gives no {"xyz"[axis]} - that '
+                f"coordinate IS the face plane and has to be declared"
+            )
+        plane = float(hole["xyz"[axis]])
+        if not (lo[axis] - HOLE_PLANE_TOL_MM <= plane <= hi[axis] + HOLE_PLANE_TOL_MM):
+            raise RuntimeError(
+                f'hole {label} puts face {face} at {plane:.2f}mm, outside the '
+                f"part ({lo[axis]:.2f} to {hi[axis]:.2f}mm)"
+            )
+
+        on = v[np.abs(v[:, axis] - plane) <= HOLE_PLANE_TOL_MM]
+        if len(on) < 8:
+            raise RuntimeError(
+                f"face {face} at {plane:.2f}mm has only {len(on)} vertices - wrong face?"
+            )
+        near = on[:, across]
+
+        def at(d):
+            return np.array([float(d["xyz"[a]]) for a in across])
+
+        want = at(hole)
+        ends = hole.get("slotEnds")
+        if ends is not None and len(ends) != 2:
+            raise RuntimeError(f"hole {label}: slotEnds needs exactly two ends")
+
+        found = []
+        for target in ([at(e) for e in ends] if ends else [want]):
+            d = np.linalg.norm(near - target, axis=1)
+            if d.min() > HOLE_FIND_TOL_MM:
+                raise RuntimeError(
+                    f"no hole within {HOLE_FIND_TOL_MM}mm of {label} at "
+                    f"{tuple(target)} on face {face} - nearest vertex is "
+                    f"{d.min():.2f}mm away. The spec names holes; if the geometry "
+                    f"moved, the spec is what has to change, deliberately."
+                )
+            found.append(round(float(d.min()), 2))
+
+        if ends:
+            a, b = at(ends[0]), at(ends[1])
+            along = b - a
+            span = float(np.dot(along, along))
+            if span <= 0:
+                raise RuntimeError(f"hole {label}: both slot ends are the same point")
+            t = float(np.dot(want - a, along) / span)
+            off = float(np.linalg.norm(a + t * along - want))
+            if not (0.0 <= t <= 1.0) or off > HOLE_PLANE_TOL_MM:
+                raise RuntimeError(
+                    f"{label} at {tuple(want)} is not ON the slot from {tuple(a)} "
+                    f"to {tuple(b)}: {off:.2f}mm off the line, {t * 100:.0f}% along "
+                    f"it. A slot is a line, and where a part sits on it is a "
+                    f"decision that still has to land on the metal."
+                )
+
         pos = [0.0, 0.0, 0.0]
         pos[axis] = plane
         for i, a in enumerate(across):
             pos[a] = float(want[i])
         snaps.append({
-            "name": f'md-snap.{mask}.{hole["label"]}',
+            "name": f"md-snap.{mask}.{label}",
             "position_mm": tuple(pos),
             "facing": face,
             "role": hole.get("role", "socket"),
             "roll": float(hole.get("roll", 0.0)),
-            "_found_mm": round(float(d.min()), 2),
+        })
+        report.append({
+            "label": label, "mask": mask, "face": face,
+            "role": hole.get("role", "socket"),
+            "plane_mm": round(plane, 2), "roll": float(hole.get("roll", 0.0)),
+            "found_mm": max(found), "slot": bool(ends),
         })
 
-    if not snaps:
-        raise RuntimeError("bolted part declares no holes")
-    return snaps, {
-        "mask": mask, "face": face, "plane_mm": round(float(plane), 2),
-        "holes": [(s["name"].split(".")[-1], s["roll"], s["_found_mm"]) for s in snaps],
-    }
+    return snaps, {"holes": report}
 
 
 def build(glb, part, spec, kind, out_path):
@@ -603,12 +691,13 @@ def main():
                   f'{len(snaps):>2} snaps, {nodes} nodes')
             bolt = detail if kind == "bolted" else detail.get("bolted")
             if bolt:
-                print(f'  {"":<46}       bolts on face {bolt["face"]} '
-                      f'at {bolt["plane_mm"]} mm')
-                for label, roll, off in bolt["holes"]:
-                    tilt = f'roll {roll:+.0f} deg' if roll else 'flat'
-                    print(f'  {"":<46}         {label:<18} {tilt:<12} '
-                          f'hole verified, {off} mm from real geometry')
+                for h in bolt["holes"]:
+                    tilt = f'roll {h["roll"]:+.0f} deg' if h["roll"] else 'flat'
+                    what = "slot" if h["slot"] else "hole"
+                    print(f'  {"":<46}       {h["label"]:<18} {h["role"]:<6} '
+                          f'{h["mask"]:<18} face {h["face"]} at {h["plane_mm"]:>8.2f} mm  '
+                          f'{tilt:<12} {what} verified, {h["found_mm"]} mm from '
+                          f'real geometry')
 
             if kind == "bolted":
                 pass
@@ -632,8 +721,11 @@ def main():
             # Outside the family branches: what a part carries no longer depends
             # on how it is held.
             if detail.get("carriesY_mm") is not None:
+                where = ('centred' if not detail["carriesZ_mm"]
+                         else 'back edge on its own rear end, where the stop is')
                 print(f'  {"":<46}       carries a part at y '
-                      f'{detail["carriesY_mm"]} mm (its own top + packer)')
+                      f'{detail["carriesY_mm"]} mm (its own top + packer), '
+                      f'z {detail["carriesZ_mm"]} mm - {where}')
 
             # The roles go in the sidecar, which declare.mjs then applies. Kept
             # separate on purpose: the sidecar is what a human reviews.

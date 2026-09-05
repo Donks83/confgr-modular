@@ -557,10 +557,59 @@
           "z": -130,
           "role": "plug",
           "roll": 9
+        },
+        {
+          "label": "clamp",
+          "x": 15,
+          "y": 34.5,
+          "z": -155,
+          "face": "-z",
+          "mask": "office-clamp",
+          "role": "socket",
+          "slotEnds": [
+            { "x": 15, "y": 23.0 },
+            { "x": 15, "y": 38.0 }
+          ]
         }
       ],
       "carries": "desktop",
+      "carriesBackStop": true,
       "depth": 320
+    },
+    {
+      "id": "008551-clamping-angles-for-office-solution",
+      "boltMask": "office-clamp",
+      "face": "+z",
+      "holes": [
+        {
+          "label": "clamp",
+          "x": 0,
+          "y": 14.98,
+          "z": -6.99,
+          "role": "plug"
+        }
+      ]
     }
+  ],
+  "_clampingAngle": [
+    "Office solution step 4. The clamping angle stands at the REAR end of the",
+    "arm and its top foot laps forward over the desktop; step 6 draws a tick and",
+    "a cross for whether the board's rear edge is against its upstand or not.",
+    "It bolts through a VERTICAL SLOT in the arm's rear end plate - Ø5, x 15,",
+    "ends at y 23.0 and y 38.0 - and the slot is there because where the angle",
+    "sits depends on how thick the board is.",
+    "",
+    "y 34.5 is that decision for the range's only board, 25mm: the arm carries",
+    "at y 51.5 (its own 50 top plus the 1.5 packer), so the board's top is 76.5,",
+    "the angle's foot underside is 56.98 up its own leg, and its hole is 14.98",
+    "up from its base. 76.5 - 56.98 + 14.98 = 34.5, which is 77% along the slot.",
+    "A different board thickness is a different number here, not a different",
+    "part - which is exactly what Kesseboehmer put a slot there for.",
+    "",
+    "The slot ends were first written down as 21.75 and 39.25, off by 1.25 at",
+    "each end, because find-holes reported each half arc's BOUNDING BOX centre.",
+    "They verified anyway - 1.25mm is well inside the search tolerance. The tool",
+    "now fits a circle and says how much of it it saw, which is the only reason",
+    "these two numbers are right."
   ]
 }
