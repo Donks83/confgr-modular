@@ -1,18 +1,21 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `af8f7f1`, not from memory. Session 5 ran in three parts: findings
+code at commit `b34234b`, not from memory. Session 5 ran in four parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
-Matt hit while using it, then twelve more parts of the range.
+Matt hit while using it, then twelve more parts of the range, then the timber —
+the first parts in the product that are ours rather than a supplier's.
 
-**Code:** `C:\Claude\confgr-modular` — git, 34 commits, **local only, no remote.**
+**Code:** `C:\Claude\confgr-modular` — git, 36 commits, **local only, no remote.**
 **Tests:** 227 passing (`npm test`).
-**Components:** 34 of 45 YouK parts. The remaining 11 convert cleanly and have no
-snaps authored — see §4.2 for what that costs.
+**Components:** 42 — **34 of the 45 YouK parts, plus 8 timber shelves generated
+rather than converted** (§5.5). The remaining 11 supplier parts convert cleanly
+and have no snaps authored — see §4.2 for what that costs.
 
 **Still to author:** office solution (008551 ×3, 008552), clothes-rail extensions
 (008533/34/35), umbrella stand (008565 ×2), newspaper-rack divider (008549), the
-adjustable foot (237023). Plus the timber, which has no CAD by design.
+adjustable foot (237023). Plus the timber cabinets, which need the cabinet
+brackets to offer a socket as well as a plug.
 
 **Related documents**
 
@@ -65,14 +68,22 @@ tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regressi
                               hooks      a width hook strip spanning a bay
                               wallfixed  the shoe rack, which joins nothing
                               cabinets   carcase brackets on both frames
+                              timber     a timber shelf and a metal one in one bay
                               mount      floor / floating / feet, read from the scene
                               palette    what every palette entry actually says
 ```
+
+There is also `-Steps '<click string>'`, which runs an ad-hoc sequence instead of
+a named scenario and captures to `youk/steps.png`. Marker indices shift as the
+scene grows, so working out what marker 3 refers to is a question for the running
+app, not for the spec file. Nothing found this way should be committed as a
+scenario until it says something.
 
 **Adding parts is a pipeline, not an edit.** `youk/snap-spec.json` holds the
 decisions; everything else is mechanics:
 
 ```
+npm run youk:timber      generate the parts that have no supplier CAD (§5.5)
 npm run youk:snap        author the snap planes from the spec
 npm run declare youk     write size and roles into the GLBs
 npm run inspect youk     what still blocks each part
@@ -102,7 +113,8 @@ it. Studio composites rendered images; this renders real geometry. The line, and
 what gets copied rather than shared, is set out in §3.2 of the plan.
 
 The **benchmark project** is **Kesseböhmer's YouK shelving range** — 45 supplier
-CAD files, of which 22 are now configurable components. It is the development
+CAD files, of which 34 are now configurable components, plus 8 timber parts that
+have no supplier CAD and never will (§5.5). It is the development
 driver, not the deliverable: it is what proves the application can take a real
 range from supplier CAD to a priced configurator. Kesseböhmer is a partnership
 prospect, not a PWS channel. See §2.
@@ -206,7 +218,8 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.2 The supplier model pipeline — built, but command-line only
 
-Five tools, all documented, all with real supplier files through them.
+Five tools, all documented, all with real supplier files through them — and one
+that generates parts no supplier will ever send.
 
 | Tool | Does |
 |---|---|
@@ -215,9 +228,11 @@ Five tools, all documented, all with real supplier files through them.
 | `tools/declare.mjs` | Writes the real-world size and the snap roles into the GLB's scene extras (Blender cannot write these). |
 | `tools/inspect-model.mjs` | Says what a model is and what stands between it and being a component. Reports every fault at once, ordered by fix precedence. Modifies nothing. |
 | `tools/measure-part.py`, `tools/check-joint.py` | Find a part's features; place two parts together and report whether the metal actually fits. |
+| `tools/make-timber.py` | Generates the parts that have no supplier CAD. It writes `<id>.converted.glb` — the suffix `add-snaps.py` reads — so a part we invented enters the pipeline at the same door as a supplier part rather than taking a private route nothing checks. §5.5. |
 
 **Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
-from a 138,000-triangle worst case), **34 load as components with no blocker.**
+from a 138,000-triangle worst case), **34 load as components with no blocker**,
+and 8 generated timber shelves make **42 components in the palette.**
 
 The spec now has four families rather than three: `frames`, `span`, `hang` and
 `wall` — the last for parts that join nothing at all. What is authored per part
@@ -323,10 +338,10 @@ This is the honest half of the document.
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
 | **Derived BOM lines** | Nothing. Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. Build the mechanism once for all three. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
-| **Timber parts** | Nothing yet. Spec agreed (25 mm, 450/600/900/1200, six-piece boxes) and the brackets that carry them are now in, so this is next and needs no CAD from Kesseböhmer. |
+| **Timber parts** | **Shelves done** — 8 of them, generated rather than converted, unpriced (§5.5). **Cabinets not started:** the six-piece boxes need the cabinet brackets to offer a *socket* as well as their plug, which they do not yet have. |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Thirty-four commits of work exist on one
+There is also **no git remote.** Thirty-six commits of work exist on one
 machine. That is the single cheapest risk on this list to retire.
 
 ### 3.7 Plumbing wired in main, with no UI
@@ -846,6 +861,52 @@ a new `palette` harness step rather than a screenshot, because a wrong label is
 invisible in a picture and invisible in the status line — which is how this
 survived a whole session.
 
+### 5.5 The first parts that are ours, and the door they had to come in through
+
+Almost every shelf in Kesseböhmer's own photography is timber, and **none of it
+is theirs.** The brochure says so in their words (page 3): the wooden shelves
+*"are made individually by a carpenter (or woodworker) and are therefore not
+included in the YouK range"*. There is no STEP file coming for these, ever. A
+configurator that waits for one shows a steel frame where the customer expects
+furniture, and the range's most photographed component is missing.
+
+So `tools/make-timber.py` generates them: **8 shelves — 4 lengths × 2 ladder
+depths, 25 mm boards with a 1.5 mm chamfer**, to Matt's spec of 5 September.
+
+**The design decision worth keeping is where they enter the pipeline.** The
+script writes `<id>.converted.glb` — a finished component would have been fewer
+steps — because that suffix is what `add-snaps.py` reads. A part we invented
+therefore goes through snap authoring from the spec, `declare`, `inspect`,
+`check-joint` and the catalogue exactly as a supplier part does. *A part we made
+up is the last thing that should skip the checks*, and it earned that twice in
+one session:
+
+- **A tenth of a millimetre.** The first run read the 900's overall length off
+  its own geometry as 950.2 mm, where the pipeline reports 950.1 for the
+  equivalent metal shelf. That would have set timber frames 920.2 mm apart
+  against metal's 920.1 — invisible, and completely wrong, because the whole
+  claim is that **a bay carries either**. Two parts asking for bays a tenth of a
+  millimetre apart do not. Lengths now come from what `add-snaps` *reports* for
+  the metal shelf, not from a second measurement of the same file.
+- **The first render came out grey.** An untextured board takes the viewer's
+  default material, so the timber shelf looked like a second metal one and the
+  only reason for building these parts was lost. They now carry an **indicative
+  light-oak PBR material** — deliberately not a named decor, because there is no
+  decor range yet and inventing one is the same mistake as inventing a price.
+
+**Prices stay null,** as agreed: shown, not priced. `make-catalogue` reads
+`youk/timber-manifest.json` for parts with no STEP source and marks them
+`supplier: "PWS", article: null`. The catalogue is 42 items with money on none.
+
+The `timber` probe scenario is the proof rather than the claim: build a bay with
+a **timber** 900, then hang a **metal** 900 on the rung above. Frames at 0 and
+920.1; both shelves at x 460.1.
+
+**Still to do: the cabinets.** Six-piece boxes, small chamfer, same four
+lengths — but they need the cabinet brackets (008557–60) to offer a **socket** as
+well as their plug, which they do not yet have. That is an engine-shaped job, not
+a geometry one.
+
 ---
 
 ## 6. Roadmap
@@ -933,10 +994,11 @@ Corrections from experience:
   the shelf is fitted, because the rung it sits on is still half free.
   Plugs stay exclusive: a shelf's end plug holds one frame. Grid cells too — a
   covered cell is covered.
-- **Timber parts as unpriced components** — shown, snapped, quoted as "POA".
-  Matt's call; the quote module already reports partial totals rather than
-  inventing a number, so it degrades honestly. Spec in `youk/FINDINGS.md`: 25 mm
-  boards, 450/600/900/1200, cabinets as six-piece boxes with a small chamfer.
+- ~~**Timber parts as unpriced components**~~ — **shelves done** (§5.5): 8 of
+  them, generated rather than converted, shown and snapped with no price. Matt's
+  call; the quote module already reports partial totals rather than inventing a
+  number, so it degrades honestly. **The cabinets are still outstanding** — six-
+  piece boxes need the cabinet brackets to offer a socket as well as a plug.
 - **Collision boxes and overlap refusal** belong here, but the rule is subtler
   than "nothing overlaps". Every part already reports `NO_COLLISION_BOX`, and
   there is a concrete case: a tray on a middle frame's inner face cantilevers
@@ -992,7 +1054,7 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Thirty-four commits on one machine.
+1. **A git remote.** Thirty-six commits on one machine.
 2. **Their price list**, in whatever format they have it. Everything commercial
    is blocked on data, not code. The ten `.xls` scene lists behind their brochure
    QR codes are a free validation set while we wait.
@@ -1000,10 +1062,11 @@ Not the same as the phase order, and worth stating separately:
    which unlocked the staggered layouts their own photography shows.
 4. ~~A wall-mount height~~ — **done**, and it turned out to be an enum rather
    than a number (§5.1).
-5. **The timber parts.** 25 mm boards and six-piece cabinet boxes, generated
-   rather than converted, so they need nothing from Kesseböhmer. The brackets
-   that carry them are in. This is what makes a demo look like their photography
-   instead of a metal frame — the highest visual return left on the list.
+5. ~~The timber **shelves**~~ — **done** (§5.5). 25 mm boards, generated rather
+   than converted, so they needed nothing from Kesseböhmer. This is what makes a
+   demo look like their photography instead of a metal frame. **The timber
+   cabinets remain**, and they are an engine job first: the cabinet brackets have
+   to offer a socket as well as a plug before a box can sit on them.
 6. **The shareable configuration ID / headless resolve** — the plan says week
    one, and it is already late. Cheap now, painful later, and AR cannot start
    without it.
@@ -1130,6 +1193,14 @@ The pattern across all three: **the pipeline decided, not the author.** Each tim
 the guess was tested by whether the measured feature turned up where the family
 requires, and each time the result was a number that could be checked against the
 instruction sheet afterwards.
+
+**Then the timber, 34 → 42 components.** Commit `b34234b`, still 227 tests. Eight
+shelves that no supplier will ever send, put through the supplier pipeline anyway
+(§5.5). The pipeline promptly caught a 0.1 mm length error that would have made
+timber and metal disagree about bay width, and the app's own render caught the
+second one: an untextured board looks like metal, which defeated the point of
+building them. Both are the same lesson as the paragraph above — **the guess was
+tested rather than trusted** — and this time the part being checked was ours.
 
 ### Session 4 — 4 September 2026
 
