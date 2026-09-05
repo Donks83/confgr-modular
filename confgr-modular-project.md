@@ -1,14 +1,15 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, session 5. State verified against the code at
-commit `9dd7c30`, not from memory. Session 5 was a findings session: §5.1's
-correction, §5.2a, §5.2b and §5.3's second half are new, and none of them is
-built yet.
+commit `0d62a33`, not from memory. Session 5 ran in two halves: findings first
+(§5.1's correction, §5.2a, §5.2b, §5.3's second half), then building — the
+palette labels, feet, two-ended snap picking, shared rungs, the width hook strips
+and the wall-fixed shoe racks.
 
-**Code:** `C:\Claude\confgr-modular` — git, 19 commits, **local only, no remote.**
-**Tests:** 201 passing (`npm test`).
-**Components:** 22 of 45 YouK parts. The other 23 convert cleanly and have no
-snaps authored — see §4.2 for what that costs.
+**Code:** `C:\Claude\confgr-modular` — git, 32 commits, **local only, no remote.**
+**Tests:** 227 passing (`npm test`).
+**Components:** 30 of 45 YouK parts. The rest convert cleanly and have no snaps
+authored — see §4.2 for what that costs.
 
 **Related documents**
 
@@ -795,10 +796,16 @@ Corrections from experience:
   packers. The packer is a **system-wide constant** — four separate instruction
   sheets put the same 1.5 mm shim between a bracket and the panel above it — so
   it belongs in the snap geometry, not in per-part measurements.
-- **A wall entity, and it is no longer optional.** The shoe rack (008553–56)
-  screws **only to the wall** and never touches a ladder. It is the first part in
-  the range with no attachment to the assembly at all, so "does the configurator
-  need a wall?" now has a part that answers it.
+- ~~A wall entity, and it is no longer optional~~ — **answered without building
+  one.** The shoe rack (008553–56) screws only to the wall and touches no ladder.
+  It now goes in as a **second anchor**: a component may declare
+  `mounting: "wall"`, which makes having no snaps a fact rather than a missing
+  authoring step, and the app places it at a derived position — centred on the
+  product, back face flush, 150 mm up. The assembly model needed nothing new; it
+  always allowed more than one root.
+  A wall *entity* — a thing with its own attach points — is still not built, and
+  now does not have to be for this range. Revisit it only if something needs to
+  attach to the wall *at a chosen place*.
 - ~~Sockets must stop being exclusive~~ — **done.** Occupancy is no longer a
   boolean: a snap records which **sides** of it are taken, and a socket is full
   only when something rests on it *and* something hangs from it. Which side a
