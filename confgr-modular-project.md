@@ -1,21 +1,24 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `b34234b`, not from memory. Session 5 ran in four parts: findings
+code at commit `ed6d689`, not from memory. Session 5 ran in five parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
 Matt hit while using it, then twelve more parts of the range, then the timber —
-the first parts in the product that are ours rather than a supplier's.
+the first parts in the product that are ours rather than a supplier's — and then
+**vertical joints** (§5.6), which was an engine change the cabinets forced.
 
-**Code:** `C:\Claude\confgr-modular` — git, 36 commits, **local only, no remote.**
-**Tests:** 227 passing (`npm test`).
-**Components:** 42 — **34 of the 45 YouK parts, plus 8 timber shelves generated
-rather than converted** (§5.5). The remaining 11 supplier parts convert cleanly
-and have no snaps authored — see §4.2 for what that costs.
+**Code:** `C:\Claude\confgr-modular` — git, 38 commits, **local only, no remote.**
+**Tests:** 243 passing (`npm test`).
+**Components:** 66 — **34 of the 45 YouK parts, plus 32 timber parts generated
+rather than converted** (§5.5): 8 shelves and 24 cabinets. The remaining 11
+supplier parts convert cleanly and have no snaps authored — see §4.2 for what
+that costs.
 
 **Still to author:** office solution (008551 ×3, 008552), clothes-rail extensions
 (008533/34/35), umbrella stand (008565 ×2), newspaper-rack divider (008549), the
-adjustable foot (237023). Plus the timber cabinets, which need the cabinet
-brackets to offer a socket as well as a plug.
+adjustable foot (237023). The office desktop is the last timber piece, and it is
+**no longer blocked on the engine** — vertical joints went in for the cabinets
+and the desktop uses the same one — only on those four metal parts.
 
 **Related documents**
 
@@ -52,7 +55,7 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 227 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 243 unit tests, ~4 s. Run this before believing anything. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 45 YouK parts from being a component. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
@@ -69,6 +72,7 @@ tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regressi
                               wallfixed  the shoe rack, which joins nothing
                               cabinets   carcase brackets on both frames
                               timber     a timber shelf and a metal one in one bay
+                              carcase    a cabinet laid on two brackets (§5.6)
                               mount      floor / floating / feet, read from the scene
                               palette    what every palette entry actually says
 ```
@@ -113,7 +117,7 @@ it. Studio composites rendered images; this renders real geometry. The line, and
 what gets copied rather than shared, is set out in §3.2 of the plan.
 
 The **benchmark project** is **Kesseböhmer's YouK shelving range** — 45 supplier
-CAD files, of which 34 are now configurable components, plus 8 timber parts that
+CAD files, of which 34 are now configurable components, plus 32 timber parts that
 have no supplier CAD and never will (§5.5). It is the development
 driver, not the deliverable: it is what proves the application can take a real
 range from supplier CAD to a priced configurator. Kesseböhmer is a partnership
@@ -209,6 +213,11 @@ using it expects — but there is still no export, no runtime and no AR.
   carries a shelf resting on it *and* an accessory hooked over it, which
   Kesseböhmer document. Which side a part fills is read off its geometry, so
   nothing had to be declared on 45 models.
+- **A part may be laid on another rather than meet it edge-on** (§5.6). Vertical
+  joints, added for the carcase and needed again by the office desktop. Yaw is
+  undetermined by such a joint, so it comes from the product rather than from the
+  parent — and unlike a horizontal joint, the solver refuses a bad pairing
+  instead of turning the part around.
 - **A part may declare it joins nothing** (`mounting: "wall"`). The shoe rack
   screws to the wall and touches no ladder; it goes in as a second anchor at a
   derived position. The assembly always allowed more than one root — this is the
@@ -232,18 +241,27 @@ that generates parts no supplier will ever send.
 
 **Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
 from a 138,000-triangle worst case), **34 load as components with no blocker**,
-and 8 generated timber shelves make **42 components in the palette.**
+and 32 generated timber parts make **66 components in the palette.**
 
-The spec now has four families rather than three: `frames`, `span`, `hang` and
-`wall` — the last for parts that join nothing at all. What is authored per part
-stays tiny, which is the point: an id, a depth, and one decision.
+The spec now has five families: `frames`, `span`, `hang`, `carcase` and `wall` —
+the last for parts that join nothing at all. What is authored per part stays
+tiny, which is the point: an id, a depth, and one decision.
 
 | Family | What is decided | Where the plug comes from |
 |---|---|---|
 | `frames` | depth, whether it needs turning | a socket at every rung, both faces |
 | `span` | depth, `bearing` base or top | `y = 0`, or `maxY − topSheetMm` |
-| `hang` | depth, whether it needs turning | **measured**, from the mounting slot |
+| `hang` | depth, turning, and whether it `carries` | **measured**, from the mounting slot |
+| `carcase` | depth | two plugs facing **down**, at the part's own ends (§5.6) |
 | `wall` | nothing — it joins nothing | no plug; declares `mounting: "wall"` |
+
+`carries` on a `hang` part adds a second snap: a flat socket on the face the
+carried part rests on, its height **measured** off the plate top plus the 1.5 mm
+packer. It has its own mask, so a cabinet can only ever meet a bracket — sharing
+the rung mask would let a carcase hang straight off a ladder with nothing under
+it. **Any array in the spec whose rows carry an `id` is a family**, so adding one
+takes no edit anywhere else; the tools used to name the families and that list
+went stale twice (§5.6).
 
 Worth reading alongside the open 1.00 mm question (`youk/FINDINGS.md`): every
 family whose plug is **measured** seats clean, and only `span` with `bearing:
@@ -338,10 +356,12 @@ This is the honest half of the document.
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
 | **Derived BOM lines** | Nothing. Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. Build the mechanism once for all three. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
-| **Timber parts** | **Shelves done** — 8 of them, generated rather than converted, unpriced (§5.5). **Cabinets not started:** the six-piece boxes need the cabinet brackets to offer a *socket* as well as their plug, which they do not yet have. |
+| **Timber parts** | **Shelves and cabinets done** — 8 + 24, generated rather than converted, unpriced (§5.5, §5.6). Only the office desktop is left, and it waits on four metal parts rather than on the engine. |
+| **Required-part rules** | Nothing, and there is now a concrete case: a carcase can be dropped on ONE bracket and left cantilevering. Nothing says a second is needed. Same shape of gap as collision refusal, below. |
+| **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Thirty-six commits of work exist on one
+There is also **no git remote.** Thirty-eight commits of work exist on one
 machine. That is the single cheapest risk on this list to retire.
 
 ### 3.7 Plumbing wired in main, with no UI
@@ -896,16 +916,94 @@ one session:
 
 **Prices stay null,** as agreed: shown, not priced. `make-catalogue` reads
 `youk/timber-manifest.json` for parts with no STEP source and marks them
-`supplier: "PWS", article: null`. The catalogue is 42 items with money on none.
+`supplier: "PWS", article: null`. The catalogue is 66 items with money on none.
 
 The `timber` probe scenario is the proof rather than the claim: build a bay with
 a **timber** 900, then hang a **metal** 900 on the rung above. Frames at 0 and
 920.1; both shelves at x 460.1.
 
-**Still to do: the cabinets.** Six-piece boxes, small chamfer, same four
-lengths — but they need the cabinet brackets (008557–60) to offer a **socket** as
-well as their plug, which they do not yet have. That is an engine-shaped job, not
-a geometry one.
+**The cabinets followed** — and the engine-shaped job they needed turned out to
+be bigger and more useful than "give the bracket a socket". §5.6.
+
+### 5.6 A part laid on another, and the rule that had to be rewritten to allow it
+
+Every joint in the range until this point met **edge-on**: a plug on one part's
+end face against a socket on a rung's side face, and the solver turns the child
+about the vertical until the two oppose. Two of Kesseböhmer's assemblies do not
+work that way, and they say so in the same words. `Carcass holder` step 3: the
+carcase **sits on** the brackets, screwed up from below. `Office solution` step
+5: the desktop is **laid on** its supports, screwed up from below. Neither meets
+anything edge-on. Their only mating face points down.
+
+The engine refused that outright. `component.js` threw `SNAP_FACING_VERTICAL`
+before a solve was even attempted — *"a floor-standing assembly cannot connect
+through a ceiling"* — which was a reasonable thing to believe and wrong about
+this range. **Two of the remaining parts were unbuildable because of a rule
+written to prevent a mistake nobody was making.**
+
+**Three things change once a joint can lie flat**, and each one is a test in
+`tests/verticalJoint.test.js`:
+
+1. **Yaw stops being determined by the joint.** Spinning a part about the
+   vertical leaves two vertical facings opposed, so the joint says nothing about
+   which way round the part goes. It has to come from somewhere else — and it
+   must **not** come from the parent. The two cabinet brackets in a bay hook
+   opposite faces of their ladders, so they sit 180° apart; a carcase inheriting
+   its parent's yaw would face into the room from one bracket and into the wall
+   from the other, decided by nothing but which bracket got clicked. It comes
+   from the product: yaw zero. The consequence, stated so nobody trips over it
+   later: **a part whose orientation must follow its parent cannot use a vertical
+   joint.** Everything that sits on top of something is fine.
+2. **The solver can no longer rescue a mismatch.** On a horizontal joint it
+   always succeeds — given two same-facing snaps it yaws the child 180° — which
+   is the whole reason roles exist (§3.1). Two upward faces stay two upward faces
+   however far you spin them, so `FACING_SAME_VERTICAL` and
+   `FACING_AXIS_MISMATCH` are real refusals rather than silent flips. The two
+   halves of the solver are deliberately asymmetric now, and that is asserted
+   rather than left to be rediscovered.
+3. **The chooser had to learn to describe them.** It labels each option by how
+   far up the part its own joint sits, which is exactly right edge-on and useless
+   here: a carcase has both plugs on its underside, so the panel offered *"0 mm
+   up the part"* twice and asked which. **That is Matt's original complaint
+   (§5.2a) arriving through a different door** — an affordance that exists to
+   remove ambiguity, presenting two identical options. `mountLabel()` now says
+   *"running to the right"* / *"running to the left"* for a flat mount.
+
+**The parts.** 24 cabinets: 4 widths × 3 heights × 2 ladder depths, six-piece
+boxes to Matt's spec — 25 mm panels, two sides, base, top, back, and a
+full-overlay door. Every panel is turned so its chamfered face looks outward, so
+the chamfers meet as a shadow gap between panels; that is what makes six slabs
+read as furniture rather than a block. 450 mm is Kesseböhmer's stated maximum
+height, not a round number we liked.
+
+**The width is the number that matters, and it is read rather than typed.**
+`make-timber.py` opens the snapped bracket GLB and takes the bracket's own plug
+offset — 15.1 mm on the 320 outer — so a 900 bay whose ladders sit 920.1 mm apart
+gives brackets 889.9 mm apart and a carcase exactly that wide. Same lesson as the
+0.1 mm that nearly shipped in the shelf lengths, applied before it could bite:
+take the number from what the pipeline produced, and re-authoring the brackets
+carries the cabinets with it.
+
+**Verified in the app rather than asserted.** `-Scenario carcase` builds a bay,
+hangs two brackets on rung 3 and lands a 900 box at **x 460.1** — dead centre
+between brackets at 15.1 and 905.0 — and **y 813.0**, the bracket plus its 9.5 mm
+socket. 6 parts, **5 joints**: the box added a joint, so it is carried rather than
+parked in space.
+
+**And a list that had gone stale twice.** `make-catalogue` and `probe-bay` both
+enumerated `frames + span + hang + wall`. That spelling dropped the shoe rack
+once; this time it silently left **24 cabinets out of the catalogue and out of
+the palette**, and the app booted without them saying nothing. Both now find
+every family in the spec rather than naming them: any array whose rows carry an
+`id` is a family. Worth stating as a rule, because it has now cost twice: **a
+hand-maintained list of things that already exist somewhere else is a bug with a
+delay on it.** The spec is the list; nothing else should hold a copy.
+
+**Not fixed here, and worth knowing:** the extension bracket (008559/60) puts its
+socket on its own centreline, which on a middle ladder is the ladder centre
+rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet
+it — cabinets in a multi-bay run are unproven. And a carcase can be dropped on
+one bracket and left cantilevering, because there is still no required-part rule.
 
 ---
 
@@ -994,11 +1092,17 @@ Corrections from experience:
   the shelf is fitted, because the rung it sits on is still half free.
   Plugs stay exclusive: a shelf's end plug holds one frame. Grid cells too — a
   covered cell is covered.
-- ~~**Timber parts as unpriced components**~~ — **shelves done** (§5.5): 8 of
-  them, generated rather than converted, shown and snapped with no price. Matt's
-  call; the quote module already reports partial totals rather than inventing a
-  number, so it degrades honestly. **The cabinets are still outstanding** — six-
-  piece boxes need the cabinet brackets to offer a socket as well as a plug.
+- ~~**Timber parts as unpriced components**~~ — **shelves and cabinets done**
+  (§5.5, §5.6): 32 of them, generated rather than converted, shown and snapped
+  with no price. Matt's call; the quote module already reports partial totals
+  rather than inventing a number, so it degrades honestly.
+- ~~**Vertical joints**~~ — **done** (§5.6), and not planned for. A part laid on
+  another rather than meeting it edge-on. The cabinets forced it and the office
+  desktop needs the same thing, so it was paid for twice.
+- **A required-part rule.** New on this list and it has a concrete case now: a
+  carcase can be dropped on one bracket and left cantilevering, because nothing
+  says a second bracket is needed. Closely related to collision refusal below —
+  both are "this configuration cannot exist" rather than "these two do not fit".
 - **Collision boxes and overlap refusal** belong here, but the rule is subtler
   than "nothing overlaps". Every part already reports `NO_COLLISION_BOX`, and
   there is a concrete case: a tray on a middle frame's inner face cantilevers
@@ -1054,7 +1158,7 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Thirty-six commits on one machine.
+1. **A git remote.** Thirty-eight commits on one machine.
 2. **Their price list**, in whatever format they have it. Everything commercial
    is blocked on data, not code. The ten `.xls` scene lists behind their brochure
    QR codes are a free validation set while we wait.
@@ -1062,11 +1166,11 @@ Not the same as the phase order, and worth stating separately:
    which unlocked the staggered layouts their own photography shows.
 4. ~~A wall-mount height~~ — **done**, and it turned out to be an enum rather
    than a number (§5.1).
-5. ~~The timber **shelves**~~ — **done** (§5.5). 25 mm boards, generated rather
-   than converted, so they needed nothing from Kesseböhmer. This is what makes a
-   demo look like their photography instead of a metal frame. **The timber
-   cabinets remain**, and they are an engine job first: the cabinet brackets have
-   to offer a socket as well as a plug before a box can sit on them.
+5. ~~The timber **shelves and cabinets**~~ — **done** (§5.5, §5.6). 32 parts
+   generated rather than converted, so they needed nothing from Kesseböhmer.
+   This is what makes a demo look like their photography instead of a metal
+   frame. **The office desktop is the last one**, and it now waits only on the
+   four office-solution metal parts — the engine half went in with the cabinets.
 6. **The shareable configuration ID / headless resolve** — the plan says week
    one, and it is already late. Cheap now, painful later, and AR cannot start
    without it.
@@ -1202,6 +1306,29 @@ second one: an untextured board looks like metal, which defeated the point of
 building them. Both are the same lesson as the paragraph above — **the guess was
 tested rather than trusted** — and this time the part being checked was ours.
 
+**Then Matt looked at the render and said the normals were flipped.** They were,
+on all twenty faces of every board. Commit `b25783b`. The reason it survived
+every check is the interesting part: it was wrong **consistently**. trimesh
+reported the mesh watertight and the winding consistent, both true; snaps come
+from the spec and joints from vertex positions, so nothing downstream reads a
+normal. The part measured right, placed right, and lit wrong. **Consistency is
+not correctness**, and the cheap test that separates them — a signed volume — now
+runs before any board is exported.
+
+**Then vertical joints and the cabinets, 42 → 66 components.** Commit `ed6d689`,
+243 tests. Asked for the cabinets, and found that they could not be built at all:
+a carcase is laid on its brackets and its only mating face points down, which the
+engine refused by design (§5.6). Rewriting that rule also unblocks the office
+desktop, which needs exactly the same joint — so the answer to "cabinets or
+desktop first?" turned out to be that they were one question.
+
+Two things worth carrying forward. **A refusal written to prevent a mistake can
+be the thing standing in the way** — `SNAP_FACING_VERTICAL` was reasonable and
+wrong. And **the chooser met Matt's original complaint from a new direction**: a
+carcase has both plugs at the same height, so an affordance built to remove
+ambiguity offered two identical labels. Both halves of that came out of building
+the parts, not out of reasoning about the engine.
+
 ### Session 4 — 4 September 2026
 
 The doc, then AR and mounting. Commits `78296e7` → `b154c39`.
@@ -1272,18 +1399,31 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 ### Risks
 
-1. **No git remote.** Seventeen commits, one machine. Cheapest thing on this list.
+1. **No git remote.** Thirty-eight commits, one machine. Cheapest thing on this
+   list.
 2. **Asset production is the permanent cost.** Every component needs modelling,
    snaps, collision boxes. The plan says this straight: *"it does not go away if
    you buy Mimeeq instead."* YouK took two sessions of developer time for 22
-   parts. Without a snap editor, range two costs the same again.
-3. **The connection graph is a tree.** A shelf added to an existing bay lands
+   parts. Without a snap editor, range two costs the same again. **Generated
+   parts are the exception and worth noticing:** 32 of the 66 components came out
+   of one script and cost minutes each, because their geometry is describable
+   rather than drawn. Where a client's range has that property, the permanent
+   cost is much lower than this risk implies.
+3. **A hand-maintained list of things that already exist somewhere else.** Twice
+   now — `frames + span + hang + wall` spelled out in two tools — a new family
+   has been silently dropped, once losing 24 parts from the palette with no
+   error. Both are fixed (§5.6), but the pattern is the risk: anywhere a second
+   copy of a list exists, it will go stale and say nothing.
+4. **The connection graph is a tree.** A shelf added to an existing bay lands
    perfectly against the far frame but is connected only to the near one, so
    deleting the middle frame would leave shelves floating. Geometry and bill of
-   materials are both right; the graph is not.
-4. **Nothing stops an impossible configuration.** No collision, no required-part
-   validation before checkout, no rules engine.
-5. **The static-export vs hosted-AR tension** (§4.1) is undecided.
+   materials are both right; the graph is not. **A carcase makes this visible:**
+   it is carried by two brackets and joined to one, so deleting the other leaves
+   it hanging in mid-air looking supported.
+5. **Nothing stops an impossible configuration.** No collision, no required-part
+   validation before checkout, no rules engine. A cabinet on a single bracket is
+   the newest example and the easiest to build by accident.
+6. **The static-export vs hosted-AR tension** (§4.1) is undecided.
 
 ### Open questions
 
