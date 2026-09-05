@@ -168,6 +168,53 @@ describe('a vertical joint — one part laid on another', () => {
   });
 });
 
+describe('a carried part deeper than the thing carrying it', () => {
+  // The office desktop. A cabinet is exactly as deep as its ladder, so its plugs
+  // sit at its own middle and it comes out centred. A 600 mm desktop on a 320 mm
+  // ladder cannot: centred would put 140 mm of desk INSIDE the wall, and it
+  // would still look right from the front.
+  //
+  // `Office solution` step 6 draws a tick and a cross over exactly this - the
+  // desktop's rear edge against the bracket upstand - so the rule is that a
+  // carried part sits BACK FLUSH, and add-snaps offsets the plugs by half the
+  // difference in depth. This checks the consequence: the solver puts the part
+  // where that offset says, along an axis nothing else in the range uses.
+  const DESK_DEPTH = 0.600;
+  const LADDER_DEPTH = 0.320;
+  const backFlushZ = (LADDER_DEPTH - DESK_DEPTH) / 2;    // -0.140
+
+  const deskPlug = {
+    id: 'rest-left',
+    mask: 'youk-desktop-d320',
+    label: 'rest-left',
+    position: [-0.44505, 0, backFlushZ],
+    facing: DOWN,
+    role: 'plug',
+    condition: null,
+    span: null,
+  };
+
+  const arm = { translation: [0.015, 0.7615, 0], rotation: [0, 0, 0, 1] };
+  const armSocket = { ...BRACKET_SOCKET, position: [0, 0.0515, 0] };
+
+  it('offsets the part along z rather than centring it', () => {
+    const t = solveChildTransform(arm, armSocket, deskPlug);
+    expect(t.translation[2]).toBeCloseTo(0.140, 6);
+  });
+
+  it('lands the back edge on the ladder line, not 140 mm inside the wall', () => {
+    const t = solveChildTransform(arm, armSocket, deskPlug);
+    const backEdgeZ = t.translation[2] - DESK_DEPTH / 2;
+    expect(backEdgeZ).toBeCloseTo(-LADDER_DEPTH / 2, 6);
+  });
+
+  it('leaves a part the same depth as its ladder centred, as before', () => {
+    const cabinetPlug = { ...deskPlug, position: [-0.44495, 0, 0] };
+    const t = solveChildTransform(arm, armSocket, cabinetPlug);
+    expect(t.translation[2]).toBeCloseTo(0, 6);
+  });
+});
+
 describe('what the chooser calls a flat placement', () => {
   // The chooser labels each option by how far up the part its own joint sits,
   // which is exactly right for every joint that meets edge-on and useless here:

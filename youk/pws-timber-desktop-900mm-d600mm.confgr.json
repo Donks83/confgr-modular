@@ -1,0 +1,12 @@
+{
+  "confgr": {
+    "widthMm": 890.1,
+    "heightMm": 25.0,
+    "depthMm": 600.0,
+    "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-desktop-d320.rest-left": "plug",
+    "md-snap.youk-desktop-d320.rest-right": "plug"
+  }
+}

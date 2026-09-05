@@ -522,6 +522,28 @@
       "costEach": null,
       "priceEach": {}
     },
+    "008551-base-brackets-for-office-solution": {
+      "article": "008551",
+      "description": "YouK base brackets for office solution",
+      "sizeMm": [
+        315,
+        300,
+        27.3
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008551-shelf-supports-for-office-solution": {
+      "article": "008551",
+      "description": "YouK Shelf supports for office solution",
+      "sizeMm": [
+        50,
+        50,
+        310
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
     "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm": {
       "article": null,
       "description": "Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm",
@@ -805,6 +827,102 @@
         1189.9,
         450,
         200
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-450mm-d600mm": {
+      "article": null,
+      "description": "Timber office desktop 450 mm, 600 mm deep, 25 mm",
+      "sizeMm": [
+        440.1,
+        25,
+        600
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-450mm-d700mm": {
+      "article": null,
+      "description": "Timber office desktop 450 mm, 700 mm deep, 25 mm",
+      "sizeMm": [
+        440.1,
+        25,
+        700
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-600mm-d600mm": {
+      "article": null,
+      "description": "Timber office desktop 600 mm, 600 mm deep, 25 mm",
+      "sizeMm": [
+        589.5,
+        25,
+        600
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-600mm-d700mm": {
+      "article": null,
+      "description": "Timber office desktop 600 mm, 700 mm deep, 25 mm",
+      "sizeMm": [
+        589.5,
+        25,
+        700
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-900mm-d600mm": {
+      "article": null,
+      "description": "Timber office desktop 900 mm, 600 mm deep, 25 mm",
+      "sizeMm": [
+        890.1,
+        25,
+        600
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-900mm-d700mm": {
+      "article": null,
+      "description": "Timber office desktop 900 mm, 700 mm deep, 25 mm",
+      "sizeMm": [
+        890.1,
+        25,
+        700
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-1200mm-d600mm": {
+      "article": null,
+      "description": "Timber office desktop 1200 mm, 600 mm deep, 25 mm",
+      "sizeMm": [
+        1190.1,
+        25,
+        600
+      ],
+      "supplier": "PWS",
+      "costEach": null,
+      "priceEach": {}
+    },
+    "pws-timber-desktop-1200mm-d700mm": {
+      "article": null,
+      "description": "Timber office desktop 1200 mm, 700 mm deep, 25 mm",
+      "sizeMm": [
+        1190.1,
+        25,
+        700
       ],
       "supplier": "PWS",
       "costEach": null,

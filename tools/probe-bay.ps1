@@ -17,7 +17,7 @@
 
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
-               'cabinets', 'carcase', 'timber')]
+               'cabinets', 'carcase', 'office', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -117,7 +117,7 @@ $clicks = @{
   # height on four of the six ladders, so the model ids alone read as the same
   # part four times over. The label has to come from the catalogue, and this is
   # the only way to see it without squinting at a screenshot.
-  palette = 'palette:42'
+  palette = 'palette:76'
   # Timber. The claim is that a bay carries either a metal shelf or a timber one,
   # so this builds the bay with a TIMBER 900 and then hangs a metal 900 on the
   # rung above. If the two disagree about bay width the second one will not fit,
@@ -154,6 +154,19 @@ $clicks = @{
             'part:008558,marker:4,part:008558,marker:11,dump,' +
             'part:pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm,marker:0,' +
             'choices,choose:0,dump,layout'
+  # The office desktop - the last timber part, and the second user of the
+  # vertical joint. Two office arms on rung 3 of their own ladder, then a 900 x
+  # 600 desktop laid on them (`Office solution` step 5, screwed up from below).
+  #
+  # The number to watch is the THIRD one. The desktop is 600mm deep on a 320mm
+  # ladder, so unlike a cabinet it cannot sit centred on the brackets - its plugs
+  # hang 140mm behind its own middle so that its back edge lands on the wall
+  # line, which is step 6's tick and cross. It should come out at z 140.0: back
+  # edge at -160, exactly the ladder's own back. Centred would put 140mm of desk
+  # inside the wall and still look fine from the front.
+  office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+           'part:008551-shelf-supports,marker:5,part:008551-shelf-supports,marker:12,dump,' +
+           'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
   # The shoe rack, which joins nothing. Build a bay, then add a 900 rack: it
   # should go straight in without waiting for a marker, add NO joint, and land
   # centred on the bay. If the joint count goes up, it has been attached to

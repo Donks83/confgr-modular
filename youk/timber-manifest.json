@@ -324,6 +324,86 @@
         200.0
       ],
       "triangles": 120
+    },
+    {
+      "id": "pws-timber-desktop-450mm-d600mm",
+      "description": "Timber office desktop 450 mm, 600 mm deep, 25 mm",
+      "dims_mm": [
+        440.1,
+        25.0,
+        600.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-450mm-d700mm",
+      "description": "Timber office desktop 450 mm, 700 mm deep, 25 mm",
+      "dims_mm": [
+        440.1,
+        25.0,
+        700.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-600mm-d600mm",
+      "description": "Timber office desktop 600 mm, 600 mm deep, 25 mm",
+      "dims_mm": [
+        589.5,
+        25.0,
+        600.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-600mm-d700mm",
+      "description": "Timber office desktop 600 mm, 700 mm deep, 25 mm",
+      "dims_mm": [
+        589.5,
+        25.0,
+        700.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-900mm-d600mm",
+      "description": "Timber office desktop 900 mm, 600 mm deep, 25 mm",
+      "dims_mm": [
+        890.1,
+        25.0,
+        600.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-900mm-d700mm",
+      "description": "Timber office desktop 900 mm, 700 mm deep, 25 mm",
+      "dims_mm": [
+        890.1,
+        25.0,
+        700.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-1200mm-d600mm",
+      "description": "Timber office desktop 1200 mm, 600 mm deep, 25 mm",
+      "dims_mm": [
+        1190.1,
+        25.0,
+        600.0
+      ],
+      "triangles": 20
+    },
+    {
+      "id": "pws-timber-desktop-1200mm-d700mm",
+      "description": "Timber office desktop 1200 mm, 700 mm deep, 25 mm",
+      "dims_mm": [
+        1190.1,
+        25.0,
+        700.0
+      ],
+      "triangles": 20
     }
   ]
 }

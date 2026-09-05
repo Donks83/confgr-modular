@@ -292,18 +292,32 @@ def carcase_snaps(mesh, part, spec):
     so its ends and its plugs are the same place. tools/make-timber.py derives
     that width by READING the bracket's own plug offset out of the snapped GLB
     rather than being told it, which is what keeps the two in step.
+
+    ALONG THE DEPTH the plugs are NOT at the part's middle, and this is the rule
+    that makes the office desktop work. A carried part sits with its BACK FLUSH
+    to the back of the ladder - `Office solution` step 6 draws a tick and a cross
+    over exactly that, the desktop's rear edge against the bracket upstand. The
+    brackets are centred on the ladder's depth, so a part deeper than the ladder
+    has to hang its plugs BEHIND its own centre by half the difference.
+
+    A cabinet is exactly as deep as its ladder, so this comes out as zero and the
+    cabinets are unchanged by it. A 600 mm desktop on a 320 ladder comes out at
+    -140 mm, which is the difference between a desk in front of the wall and a
+    desk 140 mm inside it.
     """
+    depth_mm = float(part["depth"])
     depth = str(part["depth"])
     half = float(mesh.extents[0]) * 1000.0 / 2.0
+    z = (depth_mm - float(mesh.extents[2]) * 1000.0) / 2.0
     mask = f"youk-{part.get('carriedBy', 'carcase')}-d{depth}"
     snaps = [
         {"name": f"md-snap.{mask}.rest-left",
-         "position_mm": (-half, 0.0, 0.0), "facing": "-y", "role": "plug"},
+         "position_mm": (-half, 0.0, z), "facing": "-y", "role": "plug"},
         {"name": f"md-snap.{mask}.rest-right",
-         "position_mm": (half, 0.0, 0.0), "facing": "-y", "role": "plug"},
+         "position_mm": (half, 0.0, z), "facing": "-y", "role": "plug"},
     ]
     return snaps, {"mask": mask, "plugX_mm": round(half, 2),
-                   "spacing_mm": round(2 * half, 2)}
+                   "plugZ_mm": round(z, 2), "spacing_mm": round(2 * half, 2)}
 
 
 def build(glb, part, spec, kind, out_path):
@@ -449,7 +463,8 @@ def main():
                       f'y {detail["plugY_mm"]} ({detail["bearing"]}) mm '
                       f'-> frames {detail["spacing_mm"]} mm apart')
             elif kind == "carcase":
-                print(f'  {"":<46}       plugs DOWN at x = +/-{detail["plugX_mm"]} mm '
+                print(f'  {"":<46}       plugs DOWN at x = +/-{detail["plugX_mm"]}, '
+                      f'z {detail["plugZ_mm"]} mm '
                       f'-> brackets {detail["spacing_mm"]} mm apart')
             else:
                 px, py = detail["plug_mm"]

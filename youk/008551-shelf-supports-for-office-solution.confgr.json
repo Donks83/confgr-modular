@@ -1,8 +1,12 @@
 {
   "confgr": {
-    "widthMm": 50,
-    "heightMm": 50,
-    "depthMm": 310,
+    "widthMm": 50.0,
+    "heightMm": 50.0,
+    "depthMm": 310.0,
     "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-d320.mount": "plug",
+    "md-snap.youk-desktop-d320.carries": "socket"
   }
 }

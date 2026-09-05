@@ -346,6 +346,17 @@
       "depth": 320,
       "rotateYdeg": 90,
       "carries": "carcase"
+    },
+    {
+      "id": "008551-base-brackets-for-office-solution",
+      "depth": 320,
+      "rotateYdeg": 90
+    },
+    {
+      "id": "008551-shelf-supports-for-office-solution",
+      "depth": 320,
+      "rotateYdeg": 0,
+      "carries": "desktop"
     }
   ],
   "_youboxx": [
@@ -470,6 +481,46 @@
     {
       "id": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-200mm",
       "depth": 200
+    },
+    {
+      "id": "pws-timber-desktop-450mm-d600mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-450mm-d700mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-600mm-d600mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-600mm-d700mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-900mm-d600mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-900mm-d700mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-1200mm-d600mm",
+      "depth": 320,
+      "carriedBy": "desktop"
+    },
+    {
+      "id": "pws-timber-desktop-1200mm-d700mm",
+      "depth": 320,
+      "carriedBy": "desktop"
     }
   ]
 }

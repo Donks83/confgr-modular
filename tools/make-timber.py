@@ -65,6 +65,20 @@ FRAME_THICKNESS_MM = 30.0
 # depth, which is their stated minimum.
 CABINET_HEIGHTS_MM = (200, 300, 450)
 
+# Desktop depths, from page 4 of `mounting instructions Office solution.pdf`:
+# 600 or 700 mm. Their 650 / 750 mm figures on the same page are floor-to-top
+# HEIGHTS, not variants of the part - where the desk ends up depends on how high
+# the ladder is hung, which is a mounting choice and not a property of the board
+# (§5.1). The third figure, 750 with 100 mm underneath, is the frame on feet.
+#
+# The 9-degree angled option on that page is NOT generated. It would need a
+# wedge rather than a board and a joint that tilts, and neither exists yet.
+DESKTOP_DEPTHS_MM = (600, 700)
+
+# The office solution is a 320-only assembly: its plate is 315 mm across the
+# ladder depth and its arm 310 mm long. There is no 200 version to make.
+DESKTOP_LADDER_DEPTH_MM = 320
+
 # Small enough to catch a highlight and read as a real edge, small enough that
 # nobody would call it a bevel. Not a spec number - a rendering one.
 CHAMFER_MM = 1.5
@@ -269,15 +283,27 @@ def bracket_plug_offset_mm(folder, depth):
     actually produced. Reading the snapped GLB means the day somebody re-authors
     the brackets, the cabinets follow.
     """
-    import trimesh
-
     ids = {320: "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
            200: "008557-outer-cabinet-bracket-for-ladder-depth-200mm"}
-    glb = folder / f"{ids[depth]}.glb"
+    return plug_offset_mm(folder, ids[depth])
+
+
+def plug_offset_mm(folder, part_id):
+    """How far from its own centre a hang part's rung plug sits, read off the GLB.
+
+    Generalised out of the cabinet case because the office arm needs exactly the
+    same thing, and its offset is 15.0 where the cabinet bracket's is 15.1. A
+    tenth of a millimetre, and precisely the difference this project has already
+    been caught by once - so the desktop reads its own bracket rather than
+    borrowing the cabinet's number.
+    """
+    import trimesh
+
+    glb = folder / f"{part_id}.glb"
     if not glb.exists():
         raise SystemExit(
-            f"{glb.name} is not there. The cabinets are sized from the cabinet "
-            f"brackets, so those have to be snapped first: npm run youk:snap"
+            f"{glb.name} is not there. The timber is sized from the brackets that "
+            f"carry it, so those have to be snapped first: npm run youk:snap"
         )
 
     scene = trimesh.load(str(glb), force="scene")
@@ -343,6 +369,33 @@ def main():
                 })
                 print(f'  {part_id:<52} {dims[0]:>7.1f} x {dims[1]:>5.1f} x '
                       f'{dims[2]:>6.1f} mm  {len(mesh.faces):>3} tris')
+
+    # The office desktop. Same shape as a shelf and the same joint as a carcase:
+    # laid on the office arms and screwed up from below (`Office solution` step
+    # 5), so it needs the vertical joint rather than the span family. Its own
+    # arm's offset, not the cabinet bracket's - see plug_offset_mm.
+    print()
+    depth = DESKTOP_LADDER_DEPTH_MM
+    offset = plug_offset_mm(folder, "008551-shelf-supports-for-office-solution")
+    for nominal, shelf_length in SHELF_LENGTH_MM.items():
+        width = round(shelf_length - FRAME_THICKNESS_MM - 2 * offset, 4)
+        for board_depth in DESKTOP_DEPTHS_MM:
+            part_id = f"pws-timber-desktop-{nominal}mm-d{board_depth}mm"
+            mesh = dressed(board(width, BOARD_THICKNESS_MM, float(board_depth)))
+            out = folder / f"{part_id}.converted.glb"
+            write(mesh, out)
+            dims = [round(float(v) * 1000, 1) for v in mesh.extents]
+            made.append({
+                "id": part_id,
+                "description": (
+                    f"Timber office desktop {nominal} mm, {board_depth} mm deep, "
+                    f"{BOARD_THICKNESS_MM:.0f} mm"
+                ),
+                "dims_mm": dims,
+                "triangles": len(mesh.faces),
+            })
+            print(f'  {part_id:<52} {dims[0]:>7.1f} x {dims[1]:>5.1f} x '
+                  f'{dims[2]:>6.1f} mm  {len(mesh.faces):>3} tris')
 
     # A manifest, so make-catalogue has a source for parts that have no STEP and
     # therefore no entry in convert-report.json.
