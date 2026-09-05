@@ -1,10 +1,14 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 4 September 2026, end of session 4. State verified against the
-code at commit `b154c39`, not from memory.
+**Last updated:** 5 September 2026, session 5. State verified against the code at
+commit `9dd7c30`, not from memory. Session 5 was a findings session: §5.1's
+correction, §5.2a, §5.2b and §5.3's second half are new, and none of them is
+built yet.
 
-**Code:** `C:\Claude\confgr-modular` — git, 17 commits, **local only, no remote.**
+**Code:** `C:\Claude\confgr-modular` — git, 19 commits, **local only, no remote.**
 **Tests:** 201 passing (`npm test`).
+**Components:** 22 of 45 YouK parts. The other 23 convert cleanly and have no
+snaps authored — see §4.2 for what that costs.
 
 **Related documents**
 
@@ -559,6 +563,41 @@ Still open: a tray hung on rung 1 drops 158.5 mm and can end up below the floor.
 Floor standing still has a floor, so that rule is still needed — it just does not
 apply when floating.
 
+#### Correction, session 5: there is a THIRD state, and it is not a third fixing
+
+The brochure says you can *"hang your YouK on the wall, stand it on the floor or
+mount it on optional feet"* — three options where the enum has two. I was about to
+add `FEET` as a third peer of `FLOOR` and `WALL`. Matt pointed at two photographs
+and that turns out to be wrong in an instructive way.
+
+`YouK_-_Bedroom__Home_Images_02.jpg`, enlarged at the base, shows it plainly:
+**each ladder is fixed to the wall at the back and carried by a single foot at the
+front**, and the frame's bottom rail stops in mid-air over the skirting board,
+which runs behind undisturbed. `mounting instructions Foot.pdf` agrees — one foot
+per ladder, screwed to the underside of the bottom rail at the end, **100 or
+150 mm, ±10 mm** on the levelling nut, 2× M4. And `YouK_Zwischen-Tradition-und-
+Moderne-Diele-4.jpg` is the same system with no feet at all, on a tiled floor
+with no skirting.
+
+So feet are **not an alternative to wall mounting — they go with it.** Everything
+is wall-fixed; that was Matt's point from the start and it stays true. What varies
+is only what happens at the **bottom**:
+
+| State | What it means | Why you would pick it |
+|---|---|---|
+| `FLOOR` | The bottom rail rests on the floor | No skirting board in the way |
+| `WALL` | Nothing below; the unit floats | Wall-hung look; also every bathroom scene |
+| `FEET` | One foot per ladder at the front, 100 or 150 mm | **A skirting board is in the way** |
+
+That keeps it a single three-value enum with still no height field, and it adds
+one priced part per ladder plus a known ground clearance. The `FEET` case is not
+exotic here either: **almost every UK room has a skirting board**, so for PWS's
+market feet are likely the common case rather than the exception.
+
+Worth naming the near-miss: I had "three mounting options" from the brochure and
+was one edit away from writing a third fixing method into the data model. Two
+photographs said it was one fixing method with three ground conditions.
+
 ### 5.2 Frames of different sizes, staggered, with shelves still spanning them
 
 **This already works, and I verified it rather than assuming.** `tests/stagger.test.js`,
@@ -579,6 +618,78 @@ The fix is a "which level?" affordance on the incoming part, not a solver change
 That is a good outcome. It also means the current UI is quietly deciding
 something a customer should decide, which is worth fixing early.
 
+### 5.2a A joint has TWO ends, and the engine only ever let you choose one
+
+**The most important finding of session 5, and Matt found it.** He reported two
+separate complaints: he could not choose which rung a second ladder attached at,
+and *"the lighting needs to be rotated 180 degrees — it seems to be the back of
+the YouK items that are being illuminated."*
+
+The lighting was not wrong. The key light sits at +X/+Y/+Z and the camera at
++X/+Y/+Z, the same side — rotating it 180° would have put the light behind the
+product and made it worse. I checked before touching it, which is the only reason
+a session was not spent fixing a light that was already correct.
+
+Matt then diagnosed it himself: *"when I move a shelf from one snap point to a
+snap point on the other side of the ladder it only connects when moving on one
+snap point, so the shelf flips 180 degrees for the snap to happen."*
+
+That is exactly what the engine does, and it is written down in §3.1 as a feature:
+**the solver always succeeds on facing, by yawing the child 180°.** Roles stop two
+sockets joining; nothing stops the *wrong end* of a part being chosen. So dragging
+a shelf to the far side of a ladder picks whichever of its two plugs comes first
+and spins the whole part round to suit. The result is geometrically valid and
+visually reversed. On a symmetrical shelf nobody notices. On a hook strip, a rack
+or a YouboXx the hooks and the open face end up pointing backwards — which reads,
+convincingly, as bad lighting.
+
+**Two user-visible bugs, one cause: the interaction only ever names one end of the
+joint.** `drag:instanceId:N` says where to land, never which of the moving part's
+snaps to land on. The attach matrix already enumerates both ends — every
+(point × part × snap) triple — so the information exists and the UI throws it away.
+
+Matt's model, which is better than the one in §5.2 and supersedes it:
+
+- **Placing** a new part: show every valid rung as its own marker, so the level is
+  chosen rather than silently taken.
+- **Moving** a part already in the scene: two clicks, not one. Choose **which of
+  the part's own snaps** you are grabbing, then **which target snap** it goes to.
+
+My earlier answer — explode the markers — fixes only the target end and would have
+left the flip in place. The lesson: **when one cause produces two complaints that
+sound unrelated, the second complaint is the better clue.** "The lighting is
+backwards" is what a 180° yaw looks like from the outside.
+
+### 5.2b What Kesseböhmer's own marketing says that the CAD does not
+
+From the brochure and ~30 lifestyle images Matt supplied in session 5.
+
+- **The timber is deliberately not theirs.** Brochure page 3: the wooden shelves
+  *"are made individually by a carpenter (or woodworker) and are therefore not
+  included in the YouK range."* Every desktop, cabinet and most shelves in their
+  photography are outside the range they sell. That is a gap in their offer and a
+  commercial opening for PWS — and it means the configurator cannot show a
+  convincing YouK without parts that have no CAD and no article number.
+- **Kesseböhmer already ship an AR tool** (brochure pages 4–10), one QR code per
+  room example. It places a *fixed* scene. Ours configures first and then places.
+  So AR is table stakes with them, not a differentiator; **configure-then-AR is.**
+- **Ten real configurations with exact item lists exist online.** The brochure QR
+  codes resolve through `kbgo.to/ukl1…ukl10` to `.xls` shopping lists on
+  `kesseboehmer.world`. That is a free validation set: if the configurator cannot
+  build those ten, it cannot build what they market. Binary `.xls`, so they need
+  downloading rather than fetching.
+- **The hook strip's real joint is to the shelf, not the rung.**
+  `mounting instructions hook rail.pdf`: step 1 hooks it into the ladders
+  lengthways; step 2 bolts it to the **underside of a shelf** with 2× M4; step 3
+  inserts the **1.5 mm packers** between strip and shelf. So "hook rails sit under
+  shelves" is not a collision exception to permit — it is an accessory-to-span
+  joint the engine has never done, the same class as the clothes-rail extensions.
+  Widths 450/600/900/1200 mm, max 18 kg.
+- **Two hook-strip families, and only one is in the app.** 008536/008537 are "for
+  ladder *depth* 200/320" and mount depthways on one ladder. 008538–008541 are
+  "for ladder *width* 450/600/900/1200" and span lengthways between two ladders.
+  Only the depth ones are snapped, which is why the app's hooks look wrong.
+
 ### 5.3 Two errors in Kesseböhmer's own data, one commercially dangerous
 
 Found by deriving descriptions from their filenames rather than retyping.
@@ -593,6 +704,18 @@ override **both appear on a quote as "height 1500 mm"**. Worth raising with
 Kesseböhmer: if those filenames feed anything else downstream, the error is not
 confined to us. Both are overridden in the catalogue, and the override survives
 regeneration.
+
+**And the same data error makes the palette unusable.** Matt's report in session 5
+was *"I'm not sure all the ladders are there"*. All six are — but the English half
+of Kesseböhmer's filenames drops the height for **four** of them, so 236750,
+236754, 236758 and 236762 all display as "ladder depth 320 mm". The 550, 905, 1500
+and 2210 mm frames appear as four identical-looking buttons. The height is the only
+thing that distinguishes them and it is the one thing not shown.
+
+**A missing part and an indistinguishable part look the same from the outside.**
+That is the argument for the palette showing the *measured* size rather than the
+supplier's description: the measured size comes from the geometry and cannot lie
+about itself.
 
 ---
 
@@ -623,7 +746,19 @@ Corrections from experience:
 - **Move snap roles into the snap name and derive size from the `dim` cube**, so a
   plain Blender export is a complete component and `tools/declare.mjs` goes away
   (§4.2a). Small, and it should happen before the next range rather than after.
-- **Add the "which level?" choice** so staggering is reachable (§5.2).
+- **Two-ended snap picking** (§5.2a) — **the top item.** Placing shows every valid
+  rung as its own marker; moving asks which of the part's own snaps you are
+  grabbing before asking where it goes. Fixes the unreachable rung choice and the
+  180° flip in one change, because they are the same bug.
+- **Palette entries must show the measured size**, not the supplier's description
+  (§5.3). Four of six ladders are currently indistinguishable.
+- **`MOUNTING` gains a third state, `FEET`** (§5.1 correction) — 100/150 mm, one
+  priced foot per ladder, and the common case in any UK room with a skirting board.
+- **An accessory-to-span joint**: hook strip bolted under a shelf with 1.5 mm
+  packers (§5.2b), which also unblocks the clothes-rail extensions.
+- **Timber parts as unpriced components** — shown, snapped, quoted as "POA".
+  Matt's call; the quote module already reports partial totals rather than
+  inventing a number, so it degrades honestly.
 - **Collision boxes and overlap refusal** belong here. Every part already reports
   `NO_COLLISION_BOX`, and there is a concrete case: a tray on a middle frame's
   inner face cantilevers straight through a shelf and the app allows it.
@@ -716,6 +851,33 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 5 — 5 September 2026
+
+Matt drove a real bay by hand and reported what was wrong with it. Almost all of
+this session's value came from that, not from me.
+
+- **He found the 180° flip and I would not have** (§5.2a). He reported it as a
+  lighting fault. Checking before fixing is the only reason a session was not
+  spent rotating a light that was already correct — and his own follow-up
+  diagnosis was the right one. His two-ended snap model supersedes my
+  "explode the markers" answer, which fixed the wrong half of the joint.
+- **He corrected the mounting model a second time** (§5.1). I had "three
+  mounting options" from the brochure and was one edit from writing a third
+  fixing method into the data model. Two of his photographs showed it is one
+  fixing method with three ground conditions, and that the reason feet exist is
+  the skirting board.
+- **A missing part and an indistinguishable part look the same from outside**
+  (§5.3). He thought ladders were missing. All six were there; four render as the
+  same palette label because Kesseböhmer's English filenames drop the height.
+- **The brochure says the timber is not theirs** (§5.2b) — in their own words —
+  and that they already ship an AR tool. Both change the commercial picture.
+- **The hook strip bolts to a shelf, not a rung**, with the 1.5 mm packers Matt
+  half-remembered. Reading the instructions first is now two-for-two on saving
+  a wrong implementation.
+
+Decisions taken: timber parts shown but unpriced; all four remaining part
+families in scope; feet as a third ground state; two-ended snap picking next.
 
 ### Session 4 — 4 September 2026
 
