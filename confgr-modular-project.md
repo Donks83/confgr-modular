@@ -1,15 +1,18 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 5 September 2026, session 5. State verified against the code at
-commit `0d62a33`, not from memory. Session 5 ran in two halves: findings first
-(§5.1's correction, §5.2a, §5.2b, §5.3's second half), then building — the
-palette labels, feet, two-ended snap picking, shared rungs, the width hook strips
-and the wall-fixed shoe racks.
+**Last updated:** 5 September 2026, end of session 5. State verified against the
+code at commit `af8f7f1`, not from memory. Session 5 ran in three parts: findings
+(§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
+Matt hit while using it, then twelve more parts of the range.
 
-**Code:** `C:\Claude\confgr-modular` — git, 32 commits, **local only, no remote.**
+**Code:** `C:\Claude\confgr-modular` — git, 34 commits, **local only, no remote.**
 **Tests:** 227 passing (`npm test`).
-**Components:** 30 of 45 YouK parts. The rest convert cleanly and have no snaps
-authored — see §4.2 for what that costs.
+**Components:** 34 of 45 YouK parts. The remaining 11 convert cleanly and have no
+snaps authored — see §4.2 for what that costs.
+
+**Still to author:** office solution (008551 ×3, 008552), clothes-rail extensions
+(008533/34/35), umbrella stand (008565 ×2), newspaper-rack divider (008549), the
+adjustable foot (237023). Plus the timber, which has no CAD by design.
 
 **Related documents**
 
@@ -46,10 +49,36 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 201 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 227 unit tests, ~4 s. Run this before believing anything. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 45 YouK parts from being a component. |
-| `npm run joints` | Re-derives every verified joint from the GLBs, independently of the engine. |
+| `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
+
+The probe takes a `-Scenario`, and each one exists because something went wrong
+without it:
+
+```
+tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regression
+                              run        three bays, checks the chain does not drift
+                              stagger    the rung-height chooser
+                              shared     a shelf and an accessory on ONE rung
+                              hooks      a width hook strip spanning a bay
+                              wallfixed  the shoe rack, which joins nothing
+                              cabinets   carcase brackets on both frames
+                              mount      floor / floating / feet, read from the scene
+                              palette    what every palette entry actually says
+```
+
+**Adding parts is a pipeline, not an edit.** `youk/snap-spec.json` holds the
+decisions; everything else is mechanics:
+
+```
+npm run youk:snap        author the snap planes from the spec
+npm run declare youk     write size and roles into the GLBs
+npm run inspect youk     what still blocks each part
+npm run joints           does the metal actually fit
+npm run youk:catalogue   regenerate the commercial catalogue
+```
 
 **Prices are deliberately blank.** `youk/catalogue.json` ships with every price
 `null` and the app shows `Net (PARTIAL)` rather than a total. To see the quote
@@ -127,13 +156,15 @@ in the spike are exactly the pattern the exported viewer must not use. They are
 fine in the editor, which is one instance by definition. They do not go into the
 viewer bundle.
 
-## 3. Where We Are — Current State (verified against code, 4 September 2026)
+## 3. Where We Are — Current State (verified against code, 5 September 2026)
 
-Read this section as: **the engine is real, the product around it is not.**
+Read this section as: **the engine is real, the product around it is not.** That
+was truer yesterday than it is today — the editor now behaves the way somebody
+using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 8 modules, no UI dependencies, 201 tests across the project.
+`src/engine/` — 8 modules, no UI dependencies, 227 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -155,6 +186,21 @@ Read this section as: **the engine is real, the product around it is not.**
   `<gridNode>#c<col>r<row>`.
 - **Move a part to a different attach point** by dragging it. It can only land
   on another marker, never in open space.
+- **Both ends of a joint are chosen, not one** (`placementsAt`,
+  `distinctPlacements`). A joint has two ends and the matrix always knew both;
+  the UI used to take the first row it found. Placing and moving now offer every
+  way a part can sit at a point — **filtered to the ones that look different**,
+  by comparing the space the part would occupy rather than how it is wired. That
+  is what makes a second frame's rung heights reachable, and it is what stopped
+  parts silently flipping 180° (§5.2a).
+- **A socket holds one part above it and one below** (`snapBearingSide`). A rung
+  carries a shelf resting on it *and* an accessory hooked over it, which
+  Kesseböhmer document. Which side a part fills is read off its geometry, so
+  nothing had to be declared on 45 models.
+- **A part may declare it joins nothing** (`mounting: "wall"`). The shoe rack
+  screws to the wall and touches no ladder; it goes in as a second anchor at a
+  derived position. The assembly always allowed more than one root — this is the
+  first use of it (§5.4).
 - **Bounded camera pan** — a leash sized to the product, so you can look along a
   four-metre run without losing it off screen.
 
@@ -171,7 +217,22 @@ Five tools, all documented, all with real supplier files through them.
 | `tools/measure-part.py`, `tools/check-joint.py` | Find a part's features; place two parts together and report whether the metal actually fits. |
 
 **Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
-from a 138,000-triangle worst case), 22 load as components with no blocker.
+from a 138,000-triangle worst case), **34 load as components with no blocker.**
+
+The spec now has four families rather than three: `frames`, `span`, `hang` and
+`wall` — the last for parts that join nothing at all. What is authored per part
+stays tiny, which is the point: an id, a depth, and one decision.
+
+| Family | What is decided | Where the plug comes from |
+|---|---|---|
+| `frames` | depth, whether it needs turning | a socket at every rung, both faces |
+| `span` | depth, `bearing` base or top | `y = 0`, or `maxY − topSheetMm` |
+| `hang` | depth, whether it needs turning | **measured**, from the mounting slot |
+| `wall` | nothing — it joins nothing | no plug; declares `mounting: "wall"` |
+
+Worth reading alongside the open 1.00 mm question (`youk/FINDINGS.md`): every
+family whose plug is **measured** seats clean, and only `span` with `bearing:
+"top"`, whose plug is **computed**, is out by exactly a millimetre.
 
 ### 3.3 The commercial layer — built
 
@@ -212,15 +273,35 @@ configuration, no QR handoff, no landing route. §4.5 is the plan.
 
 The thing that has caught the most mistakes. `CONFGR_CLICK` drives real pointer
 events through the same raycast path a hand takes, then the app reports on
-itself: `dump` (status line), `layout` (every part's resolved world position),
-`quote` (the bill of materials as text), `mount:floor|wall` (drives the real
-dropdown), `ground` (grid, shadow catcher and AR state read **out of three.js**,
-not out of React), `pan`, `drag`. Plus `tools/probe-bay.ps1`
-(`-Scenario bay|run|mount`) and `tools/check-joints.ps1`.
+itself, in text a probe can assert on rather than pixels nobody checks.
+
+| Step | Reports |
+|---|---|
+| `dump` | the status line and the part / joint / open-point counts |
+| `layout` | every part's resolved world position |
+| `quote` | the bill of materials and the totals |
+| `palette[:N]` | what the palette actually **says** — id ⇒ label |
+| `choices` / `choose:N` | the "how should it sit" options, and taking one |
+| `mount:floor\|wall\|feet` | drives the real dropdown |
+| `ground` | grid, shadow catcher, clearance and AR state read **out of three.js**, not out of React |
+| `marker`, `part`, `drag`, `pan` | the interactions themselves |
+
+Scenarios in `tools/probe-bay.ps1`: `bay`, `run`, `mount`, `palette`, `stagger`,
+`shared`, `hooks`, `wallfixed`, `cabinets`. Plus `tools/check-joints.ps1`, which
+re-derives every authored joint from the GLBs independently of the engine.
 
 The design rule: **it must not be able to report success without having done the
 thing.** An earlier version pressed a part's centre, hit a marker on that ray,
-*added* a part and reported "dragged".
+*added* a part and reported "dragged". A later one reported `clicked part X`
+whether or not a button existed or was enabled — fixed the day the palette labels
+changed, and it immediately caught the shoe racks missing from the copy step.
+
+Three things it caught in one session, which is the argument for it existing:
+the `bay` script **stalling at 5 parts** when placing started asking a question
+(the script encoded the old silent behaviour); `no palette entry for 008555` when
+two hand-maintained lists forgot the new `wall` family; and a **wrong label**
+being invisible in both a screenshot and the status line until `palette` existed
+to print it.
 
 ### 3.6 What is NOT built — plainly
 
@@ -240,11 +321,13 @@ This is the honest half of the document.
 | **Rules and conditions engine** | Nothing. Masks and roles only. No "if X then Y", no auto-inserted connector parts. Every snap carries `condition: null` and nothing reads it — **and there is now a real case for it**: the office-solution desktop is legal at rung 3 and forbidden at rungs 1–2 (`youk/FINDINGS.md`). |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
-| **Wall mounting** | **Decided and half-built.** Floor / floating is chosen and drives the view and the AR flags (§3.4, §5.1). No wall bracket geometry, no wall entity. |
+| **Derived BOM lines** | Nothing. Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. Build the mechanism once for all three. |
+| **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
+| **Timber parts** | Nothing yet. Spec agreed (25 mm, 450/600/900/1200, six-piece boxes) and the brackets that carry them are now in, so this is next and needs no CAD from Kesseböhmer. |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Seventeen commits of work exist on one machine.
-That is the single cheapest risk on this list to retire.
+There is also **no git remote.** Thirty-four commits of work exist on one
+machine. That is the single cheapest risk on this list to retire.
 
 ### 3.7 Plumbing wired in main, with no UI
 
@@ -686,10 +769,43 @@ From the brochure and ~30 lifestyle images Matt supplied in session 5.
   shelves" is not a collision exception to permit — it is an accessory-to-span
   joint the engine has never done, the same class as the clothes-rail extensions.
   Widths 450/600/900/1200 mm, max 18 kg.
-- **Two hook-strip families, and only one is in the app.** 008536/008537 are "for
+- **Two hook-strip families, and only one was in the app.** 008536/008537 are "for
   ladder *depth* 200/320" and mount depthways on one ladder. 008538–008541 are
   "for ladder *width* 450/600/900/1200" and span lengthways between two ladders.
-  Only the depth ones are snapped, which is why the app's hooks look wrong.
+  Only the depth ones were snapped, which is why the app's hooks looked wrong to
+  Matt. **The width pair is now in** — same bay widths as the shelves to 0.0 mm,
+  so one bay carries either (`youk/FINDINGS.md`).
+
+### 5.2c A part that joins nothing, and why that needed saying out loud
+
+The shoe rack (008553–56) is the first part in the range with no attachment to
+the product at all. Kesseböhmer's sheet is a spirit level, a pencil, a drill and
+wall plugs; no ladder appears in it.
+
+The engine refused it, and was right to. No snaps is almost always a missing
+authoring step, and a shelf that lost its snaps should fail loudly rather than
+load as furniture nobody can attach. So the exception is **declared** rather than
+inferred: a component says `mounting: "wall"`, and only then is the absence
+legal. An unrecognised value is refused instead of being read as "joins nothing",
+because a typo quietly turning a real mistake into an unattachable part is the
+worse failure.
+
+**Then the interesting part: nothing new was needed in the data model.** A
+wall-fixed part goes in as a **second anchor** — an instance with a real position
+and `freeMove`. The assembly always allowed that and `resolveTransforms` always
+walked from every root; it had simply never been used for anything but the first
+part. Position is derived (centred on the product, back face flush, 150 mm up)
+rather than dragged, because free 3D placement is the thing this interaction
+removed along with four bugs.
+
+The app's own counters are the proof: adding one takes the bay from **3 parts,
+2 joints** to **4 parts, 2 joints.** The part count goes up and the joint count
+does not.
+
+**This is also the answer to "does the configurator need a wall entity?"** — a
+question this file has carried as open since the instruction sheets were read. It
+does not, for this range. Revisit it only when something needs to attach to the
+wall *at a chosen place*, which nothing here does.
 
 ### 5.3 Two errors in Kesseböhmer's own data, one commercially dangerous
 
@@ -876,24 +992,29 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Seventeen commits on one machine.
+1. **A git remote.** Thirty-four commits on one machine.
 2. **Their price list**, in whatever format they have it. Everything commercial
-   is blocked on data, not code.
-3. **The "which level?" affordance** — small, and it unlocks the staggered
-   layouts their own marketing photography shows.
+   is blocked on data, not code. The ten `.xls` scene lists behind their brochure
+   QR codes are a free validation set while we wait.
+3. ~~The "which level?" affordance~~ — **done** (§5.2a). Two-ended snap picking,
+   which unlocked the staggered layouts their own photography shows.
 4. ~~A wall-mount height~~ — **done**, and it turned out to be an enum rather
    than a number (§5.1).
-5. **The shareable configuration ID / headless resolve** — the plan says week
+5. **The timber parts.** 25 mm boards and six-piece cabinet boxes, generated
+   rather than converted, so they need nothing from Kesseböhmer. The brackets
+   that carry them are in. This is what makes a demo look like their photography
+   instead of a metal frame — the highest visual return left on the list.
+6. **The shareable configuration ID / headless resolve** — the plan says week
    one, and it is already late. Cheap now, painful later, and AR cannot start
    without it.
-6. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
+7. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
    it changes what the exporter is.
-7. **A viewer split out of the editor** — responsive and touch from the start —
+8. **A viewer split out of the editor** — responsive and touch from the start —
    then the bundle export. This is the big one and everything client-facing waits
    on it.
-8. **Collision refusal**, before a customer builds something that cannot exist.
+9. **Collision refusal**, before a customer builds something that cannot exist.
 
-Items 1–6 are days. Item 7 is the project.
+Items 1–7 are days. Item 8 is the project.
 
 ### And the critical path for the *application*, which is not the same list
 
@@ -973,7 +1094,7 @@ timber thickness is Kesseböhmer's own figure, printed five times on the
 office-solution sheet — specified independently before either of us read it.
 
 **Then built, once Matt chose depth over breadth** — fix the 22 parts rather than
-add more. Commits `a6b07a1` → `eda4151`, 211 tests:
+add more. Commits `a6b07a1` → `7a6bef5`:
 
 - **Palette labels from the catalogue**, so the corrected heights reach the
   customer-facing name and not just the quote.
@@ -982,6 +1103,8 @@ add more. Commits `a6b07a1` → `eda4151`, 211 tests:
 - **Two-ended snap picking**, which fixes the unreachable rung heights and the
   180° flip together — and then `distinctPlacements` to stop it asking a question
   on every click.
+- **Shared rungs**, so a shelf and a hanging accessory can use one rung the way
+  the instructions show.
 
 Three things worth keeping from how that went. **A test caught me comparing the
 wrong thing** — poses rather than occupied space — in the exact case the code was
@@ -990,6 +1113,23 @@ options would survive and four did, and four was right. And **the palette bug wa
 smaller than I had written it up as**: the buttons were never identical, only
 their descriptive halves were. Three assertions made without opening the file,
 in one session.
+
+**Then the range, 22 → 34 components.** Commits `06be53c` → `af8f7f1`, 227 tests.
+
+- **Width hook strips** (008538–41). Span parts, not hang parts — which is the
+  whole of Matt's "the hooks look wrong". Bearing measured off the vertex profile
+  rather than reasoned.
+- **Shoe racks** (008553–56). The first part that joins nothing, and a new `wall`
+  family in the spec to say so (§5.2c).
+- **Cabinet brackets** (008557–60). Hang parts, confirmed by the slot search
+  finding what it expects rather than by me deciding. The geometry reproduced the
+  outer/extension distinction on its own: outer plugs offset at x −15.1, middle
+  ones centred at 0.0.
+
+The pattern across all three: **the pipeline decided, not the author.** Each time
+the guess was tested by whether the measured feature turned up where the family
+requires, and each time the result was a number that could be checked against the
+instruction sheet afterwards.
 
 ### Session 4 — 4 September 2026
 
