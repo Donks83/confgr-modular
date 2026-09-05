@@ -1,16 +1,20 @@
 # confgr Modular — Project Documentation
 
 **Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `9fb1f8a`, not from memory. Session 5 ran in six parts: findings
+code at commit `4626c58`, not from memory. Session 5 ran in seven parts: findings
 (§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
 Matt hit while using it, then twelve more parts of the range, then the timber —
 the first parts in the product that are ours rather than a supplier's — then
 **vertical joints** (§5.6), an engine change the cabinets forced, the office
 desktop (§5.7), which needed the same joint and one new rule, and finally the
 **`condition` field** (§5.8), which had never been read by anything until the
-office assembly produced a rule that masks and roles could not express.
+office assembly produced a rule that masks and roles could not express. Then Matt
+asked whether I had read the desktop sheet — I had, and checking it properly
+found that **the office arm does not hook a rung and I authored it as if it did**
+(§5.7's warning). And finally the repo went to GitHub.
 
-**Code:** `C:\Claude\confgr-modular` — git, 42 commits, **local only, no remote.**
+**Code:** `C:\Claude\confgr-modular` — git, 45 commits, pushed to
+**github.com/Donks83/confgr-modular** (private, branch `main`).
 **Tests:** 261 passing (`npm test`).
 **Components:** 76 — **36 of the 45 YouK parts, plus 40 timber parts generated
 rather than converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office
@@ -92,6 +96,11 @@ scenario until it says something.
 `-Demo <componentId>` changes which part the product is anchored on. It exists
 because a rule that says "not on a short ladder" cannot be tested on a tall one
 (§5.8).
+
+**Where it lives.** `github.com/Donks83/confgr-modular`, private, branch `main`.
+The clone is `C:\Claude\confgr-modular`; the supplier's STEP files are **not** in
+it and never will be — they live in `C:\Claude\YouK models` and everything
+derived from them is gitignored and regenerates from the pipeline below.
 
 **Adding parts is a pipeline, not an edit.** `youk/snap-spec.json` holds the
 decisions; everything else is mechanics:
@@ -386,8 +395,12 @@ This is the honest half of the document.
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-There is also **no git remote.** Forty-two commits of work exist on one
-machine. That is the single cheapest risk on this list to retire.
+~~There is also no git remote.~~ **Retired.** 45 commits are on
+`github.com/Donks83/confgr-modular`, private, branch `main`. Private because the
+repo carries measurements of Kesseböhmer's range and readings of their
+instruction sheets, and they are a partnership prospect. **No supplier CAD is
+tracked:** every model derived from their STEP files is gitignored and
+regenerates, and the only `.glb` files in git are the ten synthetic test assets.
 
 ### 3.7 Plumbing wired in main, with no UI
 
@@ -1312,7 +1325,7 @@ Unchanged. Real resizing of parts, only if asked for.
 
 Not the same as the phase order, and worth stating separately:
 
-1. **A git remote.** Forty-two commits on one machine.
+1. ~~A git remote~~ — **done.** `github.com/Donks83/confgr-modular`, private.
 2. **Their price list**, in whatever format they have it. Everything commercial
    is blocked on data, not code. The ten `.xls` scene lists behind their brochure
    QR codes are a free validation set while we wait.
@@ -1585,8 +1598,8 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 
 ### Risks
 
-1. **No git remote.** Forty-two commits, one machine. Cheapest thing on this
-   list.
+1. ~~No git remote~~ — **retired.** Pushed to a private GitHub repo, so the
+   project no longer exists in exactly one place.
 2. **Asset production is the permanent cost.** Every component needs modelling,
    snaps, collision boxes. The plan says this straight: *"it does not go away if
    you buy Mimeeq instead."* YouK took two sessions of developer time for 22
