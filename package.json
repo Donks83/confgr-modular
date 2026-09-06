@@ -21,6 +21,8 @@
     "youk:sheet": "tools\\.venv-step\\Scripts\\python tools/contact-sheet.py youk -o youk/contact-sheet.png",
     "youk:bay": "powershell -ExecutionPolicy Bypass -File tools/probe-bay.ps1",
     "youk:catalogue": "node tools/make-catalogue.mjs youk",
+    "youk:describe": "node tools/describe-glb.mjs youk",
+    "youk:export": "node tools/export-glb.mjs youk",
     "youk:prices:example": "node tools/make-example-prices.mjs",
     "measure": "tools\\.venv-step\\Scripts\\python tools/measure-part.py",
     "joint": "tools\\.venv-step\\Scripts\\python tools/check-joint.py",
@@ -39,6 +41,7 @@
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^8.2.2",
