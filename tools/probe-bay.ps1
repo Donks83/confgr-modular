@@ -30,6 +30,11 @@ param(
   # so a -Clicks parameter IS the $clicks scenario hashtable below, and the
   # hashtable literal silently overwrites whatever was passed in.)
   [string]$Steps = '',
+  # Extra steps appended to whatever the scenario or -Steps produced. The point
+  # is to ask an existing scenario a new question without touching its click
+  # string: `-Append collisions` runs `bay` exactly as `bay` is defined and then
+  # asks whether anything ended up inside anything else.
+  [string]$Append = '',
   # Which part the app anchors the product on. Almost always the 1500 frame, but
   # a rule that says "not on a short ladder" cannot be tested on a tall one.
   [string]$Demo = '236758-ladder-depth-320mm',
@@ -345,6 +350,10 @@ $clicks = @{
   shared = 'part:008563,marker:0,dump,part:008543,marker:0,dump,layout'
 }
 $env:CONFGR_CLICK = if ($Steps) { $Steps } else { $clicks[$Scenario] }
+# One or more steps welded on the end of whatever ran. For asking an EXISTING
+# scenario a NEW question - `collisions` was the first - without editing
+# fourteen click strings and thereby changing what they assert.
+if ($Append) { $env:CONFGR_CLICK = $env:CONFGR_CLICK + ',' + $Append }
 if ($Steps) { "--- ad-hoc steps, not scenario '$Scenario' ---" }
 
 if ($ExamplePrices) {

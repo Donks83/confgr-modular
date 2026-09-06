@@ -34,6 +34,7 @@ import {
 import {
   impliedParts, impliedBom, withImplied, impliedComponentIds, isImplied,
 } from '../engine/implied.js';
+import { overlaps, formatOverlaps } from '../engine/collision.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -123,17 +124,23 @@ export default function Configurator() {
   // through the same solver and the same joints. Falls back to the real one if
   // an implied joint cannot be solved, so a bad rule cannot black out the view.
   const scene = useMemo(() => {
-    if (!components.size || !assembly.instances.length) {
-      return { instances: assembly.instances, transforms };
-    }
+    const bare = {
+      instances: assembly.instances,
+      connections: assembly.connections || [],
+      transforms,
+    };
+    if (!components.size || !assembly.instances.length) return bare;
     try {
       const full = withImplied(assembly, components, { mounting, footHeightMm });
       return {
         instances: full.instances,
+        // Carried because the collision survey needs to know which pairs are
+        // JOINED, and an implied part's joint is as real as any other.
+        connections: full.connections || [],
         transforms: resolveTransforms(full, components).transforms,
       };
     } catch {
-      return { instances: assembly.instances, transforms };
+      return bare;
     }
   }, [assembly, components, transforms, mounting, footHeightMm]);
 
@@ -780,6 +787,22 @@ export default function Configurator() {
       return `${rows.length} instances\n${rows.join('\n')}\n`
         + `${conns.length} connections\n${conns.join('\n')}`;
     };
+
+    // DOES ANYTHING OCCUPY THE SAME SPACE AS ANYTHING ELSE?
+    //
+    // The question no probe scenario has ever asked, and its absence is what
+    // let a desk resolve straight through a ladder while fourteen scenarios
+    // agreed it was fine. It reports rather than refuses - see collision.js for
+    // why a bounding box cannot carry a refusal in a range where half the
+    // joints are two pieces of steel deliberately interpenetrating.
+    //
+    // Run over the SCENE, so the implied feet are in it too. A foot bolted
+    // under a ladder overlaps it, which is a joint and reads as one.
+    window.__cfgCollisions = () => formatOverlaps(overlaps(
+      { instances: scene.instances, connections: scene.connections },
+      components,
+      scene.transforms,
+    ));
 
     // ---- camera: the leash always, the framing only on a shape change -----
     //

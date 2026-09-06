@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 9 modules, no UI dependencies, 302 tests across the project.
+`src/engine/` — 10 modules, no UI dependencies, 325 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -233,6 +233,11 @@ using it expects — but there is still no export, no runtime and no AR.
   the packers the sheets bolt through. Derived on every read, never stored, so
   they cannot be deleted or fall out of step; placed through their own measured
   joints by the same solver as everything else (§5.15).
+- **Collision** (`collision.js`) — oriented-box overlap between every pair of
+  placed parts, with a real escape depth and a lap-versus-through call.
+  **Measures, does not refuse:** a box is the wrong shape for the L-section
+  clamping angle, and the fix is authored `col-` proxies (§5.16). Reported
+  through the probe's `collisions` step, not in the panel.
 - **Derived transforms** (`assembly.js`). Connected parts store `position: null`;
   every transform is recomputed by walking the connection graph. Move the anchor
   and everything follows. The graph is a **tree** — first path wins through a
@@ -408,8 +413,8 @@ This is the honest half of the document.
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
-| **Collision / overlap refusal** | Nothing. Every part reports `NO_COLLISION_BOX`. Two parts can occupy the same space. |
-| **Derived BOM lines** | Nothing, **and it is now the clearest next thing** (§5.12). Feet, screws and the 1.5 mm packers are all quantities the *configuration* implies rather than parts somebody clicked, and none of them reaches the quote. The foot has now been measured and its 100 mm reaches the view, but it is not drawn and not priced, because it is not an instance. Build the mechanism once for all three. |
+| **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except one L-section false positive. Nothing is blocked, and the next step is authored `col-` proxies — every part still reports `NO_COLLISION_BOX`. |
+| **Derived BOM lines** | **Built** (§5.15). `implied.js` derives the parts a configuration implies rather than storing them: the foot goes in the scene through its own measured joint and onto the quote under "Included — not chosen", and the wall fixings and packers come out as counted notes below the total, because they have no part number on file. A 200 mm bay on feet is refused, because those frames have no foot fixing. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). **On feet now moves the floor** by the foot's height rather than only flagging it (§5.12). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
@@ -1725,6 +1730,74 @@ of blindness as §5.13's fourteen agreeing scenarios, one layer up.
 **302 tests** (21 new in `tests/implied.test.js`), **78 components** — the foot
 is loaded like any other and filtered out of the palette on the engine's own
 list, because it is never chosen.
+
+---
+
+### 5.16 Collision — measure first, and the measurement changed the plan
+
+§3.6 has listed collision refusal as missing since the first session. It stayed
+a line on a list until it cost something twice: a desk resolved 5 mm too far
+back and passed through the clamping angle, and then a 920 mm desktop was made
+to span the full ladder spacing and ran **straight through a ladder's uprights**
+while fourteen probe scenarios agreed it was fine.
+
+The obvious next move is to add a refusal. That would have been wrong, and the
+reason is the whole of this section.
+
+**A bounding box is the wrong shape for this range.** Almost every joint here is
+two pieces of pressed steel deliberately interpenetrating: a shelf's end bracket
+*wraps* the frame, a hang accessory *hooks over* a rung, a clamping angle's foot
+*laps forward* over the desktop. Every one is a real box overlap and every one is
+correct. So this was built as a **measurement with no threshold**, run across
+every scenario, and the threshold decided from what came back.
+
+**What the survey found.** Two kinds of unjoined overlap in the entire range,
+and both correct:
+
+| Depth | What it is |
+|---|---|
+| **1.5 mm** | a **packer**. A shelf rests on a rung, an accessory hooks under the same rung, and the sheets bolt them together through 1.5 mm of steel. |
+| **30.0 mm** | a **lap**. A span part's end is authored flush with the frame's outer face — a 900 shelf is 950.2 wide across a 920.1 gap — so it laps the frame by exactly the frame's width. |
+
+The desk that ran through a ladder reads **57.05 mm on that same 30 mm frame**.
+
+**So the rule is geometric rather than a threshold: a lap is bounded by the
+thing being lapped.** A part's end stops at the far face of whatever it laps, so
+an overlap cannot be deeper than the thinner part is thick *along the way out*.
+Anything deeper did not stop. Measured on the same axis at both ends — comparing
+an escape in x against a smallest dimension in y happens to agree on this range
+and is comparing two different things.
+
+One tolerance, 1 mm, and it exists for a real 0.1 mm: 950.2 against a wanted
+950.1, which is two supplier files agreeing to a tenth of a millimetre. Without
+it the tightest joint in the range reports as a part passing through a frame.
+
+**And then the rule's first finding on the real range was wrong.** `officeclamp`
+reports both clamping angles passing through the desktop by 25 mm — the board's
+whole thickness. They are not. The angle is an **L**: a 4 mm upright at z −10…−6
+and a 3 mm foot lapping forward to z +10, with the board's back edge sitting in
+the corner between them. The board is wholly inside the angle's *bounding box*
+and touches almost none of its metal. Confirmed from the geometry bands and from
+the render.
+
+That is the honest limit, demonstrated on a real part rather than argued: **a box
+is the wrong shape for an L.** What fixes it is authored collision proxies — the
+`col-` node convention the pipeline already reserves and nothing in the range
+uses — and that is now a specific, scoped piece of work rather than a line on a
+list.
+
+**So it reports, and it reports to the probe rather than to the panel.** A new
+`collisions` step, and a `-Append` switch on the probe so an existing scenario
+can be asked a new question without editing its click string and thereby
+changing what it asserts. Every scenario: **0 through**, except the L-section
+false positive. The desk failure is a test.
+
+*What this actually bought,* stated plainly: the loop test can now ask the
+question that nothing asked for fifteen sessions. It cannot yet answer it well
+enough to refuse anything, and saying so is better than a refusal that blocks a
+correct desk.
+
+**325 tests** (23 new in `tests/collision.test.js`).
 
 ---
 

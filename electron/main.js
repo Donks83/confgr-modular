@@ -114,6 +114,7 @@ function createWindow() {
           //   quote                 print the bill of materials and the totals
           //   mount:floor|wall      drive the mounting dropdown for real
           //   ground                print the ground and AR state FROM THE SCENE
+          //   collisions            print every pair of parts sharing space
           //   palette[:N]           print the first N palette entries: id => label
           //   choices               print the "how should it sit" options on offer
           //   choose:N              take the Nth of them
@@ -147,6 +148,11 @@ function createWindow() {
                        })()`
                     : kind === 'ground'
                     ? 'window.__cfgGround ? window.__cfgGround() : "no ground dump"'
+                    // The question no scenario asked for fifteen sessions, and
+                    // whose absence let a desk resolve through a ladder while
+                    // every coordinate anyone checked came out right.
+                    : kind === 'collisions'
+                    ? 'window.__cfgCollisions ? window.__cfgCollisions() : "no collision dump"'
                     // The other end of the joint. `choices` lists what the app is
                     // offering; `choose:N` takes the Nth. Separate steps on
                     // purpose - a probe that only ever clicked would not notice
