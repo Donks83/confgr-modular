@@ -1708,21 +1708,61 @@ which is consistent — a set does not need assembling twice.
 Measured:
 
 ```
-008549 rack     195.0 x 240.0 x 100.4    hangs from a rung, top slot at y 240
+008549 rack     195.0 x 240.0 x 100.4    hangs from a rung, top bracket at y 240
 008549 divider  201.0 x  21.5 x  60.0    symmetric in x and in z
 ```
 
-**The divider is 6.0 mm WIDER than the rack it divides** — 201.0 against 195.0.
-That is not a tolerance, it is the joint: the divider goes *over* the rack's two
-side walls with 3.0 mm each side, not inside it. Anything that fitted inside
-would have to be narrower, and it is not.
+### 195.0 is the family width, and the divider is the only part that breaks it
 
-What is not determined is **where up the rack it sits.** The divider is only
-21.5 mm tall against the rack's 240, so it clips at one height out of many, and
-nothing in the CAD pairs unambiguously with anything in the rack: the divider's
-six 7.5 mm bands at x ±10..17.5, ±40..47.5 and ±67.5..75 do not line up with any
-band the rack has. The sheet does not draw it either.
+Every accessory for a 200 mm ladder is **exactly 195.0 mm** wide:
 
-So this one is closer than the other four but still not authorable, and the
-question it needs is narrow enough to ask in a sentence: **at what height on the
-rack does the divider clip?** The 3.0 mm each side is already known.
+```
+008536 hook strip for ladder depth 200mm    195.0 x  50.0 x  43.6
+008542 rack for ladder depth 200mm          195.0 x 160.0 x 135.8
+008549 newspaper/towel rack                 195.0 x 240.0 x 100.4
+008549 divider                              201.0 x  21.5 x  60.0   <-- not 195
+```
+
+That is the mounting-bracket width for the depth, and it is why the `hang`
+family works from a measured slot rather than a typed number — three unrelated
+pressed brackets come out at the same 195.0.
+
+**The divider is the only part in the range that does not share its family's
+width**, and that is the strongest evidence about it: a part that hooked a rung
+would be 195.0 like its three siblings. It does not hook a rung. It goes on the
+rack, and its 6.0 mm of extra width is what it needs to pass outside something
+that is 195.0.
+
+### What the divider actually is
+
+From the z–y section, and it is not a fin:
+
+- A **1.5 mm sheet** — y 6.5 to 8.0. The system-wide sheet thickness, now seen
+  in a third independent place.
+- **Both ends curl DOWN through a radius**, from the sheet's underside at 6.5 to
+  y = 0. Hooks, **6.5 mm** deep, and the two curls are at z = ±30, so **60.0 mm
+  apart**.
+- A **13.5 mm upstand** at the centre line, rising from y 8.0 to 21.5.
+- Six 7.5 mm bands in x, centred at **±13.75, ±43.75 and ±71.25**.
+
+### And the obvious reading is ruled out
+
+Two down-curled hooks 60.0 mm apart look exactly like something that straddles
+the rack's front and back rods. **It does not.** Measured on the rack:
+
+| Height | Back rod centre | Front rod centre | Spacing |
+|---|---|---|---|
+| y ≈ 31 | −23.65 | +42.60 | **66.25** |
+| y ≈ 100 | −23.65 | +49.00 | **72.65** |
+
+No pair of rods in that rack is 60.0 mm apart, at any height. The rack's rods
+sit at y = 0, 31, 99, 131, 199 and 223 on the back and y = 0, 31, 78 and 104 on
+the front; none of those pairings gives 60.0 either.
+
+One coincidence is worth writing down for whoever picks this up: the rack's side
+rods occupy x 64.5..67.5, and the divider's outermost band **begins at exactly
+67.5**. That may be the joint and it may be arithmetic. It is not enough.
+
+So: closer than the other four, and the question is now narrow enough to ask in
+a sentence — **what does the divider hook, if not the front and back rods?**
+Everything else about it is measured.

@@ -467,7 +467,7 @@ This is the honest half of the document.
 | **Save and load a project** | IPC handlers exist; no UI calls them (§3.7). |
 | **A shareable configuration ID** | **Built** (§5.18). Versioned, self-contained, refusing an unknown format rather than guessing, and NAMING a part the catalogue no longer has rather than dropping it. `resolveConfiguration(id, components, {catalogue})` is the headless resolve everything downstream was waiting on — assembly, transforms, implied parts, validity, collisions and quote, with no editor and no three.js. The round trip is a probe scenario, compared on resolved positions. **No short-code service and no `/ar?c=` route yet** — the id is 416 characters, which is a link rather than a text message. |
 | **PDF / tear sheet** | Nothing. |
-| **AR / "view in your room" / QR** | **The GLB half is built** (§5.19). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles and 443,980 bytes, within budget. **Still nothing for:** USDZ, so no iOS; no QR; no `/ar?c=` landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
+| **AR / "view in your room" / QR** | **Both file formats are built** (§5.19, §5.20). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry — and `npm run youk:usdz` converts that to a Quick Look-valid USDZ, anchoring horizontally or vertically according to what the product is. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles, 443,980 bytes of GLB and 1,248,000 of USDZ, within budget. **Still nothing for:** the QR handoff and the `/ar?c=` landing route (decided, §4.1a, not built). And **nothing has been on a phone yet** — two questions now need a device rather than a keyboard. |
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
@@ -478,7 +478,7 @@ This is the honest half of the document.
 | **Required-part rules** | **Built** (§5.17). `snap.required` is finally set by something - the carcase family, on both of its plugs, because a board across two brackets holds itself up in no other way. Satisfied by GEOMETRY rather than by the connection graph, since the graph is a tree and a cabinet across two brackets is not. It found a real 30 mm gap in the `carcase` scenario the moment it went in. |
 | **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
 | **A part on the TOP of a ladder** | **Nothing, and now blocked on a question rather than on work.** The 008552 top-panel bracket is measured exactly — a 3 mm cranked strap, 29 mm legs, a **15.0 mm** crank, capping a **30.0 mm** stile — and the socket it needs on `frames` is a small change. What is not settled is which way up it goes: the sheet reads equally as "the panel rests on the bracket, 15 mm above the stile top" and "the bracket hooks down over a panel sitting on the ladders". 15 mm of height, and nobody would miss it in a render. See `youk/FINDINGS.md`, *The last five STEP files*. |
-| **An accessory on an accessory** | **Nothing.** The 008549 divider clips over the 008549 rack — **6.0 mm wider than it**, so 3.0 mm each side, which is the joint. At what height it clips is in neither the CAD nor the sheet. The only part in the range that attaches to something other than a frame or a board. |
+| **An accessory on an accessory** | **Nothing, and one reading ruled out.** The 008549 divider is a 1.5 mm sheet with hooks curling down at both ends, **60.0 mm apart**, and a 13.5 mm upstand. Those hooks look exactly like something that straddles the rack's front and back rods — and **no pair of rods in that rack is 60.0 apart at any height** (66.25 at y 31, 72.65 at y 100). What it does hook is the open question. What is settled: every d200 accessory is exactly **195.0** wide and the divider is **201.0**, the only part in the range that breaks its family's width — which is why it cannot be a rung-hung part. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
@@ -530,17 +530,44 @@ conversation and not enough for a pilot.
    sit on a page. Mimeeq cannot do this — their own docs say the observer system
    is not instance-bound — so it is a genuine differentiator, and it has to be
    true from the first line rather than retrofitted.
-4. **A shareable configuration ID** that fully determines the visual state and
-   **resolves without the editor**, via a headless function. AR generation, the
-   PDF and any server-side render all call that same function. The plan is
-   emphatic that retrofitting this later is painful.
+4. ~~**A shareable configuration ID** that fully determines the visual state and
+   **resolves without the editor**~~ — **done** (§5.18), and the GLB export
+   proved it by turning an id into a file with nothing running (§5.19).
 
-**One unresolved tension worth naming now:** Studio's deliverable is a static
-offline folder whose selling point is zero infrastructure. But the AR/QR flow
-needs a hosted landing URL (`https://…/ar-landing?shortcode=`), and an embed on
-Kesseböhmer's site is hosted by definition. The plan never reconciles these. The
-likely answer is that the *configurator* stays static and embeddable while AR
-needs one small hosted route — but it is a decision, not an oversight to leave.
+### 4.1a Static bundle or hosted route — **decided, 6 September 2026: both**
+
+This sat as an "unresolved tension" for four sessions and blocked items 5–7 of
+Phase 2. Matt's call, and it is the right one, because the two things were never
+actually competing:
+
+- **The bundle is the deliverable.** A self-contained folder — `index.html`,
+  vendored three.js, the models, no network dependency — is what gets sent to a
+  client, dropped on their own server, and demonstrated on a laptop with the
+  wifi off. It is what Studio already does well (`exportProject.js`, 382 MB of
+  source down to a 33.6 MB deliverable) and what makes a configurator a thing
+  you can *hand over* rather than a service you must run for someone.
+- **The hosted route is the AR handoff, and only that.** `/ar?c=<id>` takes a
+  configuration id, resolves it headlessly, returns the GLB or USDZ, and hands
+  the phone to Scene Viewer or Quick Look. A QR code cannot point at a folder on
+  somebody's desktop, so AR needs a URL and there is no way around it.
+
+**Why "both" costs less than it sounds.** The hosted route is not a second
+application — it is `resolveConfiguration` plus `exportConfiguration`, both of
+which already exist and both of which already run headlessly in Node. The route
+is a few dozen lines around tools we have. The bundle is the larger job and it
+is the one the viewer split (Phase 2 item 2) unlocks anyway.
+
+**What this decides, concretely:**
+
+- The bundle ships **without** AR. A configurator in an offline folder shows the
+  product in 3D and quotes it; the "view in your room" button appears only when
+  the bundle is configured with a hosted endpoint. It degrades honestly, the
+  same way the quote does with no prices on file.
+- The configuration id is the seam between them, which is why it was worth
+  building first. The bundle produces an id; the hosted route consumes one.
+  Neither needs to know anything else about the other.
+- **Order:** bundle first, because it is what a client can be sent. Hosted route
+  alongside USDZ, because neither is useful without the other.
 
 ### 4.2 How do I import new models into the builder?
 
@@ -2143,6 +2170,96 @@ above. Both were built for other reasons and both immediately found something.
 
 ---
 
+### 5.20 The other half of AR — and three things the range never knew about itself
+
+Android takes the GLB. **iOS does not**: Quick Look reads USDZ and nothing else,
+and Quick Look is not a viewer you can talk somebody through installing — it is
+what happens when Safari meets an `<a rel="ar">` link. Without it, half the
+phones in the world cannot see the product at all, and it is the half most of
+Kesseböhmer's customers are holding.
+
+```
+npm run youk:usdz -- --demo --glb demo.glb --out demo.usdz
+
+  wrote   demo.usdz  1248.2 kB from 433.6 kB of GLB
+  anchors on the FLOOR (horizontal)
+  archive 4 entries: model.usda, geometries/Geometry_2.usda, ...
+  valid USDZ - stored, aligned, model first
+```
+
+**This one step is not renderer-free**, and that is a deliberate exception to
+the rule §5.19 established. It loads the GLB into three.js and runs three's own
+`USDZExporter`. The alternative was authoring USD directly, and that is a bad
+trade: USDZ is not "USD in a zip", it is USD in a zip with rules — stored not
+deflated, every file's data 64-byte aligned, the model file first — that Quick
+Look enforces *by showing nothing*. three's exporter gets those right, is what
+model-viewer uses, and is maintained by people with real devices. A second
+implementation would have been inventing a way to be wrong. Everything upstream
+of this step still runs with no DOM.
+
+**So "it returned bytes" is not a test.** `verifyUsdz` walks the zip's local
+file headers and checks all three rules, which is something that can fail for a
+real reason — a three.js upgrade that changed the padding would be caught here
+rather than on somebody's phone.
+
+**The anchoring is a decision, not a default.** `planeAnchoring:alignment` tells
+Quick Look whether to hunt for a floor or a wall, and it comes from
+`arReadiness().placement.vertical` — which has known the difference between a
+shoe rack and a bay since before there was anything to export.
+
+#### Three findings, and none of them was the thing being built
+
+**1. The whole range has no vertex normals.** All 80 YouK GLBs; every synthetic
+test asset has them, so the fault is in `step-to-glb.py` and `make-timber.py`.
+Nobody noticed for five sessions because three.js's `GLTFLoader` computes them
+at load, so the app has always looked right.
+
+The obvious fix — `normals()` in the GLB export chain — is **wrong**, and one
+measurement said so:
+
+```
+before   7,466 vertices   7,495 triangles   182,984 bytes
+after   22,485 vertices   7,495 triangles   544,428 bytes
+```
+
+22,485 is 7,495 × 3 exactly: it *unwelds*, which is how you write flat normals.
+And flat normals are precisely what glTF already requires a viewer to compute
+when NORMAL is absent. It triples the file to hand Scene Viewer something it
+would have worked out for itself, on a budget stated in megabytes. USDZ is the
+one consumer that does not fill them in, so it is a `--normals` flag there and
+nothing in the GLB — and even in USDZ it is off by default, because three writes
+`subdivisionScheme = "none"` on every mesh and an unsubdivided USD mesh with no
+authored normals gets face normals anyway. **Only a real iPhone can settle
+that**, so it is a flag with a known cost (1,248 kB → 4,576 kB) rather than a
+guess.
+
+**2. The first USDZ this project produced was full of the editor.**
+`mdsnapcarcasssideleft`, `colbody`, `dim` — snap planes, a collision proxy and
+the dimension cube, translucent debug materials and all, in a customer's living
+room. `export-glb.mjs` strips them; this tool had its own idea of the world and
+therefore did not. **Third time this project has kept one list in two places and
+lost something to it** (§8 risk 3), so `isProduct` is now exported from one file
+and imported by the other. The test that caught it asserts both halves: no
+scaffolding, *and* the product still there — because stripping too much would
+pass the first assertion and ship an empty room.
+
+**3. A test that failed for the wrong reason taught something worth keeping.** A
+three USDZ is not one file: `model.usda` holds the scene graph, anchoring and
+materials, while each mesh lives in its own `geometries/Geometry_N.usda`. The
+`subdivisionScheme` assertion looked in the model file and failed. Nothing was
+broken; the test was asking the wrong file.
+
+There was also a trap inside the fix for finding 1: converting normals per
+**node** gives a bay's two identical ladders a geometry each, silently undoing
+the `dedup` the GLB export went to the trouble of doing — 8,216 kB and 6 archive
+entries where there should be 4,576 kB and 4. Caching on the source geometry put
+it back. Worth knowing that `GLTFLoader` shares geometry correctly on its own;
+it was our code that broke the sharing.
+
+**418 tests** (13 new in `tests/exportUsdz.test.js`).
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
@@ -2297,9 +2414,13 @@ order rather than wish order:
 5. **The folder bundle export**, copying Studio's `exportProject.js` shape —
    *and* its offline-guarantee test, which blocks every outbound request and
    drives the tour. Copy the test, not just the exporter.
-6. **AR:** ~~GLB export of a configuration~~ — **done** (§5.19) → USDZ conversion
-   (test material variants early) → the hosted `/ar?c=<id>` landing route → the
-   QR handoff (§4.5).
+6. **AR:** ~~GLB export of a configuration~~ (§5.19) and ~~USDZ conversion~~
+   (§5.20) — **both done** → the hosted `/ar?c=<id>` landing route → the QR
+   handoff (§4.5). **Both formats now come out of one configuration id**, so
+   Android and iOS are fed by the same chain and neither is a special case.
+   What is left needs a phone rather than a keyboard: whether Quick Look wants
+   authored normals (the `--normals` flag, at 3.7x the size) and whether
+   Android's vertical placement is good enough to promise.
    `tools/export-glb.mjs` turns an id into a file with the editor closed. Three
    decisions in it that are not defaults: the export **includes implied parts**
    (a bay on feet exports with its feet, because that is what was priced); it is
@@ -2310,8 +2431,7 @@ order rather than wish order:
    invisible quads is eighty invisible quads in somebody's living room.
    `arReadiness` has taken a `bytes` argument since it was written and has never
    had a real number to give it. The demo bay: 34,106 triangles, 443,980 bytes,
-   within budget. Next is USDZ, which is the one step that needs a tool we do not
-   yet have.
+   within budget.
 7. **Save / reload, shareable URL state, tear-sheet PDF.**
 8. **PWA wrapper** — manifest and service worker — *only if a client asks for "an
    app"*. **No native app** (§4.5).
@@ -2320,9 +2440,11 @@ Exit gate: live on one real site, two independent configurators on one page, AR
 working on both iOS and Android, and the whole thing usable on a mid-range
 Android phone.
 
-**The decision that blocks item 5 and cannot be deferred past it:** a static
-offline bundle versus the hosted route AR needs (§4.1). Settle it before writing
-the exporter.
+~~**The decision that blocks item 5 and cannot be deferred past it:** a static
+offline bundle versus the hosted route AR needs.~~ **Settled, 6 September 2026:
+both** (§4.1a). Item 5 is the bundle and it is the client deliverable; the
+hosted `/ar?c=<id>` route is a small addition to item 6 rather than a rival to
+item 5. Nothing in this phase is waiting on a decision any more.
 
 ### Phase 3 — Money — **PARTLY DONE, ahead of schedule**
 
@@ -2366,10 +2488,10 @@ Not the same as the phase order, and worth stating separately:
    sentence with a measurement behind it, and together they are the difference
    between 80 parts and 85. Nothing on our side can unblock any of them, which
    is exactly why they should be asked now rather than when we are ready.
-9. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
-   it changes what the exporter is. **This is now the next thing on the critical
-   path**, because everything below it is shaped by the answer and the GLB
-   export has removed the last excuse for deferring it.
+9. ~~Decide static bundle vs hosted AR route~~ — **decided: both** (§4.1a).
+   Bundle now, hosted `/ar?c=<id>` alongside USDZ. Not a compromise — the two
+   were answering different questions, and the configuration id already joins
+   them.
 10. **USDZ**, so the AR path reaches iPhones. The GLB half is done; this is the
     half that needs a converter and a material-variant test.
 11. **A viewer split out of the editor** — responsive and touch from the start —
@@ -2779,9 +2901,13 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
    assembly that may be invalid, and says so, but a customer could still send it.
    A rules engine beyond these two remains unbuilt, and *deletion* is unchecked
    (see risk 4).
-6. **The static-export vs hosted-AR tension** (§4.1) is undecided — and it is now
-   the top item on the critical path (§6), because the GLB export exists and
-   every step after it depends on the answer.
+6. ~~**The static-export vs hosted-AR tension**~~ — **retired, and it was never a
+   tension** (§4.1a). Matt's call: **both.** The bundle is the deliverable, the
+   hosted `/ar?c=<id>` route is the AR handoff and only that, and the
+   configuration id is the seam between them — which is why it was worth
+   building before either. The bundle degrades honestly without AR, the same way
+   the quote degrades without prices. What remains is work rather than a
+   decision, which is the whole difference.
 7. **The supplier data has four description errors and one incomplete model,
    and every one of them was found by measuring rather than by reading.**
    §5.3 recorded two wrong descriptions; session 6 found two more (008533's
@@ -2843,9 +2969,12 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   panel resting **on** the bracket 15 mm above the stile top, or the bracket
   hooking **down over** a panel that sits directly on the ladders. 15 mm of
   height, and it decides what every "flush top" render looks like.
-- **At what height does the 008549 divider clip onto its rack?** It is 6.0 mm
-  wider than the rack, so it goes over the outside with 3.0 mm each side — that
-  much is settled. Nothing in the CAD or the sheet says where up it sits.
+- **What does the 008549 divider hook?** Not the rack's front and back rods —
+  its two down-curled hooks are 60.0 mm apart and no pair of rods in that rack
+  is 60.0 apart at any height (66.25 at y 31, 72.65 at y 100). It is also the
+  only accessory in the range that is not 195.0 mm wide, which is the d200
+  family's mounting width, so it is not rung-hung either. Everything about the
+  part is measured; what it attaches to is not.
 
 **Commercial**
 
@@ -2859,9 +2988,18 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 - Grids with multi-cell spans on a real product — the one unproven piece of the
   attach model.
 - Do glTF material variants survive conversion to USDZ at all? The plan flags
-  testing this early with one real gloss and one real glazed material. **Now
-  actionable rather than theoretical:** `npm run youk:export` produces the GLB to
-  test it with, so this stops being a question and becomes an afternoon.
+  testing this early with one real gloss and one real glazed material. **The
+  conversion now exists** (§5.20) and the range has no variants yet, so the test
+  is: author two finishes on one part and put them through `npm run youk:usdz`.
+- **Does Quick Look need authored normals?** The range has none (§5.20), glTF
+  requires a viewer to compute flat ones, and three writes
+  `subdivisionScheme = "none"` so USD should compute them too — but "should"
+  here means reading two specifications rather than looking at a phone. The
+  `--normals` flag settles it either way and costs 1,248 kB → 4,576 kB on the
+  demo bay. **One iPhone, five minutes.**
+- **And the pipeline should write normals at source regardless**, so the
+  question stops being per-consumer. `step-to-glb.py` and `make-timber.py` both
+  omit them; every synthetic test asset has them.
 - **What is the real AR budget?** `arReadiness` gates on byte and triangle counts
   it was given before anything could measure them. The demo bay comes in at
   34,106 triangles and 443,980 bytes — comfortably inside — but a five-bay run

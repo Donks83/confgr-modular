@@ -23,6 +23,7 @@
     "youk:catalogue": "node tools/make-catalogue.mjs youk",
     "youk:describe": "node tools/describe-glb.mjs youk",
     "youk:export": "node tools/export-glb.mjs youk",
+    "youk:usdz": "node tools/export-usdz.mjs",
     "youk:prices:example": "node tools/make-example-prices.mjs",
     "measure": "tools\\.venv-step\\Scripts\\python tools/measure-part.py",
     "joint": "tools\\.venv-step\\Scripts\\python tools/check-joint.py",

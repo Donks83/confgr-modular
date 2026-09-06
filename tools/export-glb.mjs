@@ -48,9 +48,19 @@ import {
 import { attachAt } from '../src/engine/attach.js';
 import { arReadiness, MOUNTING } from '../src/engine/ar.js';
 
-/** Editor structure, not product. Mirrors NON_VISIBLE_PREFIXES in component.js. */
-const NOT_PRODUCT = ['md-snap', 'md-grid', 'col-'];
-const isProduct = (name) => name !== 'dim' && !NOT_PRODUCT.some((p) => name?.startsWith(p));
+/**
+ * Editor structure, not product. Mirrors NON_VISIBLE_PREFIXES in component.js.
+ *
+ * EXPORTED, and that is the point rather than a convenience. `export-usdz.mjs`
+ * needs the same answer, and when it had its own idea of it the first USDZ this
+ * project ever produced contained `mdsnapcarcasssideleft`, `colbody` and `dim`
+ * — a customer's living room, furnished with the editor's scaffolding. Two
+ * copies of a list is the failure mode §8 risk 3 is about, and this is the
+ * third time it has bitten.
+ */
+export const NOT_PRODUCT = ['md-snap', 'md-grid', 'col-'];
+export const isProduct = (name) => name !== 'dim'
+  && !NOT_PRODUCT.some((p) => name?.startsWith(p));
 
 /** Every component in a folder, loaded and validated the way the app loads them. */
 export function loadFolder(folder) {
@@ -201,6 +211,30 @@ export async function exportConfiguration(id, folder, outPath, { raw = false } =
   // the second copy of the ladder, and the snap planes' orphaned accessors.
   if (!raw) await out.transform(dedup(), prune());
   await out.transform(unpartition());
+
+  // NORMALS ARE DELIBERATELY NOT WRITTEN HERE, and it took a measurement to
+  // know that, because the range does not have any: all 80 YouK GLBs ship with
+  // no NORMAL attribute at all (`step-to-glb.py` and `make-timber.py` never
+  // wrote one; every synthetic test asset does).
+  //
+  // The obvious fix is `normals()` in this chain, and it is wrong. Measured on
+  // one ladder:
+  //
+  //     before   7,466 vertices   7,495 triangles   182,984 bytes
+  //     after   22,485 vertices   7,495 triangles   544,428 bytes
+  //
+  // 22,485 is 7,495 x 3 exactly - it UNWELDS, giving every triangle its own
+  // three vertices, which is how you write FLAT normals. And flat normals are
+  // precisely what the glTF spec already requires a viewer to compute when
+  // NORMAL is absent. So it triples the file to hand Scene Viewer something it
+  // would have worked out for itself, on a budget stated in megabytes.
+  //
+  // USDZ is the one consumer that does not fill them in - three's exporter
+  // warns "Normals missing" and omits them - so that is where the work belongs,
+  // in `export-usdz.mjs`, paid for once by the file that needs it.
+  //
+  // The pipeline should still write normals at source; `inspect-model.mjs` says
+  // so on every part now.
 
   const bytes = await io.writeBinary(out);
   writeFileSync(outPath, Buffer.from(bytes));
