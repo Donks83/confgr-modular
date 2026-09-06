@@ -17,8 +17,17 @@
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { loadComponentFromPath } from '../three/loadGlb.js';
+// THE SCENE AND THE PRODUCT COME FROM THE VIEWER, not from here.
+//
+// The editor is the viewer plus markers, a ghost and a picker — it is not a
+// different program that happens to draw the same thing. Everything a customer
+// sees (lights, ground, finishes, which nodes are visible, the pan leash) is
+// defined once, in src/viewer, and imported by both. See the note at the top of
+// viewer/scene.js for the three separate bugs this session that were all the
+// same shape: two implementations of one idea, drifting.
+import { createScene, fitBounds } from '../viewer/scene.js';
+import { syncProduct, setGround, describeLayout } from '../viewer/product.js';
 import { resolveTransforms, validateAssembly } from '../engine/assembly.js';
 import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
@@ -29,10 +38,10 @@ import {
 } from '../engine/attach.js';
 import { quote, formatQuote } from '../engine/quote.js';
 import {
-  MOUNTING, FOOT, arReadiness, isGrounded, groundClearanceMm,
+  MOUNTING, FOOT, arReadiness, groundClearanceMm,
 } from '../engine/ar.js';
 import {
-  impliedParts, impliedBom, withImplied, impliedComponentIds, isImplied,
+  impliedParts, impliedBom, withImplied, impliedComponentIds,
 } from '../engine/implied.js';
 import { overlaps, formatOverlaps } from '../engine/collision.js';
 import {
@@ -203,101 +212,40 @@ export default function Configurator() {
   // ------------------------------------------------------------- three setup
   useEffect(() => {
     const mount = mountRef.current;
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#1b1815');
+    // ONE scene builder, shared with the runtime. What used to be ninety lines
+    // of lights, ground, controls and a pan leash right here is now `createScene`
+    // — the editor adds only what a customer never sees.
+    const ctx = createScene(mount);
+    const { scene, camera, renderer, controls, productRoot } = ctx;
 
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.02, 100);
-    camera.position.set(0.8, 0.6, 1.1);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    // PBR Neutral: accuracy over mood. A finish shown here has to be the finish.
-    renderer.toneMapping = THREE.NeutralToneMapping;
-    mount.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02;
-
-    // PAN, BOUNDED. Matt, 3 Sep: "when I added a few of the kitchen cabs I
-    // could only rotate around a limited section and not view the other areas".
-    // He is right and the original reasoning was wrong: orbit alone pivots about
-    // one fixed point, so on a four-metre run of units you can look at the
-    // middle from any angle and never get a close view of an end.
+    // THE EDITOR'S OWN FURNITURE, and the whole of what it adds to the scene.
+    // Markers to attach to, a ghost to preview with, a raycaster to pick with.
+    // A customer sees none of these, which is exactly why they live here and
+    // the rest does not.
     //
-    // The worry that stopped me — losing an anchored product off screen — is
-    // real, but the fix is a LEASH, not a ban. Pan freely inside a box around
-    // the product; the box grows as the product does; step outside and the
-    // target is pulled back to the edge. See clampPan in the render loop.
-    controls.enablePan = true;
-    // Screen-space panning drags the product with the cursor, which is what
-    // "pan" means to everyone who has used a map. The alternative slides along
-    // the ground plane and feels like flying.
-    controls.screenSpacePanning = true;
-
-    scene.add(new THREE.HemisphereLight('#cfd6e4', '#3a3128', 1.0));
-    const key = new THREE.DirectionalLight('#fff4e6', 1.6);
-    key.position.set(2, 3.5, 2.2);
-    key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
-    key.shadow.camera.near = 0.1;
-    key.shadow.camera.far = 12;
-    scene.add(key);
-
-    const fill = new THREE.DirectionalLight('#dfe6f5', 0.35);
-    fill.position.set(-2, 1.5, -1.5);
-    scene.add(fill);
-
-    // Ground: a grid to read scale from and a shadow catcher. Both are held on
-    // `three.current` because a wall-mounted product has no floor under it —
-    // leaving them visible draws a floor the product is not standing on, and
-    // the shadow lands somewhere the real thing would never cast one.
-    const grid = new THREE.GridHelper(4, 40, '#463c33', '#2c2721');
-    scene.add(grid);
-
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.ShadowMaterial({ opacity: 0.32 }));
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    const productRoot = new THREE.Group();
+    // The ghost has its own group so the product rebuild, which owns
+    // productRoot's children, never has to know it exists.
     const markerRoot = new THREE.Group();
-    // The ghost lives in its own group so the product rebuild effect, which
-    // owns productRoot's children, never has to know it exists.
     const ghostRoot = new THREE.Group();
-    scene.add(productRoot, markerRoot, ghostRoot);
+    scene.add(markerRoot, ghostRoot);
 
-    three.current = {
-      scene, camera, renderer, controls, productRoot, markerRoot, ghostRoot,
-      grid, floor,
-      groups: new Map(),
+    Object.assign(ctx, {
+      markerRoot,
+      ghostRoot,
       raycaster: new THREE.Raycaster(),
       pointer: new THREE.Vector2(),
       markerGeo: new THREE.SphereGeometry(1, 12, 10),
-      // The leash. Recomputed from the product's own bounds whenever it
-      // changes, so it is never a guess about how big the thing might get.
-      panBounds: null,
-    };
-
-    const resize = () => {
-      const { clientWidth: w, clientHeight: h } = mount;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h || 1;
-      camera.updateProjectionMatrix();
-    };
-    resize();
-    const observer = new ResizeObserver(resize);
-    observer.observe(mount);
+    });
+    three.current = ctx;
 
     // Force one frame, then read the buffer. Same reason as `settle` below: an
     // uncomposited window stops firing rAF, so the tick loop stalls and the
     // buffer still holds whatever was drawn before the clicks. Rendering on
     // demand means the capture shows the state the checks just built.
     window.__spikeRender = () => {
-      controls.update();
-      three.current.clampPan?.();
-      renderer.render(scene, camera);
+      ctx.render();
       return true;
     };
     window.__spikeCapture = () => {
@@ -457,19 +405,9 @@ export default function Configurator() {
       return `pressed ${instanceId}, dropped on marker ${markerIndex} of ${markerCount} -> ${said}`;
     };
 
-    // Keep the orbit target inside the leash. The camera is moved by the SAME
-    // correction as the target, so the view direction is untouched — it reads as
-    // the pan running out of room, not as the camera being snatched away.
-    const corrected = new THREE.Vector3();
-    const clampPan = () => {
-      const box = three.current?.panBounds;
-      if (!box) return;
-      corrected.copy(controls.target).clamp(box.min, box.max);
-      if (corrected.distanceToSquared(controls.target) < 1e-12) return;
-      camera.position.add(corrected.clone().sub(controls.target));
-      controls.target.copy(corrected);
-    };
-    three.current.clampPan = clampPan;
+    // The leash itself is `ctx.clampPan`, in viewer/scene.js — the runtime
+    // needs it for exactly the same reason the editor does.
+    const clampPan = ctx.clampPan;
 
     // Prove the leash rather than eyeballing it: shove the orbit target a long
     // way out, let the clamp run, and report where it actually ended up next to
@@ -498,24 +436,14 @@ export default function Configurator() {
         + `bounds ${f(box.min)} to ${f(box.max)}; inside=${inside}`;
     };
 
-    let raf = 0;
-    const tick = () => {
-      controls.update();
-      clampPan();
-      renderer.render(scene, camera);
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
+    ctx.start();
 
     return () => {
-      cancelAnimationFrame(raf);
-      observer.disconnect();
-      controls.dispose();
-      three.current.markerGeo.dispose();
+      // The editor's own furniture is the editor's own to clean up; everything
+      // else is disposed by the scene that made it.
+      ctx.markerGeo.dispose();
       ghostRoot.traverse((o) => { if (o.isMesh) o.material?.dispose(); });
-      renderer.dispose();
-      renderer.forceContextLoss();
-      mount.removeChild(renderer.domElement);
+      ctx.dispose();
     };
   }, []);
 
@@ -665,12 +593,7 @@ export default function Configurator() {
   useEffect(() => {
     const ctx = three.current;
     if (!ctx) return;
-    const grounded = isGrounded(mounting);
-    ctx.grid.visible = grounded;
-    ctx.floor.visible = grounded;
-    const floorY = -groundClearanceMm(mounting, footHeightMm) / 1000;
-    ctx.grid.position.y = floorY;
-    ctx.floor.position.y = floorY;
+    setGround(ctx, mounting, footHeightMm);
     window.__spikeRender?.();
   }, [mounting, footHeightMm]);
 
@@ -748,65 +671,11 @@ export default function Configurator() {
     // ladders. Everything else in this file works from `assembly`; only the
     // drawing works from here, because an implied part is real geometry that
     // is not a real instance.
-    const wanted = new Set(scene.instances.map((i) => i.instanceId));
-    for (const [id, group] of ctx.groups) {
-      if (!wanted.has(id)) { ctx.productRoot.remove(group); ctx.groups.delete(id); }
-    }
-
-    for (const instance of scene.instances) {
-      const component = components.get(instance.componentId);
-      if (!component) continue;
-
-      // An implied part is not selectable and not removable. Leaving its
-      // instanceId off the group is what does it: the picker walks up looking
-      // for one and finds nothing, so a click passes through to the background
-      // exactly as it would over empty space. Better than a special case in the
-      // picker, which would be a second place to remember this.
-      const derived = isImplied(instance.instanceId);
-
-      let group = ctx.groups.get(instance.instanceId);
-      if (!group) {
-        group = new THREE.Group();
-        group.add(component.template.clone(true));
-        if (!derived) group.userData.instanceId = instance.instanceId;
-        ctx.productRoot.add(group);
-        ctx.groups.set(instance.instanceId, group);
-      }
-
-      const t = scene.transforms.get(instance.instanceId);
-      if (t) { group.position.fromArray(t.translation); group.quaternion.fromArray(t.rotation); }
-
-      // The finish for THIS instance. Per-part options are the point: eight
-      // pouches on a panel are eight instances, each independently coloured.
-      const finishOption = component.options.find((o) => o.id === 'finish');
-      const chosenId = instance.selections?.finish || finishOption?.defaultValueId;
-      const chosen = finishOption?.values.find((v) => v.id === chosenId);
-      const isSelected = instance.instanceId === selectedId;
-
-      // eslint-disable-next-line no-loop-func
-      group.traverse((o) => {
-        if (!o.isMesh) return;
-        // Both prefixes survive three.js name sanitisation (it strips dots, not
-        // hyphens), which is why matching the mangled name works here.
-        const isGuide = o.name.startsWith('md-snap') || o.name.startsWith('md-grid');
-        const isBox = o.name.startsWith('col-') || o.name === 'dim';
-
-        o.visible = (isGuide || isBox) ? showGuides : true;
-        if (!isGuide && !isBox) {
-          o.castShadow = true;
-          o.receiveShadow = true;
-          if (o.material) {
-            if (!o.userData.baseColour) o.userData.baseColour = o.material.color.clone();
-            o.material = o.material.clone();
-            if (chosen?.hex) o.material.color.set(`#${chosen.hex}`);
-            else o.material.color.copy(o.userData.baseColour);
-            // Selection reads as a warm rim, never a colour change — the finish
-            // being judged must not be the thing the highlight altered.
-            o.material.emissive = new THREE.Color(isSelected ? '#4a2f0d' : '#000000');
-          }
-        }
-      });
-    }
+    //
+    // The drawing itself is `syncProduct`, shared with the runtime. The editor
+    // passes `selectable: true` and a selection; the viewer passes neither, and
+    // that difference is the whole of "no editing affordances".
+    syncProduct(ctx, scene, components, { showGuides, selectedId, selectable: true });
 
     // Where everything actually ENDED UP. A screenshot cannot answer this: one
     // perspective view of a run of frames cannot tell you whether they are
@@ -817,42 +686,14 @@ export default function Configurator() {
     // Registered here rather than beside the other harness globals because
     // this is the effect that holds the assembly and the resolved transforms.
     // It is re-assigned on every rebuild, which is what keeps it honest.
-    window.__cfgLayout = () => {
-      ctx.productRoot.updateMatrixWorld(true);
-      // Implied parts are in here too, prefixed so they read as what they are.
-      // They are the hardest thing in the scene to check by eye - a foot is
-      // 100mm of grey under a 1500mm ladder - and the whole reason for
-      // measuring their holes was so their position could be asserted.
-      const rows = scene.instances.map((instance) => {
-        const group = ctx.groups.get(instance.instanceId);
-        if (!group) return `${instance.instanceId} ${instance.componentId} NOT IN SCENE`;
-        const p = new THREE.Vector3();
-        group.getWorldPosition(p);
-        const mm = (v) => (v * 1000).toFixed(1);
-        // WHICH WAY IT IS FACING, not just where it is. Position alone cannot
-        // tell a part from the same part turned round, and this range has
-        // three things that care: which side of a ladder its wall fixings are
-        // on, which end of an office arm the clamping angle sits at, and which
-        // way a cabinet door opens. Matt has now caught two orientation faults
-        // in renders that the numbers here reported as correct.
-        //
-        // Reported as where the part's own +Z ends up, because +Z IS THE WALL
-        // (see carcase_snaps) - so `wall +z` on every frame of a bay is what
-        // should be there, and one reading `wall -z` is a frame back to front.
-        const q = group.getWorldQuaternion(new THREE.Quaternion());
-        const f = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
-        const axis = Math.abs(f.x) > Math.abs(f.z)
-          ? `${f.x >= 0 ? '+' : '-'}x`
-          : `${f.z >= 0 ? '+' : '-'}z`;
-        return `${instance.instanceId} ${instance.componentId} `
-          + `@ ${mm(p.x)},${mm(p.y)},${mm(p.z)}  wall ${axis}`;
-      });
-      const conns = (assembly.connections || []).map(
-        (c) => `${c.fromInstanceId}:${c.fromSnapId} -> ${c.toInstanceId}:${c.toSnapId}`,
-      );
-      return `${rows.length} instances\n${rows.join('\n')}\n`
-        + `${conns.length} connections\n${conns.join('\n')}`;
-    };
+    // Implied parts are in here too, prefixed so they read as what they are.
+    // They are the hardest thing in the scene to check by eye - a foot is
+    // 100mm of grey under a 1500mm ladder - and the whole reason for measuring
+    // their holes was so their position could be asserted.
+    //
+    // `describeLayout` is shared with the runtime, which needs exactly the same
+    // answer for exactly the same reason.
+    window.__cfgLayout = () => describeLayout(ctx, scene, assembly.connections || []);
 
     // DOES ANYTHING OCCUPY THE SAME SPACE AS ANYTHING ELSE?
     //
@@ -874,30 +715,21 @@ export default function Configurator() {
     //
     // Two different jobs that both need the product's bounds. The leash is
     // updated on EVERY rebuild, because adding a part to the end of a run has
-    // to extend how far you may pan even though the camera should not jump.
-    const bounds = new THREE.Box3().setFromObject(ctx.productRoot);
-    if (!bounds.isEmpty()) {
-      const size = bounds.getSize(new THREE.Vector3());
-      // A generous margin — half the product's own extent, and never less than
-      // 300mm — so panning past the end to look back along a run still works.
-      const margin = new THREE.Vector3(
-        Math.max(size.x * 0.5, 0.3),
-        Math.max(size.y * 0.5, 0.3),
-        Math.max(size.z * 0.5, 0.3),
-      );
-      ctx.panBounds = bounds.clone().expandByVector(margin);
-
-      // Zoom limits scale with the product for the same reason: a fixed
-      // maxDistance that suits a 600mm unit leaves a 4m run half off screen.
-      const reach = Math.max(size.length(), 0.4);
-      ctx.controls.minDistance = 0.15;
-      ctx.controls.maxDistance = reach * 4;
-    }
+    // to extend how far you may pan even though the camera should not jump —
+    // and it is `fitBounds`, shared with the runtime, because a four-metre run
+    // needs the same room to move in either.
+    //
+    // The FRAMING is not shared, and that is the one real behavioural
+    // difference between the two. A runtime frames the product on load, every
+    // time, because someone arriving at a link must see the whole thing. An
+    // editor must not: a camera that jumps every time you add a shelf is
+    // unusable, so it only reframes when the set of parts changes.
+    const bounds = fitBounds(ctx);
 
     const signature = assembly.instances.map((i) => i.instanceId).join(',');
     if (signature && signature !== framedFor.current) {
       framedFor.current = signature;
-      if (!bounds.isEmpty()) {
+      if (bounds) {
         const centre = bounds.getCenter(new THREE.Vector3());
         const size = bounds.getSize(new THREE.Vector3());
         // Fit the tallest/widest extent rather than the diagonal — the diagonal

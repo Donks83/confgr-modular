@@ -19,7 +19,7 @@ param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
                'officeclamptilt', 'officefeet', 'feet', 'feetrefused',
-               'cantilever', 'roundtrip', 'condition', 'timber')]
+               'cantilever', 'roundtrip', 'viewer', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -298,6 +298,24 @@ $clicks = @{
   # which is exactly the class of fault this whole probe set exists for.
   roundtrip = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
               'mount:feet,layout,id,reload,layout,ground,quote'
+  # TWO PROGRAMS, ONE PRODUCT.
+  #
+  # `roundtrip` proves an id survives the trip through the EDITOR. This proves
+  # it means the same thing in the RUNTIME, which is a different claim and the
+  # one Phase 2 item 2 rests on: build a bay by clicking, take its id, reopen
+  # the page as the viewer on that id, and print the layout from the other side.
+  #
+  # The two `layout` blocks either side of `viewer` have to match part for part,
+  # position for position, facing for facing - including the implied feet, which
+  # the runtime derives for itself rather than being told about.
+  #
+  # If they ever stop matching, the editor and the runtime have drifted, and the
+  # symptom in the field would be the worst kind there is: the product a
+  # customer sees not being the product the salesperson approved. This session
+  # found that same shape of bug three times in a day (§5.19, §5.20), which is
+  # why the split shares its drawing code and why this scenario exists.
+  viewer = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+           'mount:feet,layout,viewer'
   # A CABINET CARRIED AT ONE END. The `carcase` scenario below fits two brackets
   # and then the box; this fits ONE and then the box, which is what a person does
   # when they are interrupted. The box lands, looks fine from the front, and is a

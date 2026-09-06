@@ -118,6 +118,8 @@ function createWindow() {
           //   id                    print the configuration id and its digest
           //   load:<id>             replace the product with that id's
           //   reload                take the current id and load it straight back
+          //   viewer                reopen the page as the RUNTIME on the
+          //                         current id, and print its layout
           //   palette[:N]           print the first N palette entries: id => label
           //   choices               print the "how should it sit" options on offer
           //   choose:N              take the Nth of them
@@ -238,6 +240,62 @@ function createWindow() {
                          b.click();
                          return 'clicked part ' + b.dataset.component;
                        })()`;
+              // THE RUNTIME, ON THE PRODUCT THE EDITOR JUST BUILT.
+              //
+              // Not an `executeJavaScript` like every other step, because it
+              // NAVIGATES: `?c=<id>` is read at module load and boots the
+              // viewer instead of the editor, which is the seam the hosted AR
+              // route and the bundle export will both use. Driving it any other
+              // way would be testing a shortcut rather than the thing.
+              //
+              // So the check is: build a bay by clicking, take its id, load the
+              // page again as the RUNTIME, and print the layout. A `layout`
+              // before and a `viewer` after is two programs describing one
+              // product, and a difference between them is exactly the bug the
+              // editor/viewer split was built to make impossible.
+              if (kind === 'viewer') {
+                // eslint-disable-next-line no-await-in-loop
+                const printed = await mainWindow.webContents.executeJavaScript(
+                  'window.__cfgId ? window.__cfgId() : ""',
+                );
+                const id = String(printed).split(' ').pop();
+                if (!id) {
+                  process.stdout.write('[click] viewer -> nothing configured\n');
+                  // eslint-disable-next-line no-continue
+                  continue;
+                }
+
+                const search = `?c=${encodeURIComponent(id)}`;
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise((done) => {
+                  mainWindow.webContents.once('did-finish-load', done);
+                  if (isDev) mainWindow.loadURL(`http://localhost:5174${search}`);
+                  else mainWindow.loadFile(path.join(__dirname, '../dist/index.html'), { search });
+                });
+
+                // Wait for the parts to load and the product to be drawn. The
+                // handle is installed by the viewer AFTER the first sync, so
+                // its presence is the signal - polling for it beats a fixed
+                // sleep that is either flaky or slow.
+                // eslint-disable-next-line no-await-in-loop
+                const layout = await mainWindow.webContents.executeJavaScript(`
+                  new Promise((resolve) => {
+                    const deadline = Date.now() + 30000;
+                    const poll = () => {
+                      if (window.__viewerLayout) return resolve(window.__viewerLayout());
+                      if (Date.now() > deadline) return resolve('the runtime never drew anything');
+                      setTimeout(poll, 200);
+                    };
+                    poll();
+                  })
+                `);
+                process.stdout.write(`[click] viewer -> ${printed.split(' ')[0]}\n${layout}\n`);
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise((r2) => setTimeout(r2, 900));
+                // eslint-disable-next-line no-continue
+                continue;
+              }
+
               // eslint-disable-next-line no-await-in-loop
               const r = await mainWindow.webContents.executeJavaScript(js);
               process.stdout.write(`[click] ${step} -> ${r}\n`);

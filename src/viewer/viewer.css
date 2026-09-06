@@ -1,0 +1,173 @@
+/* The runtime's own styles.
+ *
+ * RESPONSIVE FROM THE FIRST LINE rather than as a later pass, because AR only
+ * exists on a phone and a desktop-only runtime cannot reach the AR goal at all
+ * (§4.5). So the phone layout is the DEFAULT here and the desktop one is the
+ * media query — the opposite way round from the editor, and deliberately: a
+ * layout written wide-first acquires assumptions that a narrow screen then has
+ * to fight.
+ *
+ * Every class is prefixed `cfgv-` and every rule is nested under `.cfgv`, so
+ * this can be dropped onto a host page — Kesseböhmer's, eventually — without
+ * touching anything already there. That is the same discipline the web
+ * component will need and it costs nothing to start now.
+ */
+
+.cfgv {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  background: #1b1815;
+  color: #e8e2da;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* The sheet is absolutely positioned against this. */
+  overflow: hidden;
+}
+
+.cfgv-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* The canvas sets its own touch-action in scene.js - it has to, because the
+     element is created there. This is the belt to that pair of braces. */
+  touch-action: none;
+}
+
+/* ----------------------------------------------------------------- the sheet */
+
+.cfgv-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(28, 25, 22, 0.94);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #3a332c;
+  /* Collapsed by default on a phone: the product is what someone came for, and
+     a panel covering a third of a small screen is the commonest way to ruin a
+     3D view. */
+  max-height: 70%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cfgv-handle {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* 44px is Apple's minimum touch target and the reason this is a strip rather
+     than a chevron. */
+  min-height: 44px;
+  padding: 10px 16px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.cfgv-grip {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #6b5f52;
+}
+
+.cfgv-summary {
+  font-variant-numeric: tabular-nums;
+  color: #cbc2b6;
+}
+
+.cfgv-body {
+  display: none;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  /* Clear of the home indicator on an iPhone, and nothing anywhere else. */
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.cfgv-sheet-open .cfgv-body { display: block; }
+
+/* ------------------------------------------------------------------- content */
+
+.cfgv-dims {
+  display: flex;
+  gap: 20px;
+  margin: 0 0 12px;
+}
+
+.cfgv-dims div { display: flex; flex-direction: column; gap: 2px; }
+.cfgv-dims dt { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #8d8175; }
+.cfgv-dims dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+.cfgv-warn {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #3a2a16;
+  color: #f0d5a8;
+}
+
+.cfgv-quote {
+  margin: 0;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* `pre`, NOT `pre-wrap`. A bill of materials is a table held together by
+     spaces, and wrapping it mid-column turns "008563  YouK shelf 900 mm  1"
+     into three ragged lines that no longer line up with the row above - which
+     is exactly what the first render of this panel did. Let it scroll instead:
+     a column that runs off the edge can be dragged into view, a column that has
+     been re-flowed is just wrong. */
+  white-space: pre;
+  overflow-x: auto;
+  color: #cbc2b6;
+}
+
+.cfgv-error {
+  position: absolute;
+  inset: auto 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #43211c;
+  color: #f6d5cf;
+}
+
+/* ------------------------------------------------------------ wider than a phone
+ *
+ * One breakpoint, not four. 720px is where a bottom sheet stops being the right
+ * shape and a side panel starts - and pinning the sheet open above it means the
+ * desktop case needs no interaction to see the numbers.
+ */
+
+@media (min-width: 720px) {
+  .cfgv-sheet {
+    left: auto;
+    top: 0;
+    bottom: 0;
+    /* Wide enough for the bill of materials' widest real line - the YouK part
+       descriptions are long and an article number wrapping away from its
+       description is the one thing this panel must not do. */
+    width: 360px;
+    max-height: none;
+    border-top: 0;
+    border-left: 1px solid #3a332c;
+  }
+
+  .cfgv-handle { cursor: default; align-items: flex-start; padding: 16px; }
+  .cfgv-grip { display: none; }
+  .cfgv-body { display: block; }
+  .cfgv-error { inset: auto auto 16px 16px; max-width: 380px; }
+}
+
+/* Someone who has asked their system not to animate should not be given a
+   backdrop filter that costs a frame on a mid-range Android either. */
+@media (prefers-reduced-motion: reduce) {
+  .cfgv-sheet { backdrop-filter: none; background: #1c1916; }
+}

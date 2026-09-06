@@ -68,7 +68,8 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 405 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 444 unit tests, ~4 s. Run this before believing anything. |
+| `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
@@ -101,6 +102,9 @@ tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regressi
                                          required-part rule must call invalid (§5.17)
                               roundtrip  a configuration id out, back in, and the
                                          same product on the other side (§5.18)
+                              viewer     the same id opened in the RUNTIME, and
+                                         its layout compared with the editor's
+                                         (§5.21) - two programs, one product
                               condition  a part that may only go at certain rungs
                               mount      floor / floating / feet, read from the scene
                               palette    what every palette entry actually says
@@ -460,7 +464,7 @@ This is the honest half of the document.
 
 | | Status |
 |---|---|
-| **Export a configurator for a client** | **Nothing.** No embed, no bundle, no web component, no runtime. See §4.1. |
+| **Export a configurator for a client** | **The runtime exists; the packaging does not** (§5.21). `src/viewer/` is a viewer with no editing affordances, reachable at `?c=<id>`, sharing its scene and drawing code with the editor rather than duplicating them. **Still nothing for:** the folder bundle, the `<confgr-modular>` web component, and the offline-guarantee test that has to come with the bundle. See §4.1. |
 | **Import a model through the UI** | **Nothing.** CLI only. See §4.2. |
 | **A snap editor** | Nothing. Snaps come from a hand-authored spec file plus a Python script. |
 | **Branding / theming** | Nothing. Studio's `accentColor` / `logo` / `font` are not ported. |
@@ -468,7 +472,7 @@ This is the honest half of the document.
 | **A shareable configuration ID** | **Built** (§5.18). Versioned, self-contained, refusing an unknown format rather than guessing, and NAMING a part the catalogue no longer has rather than dropping it. `resolveConfiguration(id, components, {catalogue})` is the headless resolve everything downstream was waiting on — assembly, transforms, implied parts, validity, collisions and quote, with no editor and no three.js. The round trip is a probe scenario, compared on resolved positions. **No short-code service and no `/ar?c=` route yet** — the id is 416 characters, which is a link rather than a text message. |
 | **PDF / tear sheet** | Nothing. |
 | **AR / "view in your room" / QR** | **Both file formats are built** (§5.19, §5.20). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry — and `npm run youk:usdz` converts that to a Quick Look-valid USDZ, anchoring horizontally or vertically according to what the product is. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles, 443,980 bytes of GLB and 1,248,000 of USDZ, within budget. **Still nothing for:** the QR handoff and the `/ar?c=` landing route (decided, §4.1a, not built). And **nothing has been on a phone yet** — two questions now need a device rather than a keyboard. |
-| **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
+| **Mobile / touch** | **The runtime is built for it; the editor is not** (§5.21). `viewer.css` is phone-first with one breakpoint at 720px, the canvas sets `touch-action: none`, and one-finger orbit / two-finger pan-zoom are stated explicitly. **Never tried on a real phone**, which is the honest caveat. The editor is still desktop Electron, mouse-driven, fixed sidebar — and tap-to-attach belongs to Phase 1 with the rest of the editing affordances. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
 | **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except the two office ones, where it is right — the clamping angle's upstand really is inside the board (§5.13's handedness, found again from geometry). The two L-section parts now carry authored `col-` proxies; the other 78 use their body box. Nothing is blocked. |
@@ -2260,6 +2264,107 @@ it was our code that broke the sharing.
 
 ---
 
+### 5.21 A viewer split out of the editor — by sharing code, not by copying it
+
+Phase 2 item 2, and the plan describes it as "a viewer built on `src/engine/*`,
+with **no editing affordances**". The obvious way to build one is a second,
+simpler component that draws the product. **That is the trap**, and this session
+had already walked into the same shape of it three times before getting here:
+
+- the app counted triangles one way and the GLB export another (§5.19)
+- `describeGlb` and three.js had to be *made* to agree, and the test that makes
+  them is the only thing that would notice if they stopped
+- the USDZ exporter had its own idea of which nodes are product, and put snap
+  planes in a customer's living room (§5.20)
+
+A second renderer is that bug with the worst possible symptom: **the product a
+customer sees not being the product a salesperson approved.** So the split went
+the other way round. `src/viewer/` holds the scene and the drawing; **the editor
+imports them.** The editor is the viewer plus markers, a ghost and a picker — not
+a different program that happens to draw the same thing.
+
+```
+src/viewer/scene.js       lights, ground, camera, controls, the pan leash
+src/viewer/product.js     parts into the scene: transforms, finishes, visibility
+src/viewer/Viewer.jsx     the runtime
+src/viewer/ViewerHost.jsx where the parts come from — the only per-deployment bit
+```
+
+`Configurator.jsx` lost about 120 lines to this and gained nothing it did not
+already have.
+
+#### What actually differs, stated in three places rather than spread through a second program
+
+1. **`selectable: false`.** One line. No group carries an `instanceId`, so the
+   picker walks up the parents, finds nothing, and a click falls through to the
+   background exactly as over empty space. No second code path and no disabled
+   buttons — and it is the same mechanism that already made implied parts
+   unselectable in the editor.
+2. **No markers, no ghost, no palette, no attach flows.** Not disabled here;
+   never imported.
+3. **`frameProduct` on load.** The runtime frames the whole product every time,
+   because someone arriving at a link must see it. The editor must *never* —
+   a camera that jumps every time you add a shelf is unusable.
+
+#### The test is two programs describing one product
+
+`npm run youk:bay -- -Scenario viewer` builds a bay by clicking, takes its
+configuration id, **reopens the page as the runtime on that id** (`?c=<id>`, the
+same seam the hosted AR route and the bundle export will use), and prints the
+layout from the other side:
+
+```
+[click] layout -> 5 instances                    [click] viewer -> be75bef0
+i1  236758-ladder      @ 0.0,0.0,0.0    wall +z  p0  236758-ladder      @ 0.0,0.0,0.0    wall +z
+i2  008563-shelf-900   @ 460.1,100.0,0  wall +z  p1  008563-shelf-900   @ 460.1,100.0,0  wall +z
+i3  236758-ladder      @ 920.1,0.0,0    wall +z  p2  236758-ladder      @ 920.1,0.0,0    wall +z
+implied:foot:i1:0      @ 0.0,-99.8,-100 wall +z  implied:foot:p0:0      @ 0.0,-99.8,-100 wall +z
+implied:foot:i3:0      @ 920.1,-99.8,…  wall +z  implied:foot:p2:0      @ 920.1,-99.8,…  wall +z
+```
+
+Part for part, position for position, facing for facing — **including the two
+implied feet, which the runtime derives for itself rather than being told
+about.** Only the instance ids differ, which is the point rather than a defect:
+an id carrying the editing session's own counter would only mean something in
+the session that wrote it.
+
+#### Responsive from the first line, not as a later pass
+
+AR only exists on a phone, so a desktop-only runtime cannot reach the AR goal at
+all (§4.5). The phone layout is therefore the **default** in `viewer.css` and
+the desktop one is the media query — the opposite way round from the editor, and
+deliberately: a layout written wide-first acquires assumptions a narrow screen
+then has to fight. One breakpoint at 720px, where a bottom sheet stops being the
+right shape and a side panel starts. `touch-action: none` is set on the canvas
+in `scene.js` rather than in CSS, because that element is created there and
+nothing else can reach it; without it a one-finger orbit scrolls the page and
+the product never moves.
+
+**All state is per instance.** No `window.__cfg*`, no module-level mutable
+anything — §2 makes two configurators on one page a quality bar rather than a
+feature, and it has to be true from the first line or not at all. The editor's
+harness globals stay where they are; an editor is one instance by definition.
+
+#### And two things worth keeping from building it
+
+**The panel wrapped the bill of materials mid-column.** `pre-wrap` turned
+`008563  YouK shelf 900 mm  1` into three ragged lines that no longer lined up
+with the row above. `pre` plus `overflow-x: auto` instead: a column that runs
+off the edge can be dragged into view; a column that has been re-flowed is
+simply wrong.
+
+**A callback in a dependency array is a performance bug waiting for an
+idiomatic caller.** `onReady` as an inline arrow — the normal thing to write —
+would give the draw effect a new dependency every render and rebuild the whole
+product each time. It is held in a ref. A component should not be able to cost
+its caller frames for writing ordinary React.
+
+**444 tests** (26 new in `tests/viewer.test.js`), and they cover the *shared*
+code directly — `syncProduct` only ever touches a `Group`, so it needs no WebGL
+and can be tested honestly in Node with hand-built parts.
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
@@ -2404,11 +2509,23 @@ order rather than wish order:
    binary at all, because glTF requires accessors to declare their own bounds.
    The engine is only *now* genuinely headless; before this it was headless
    until it needed a part.
-2. **A viewer split out of the editor**, built on `src/engine/*` (already UI-free,
-   which was the hard part) with **no editing affordances**.
-3. **Responsive and touch from the start**, not as a later pass — one-finger
-   orbit, pinch zoom, tap to attach, palette as a bottom sheet (§4.5). AR only
-   exists on a phone, so a desktop-only runtime cannot reach the AR goal at all.
+2. ~~**A viewer split out of the editor**~~ — **done** (§5.21), and the
+   interesting part is which way round it was split. `src/viewer/` holds the
+   scene and the drawing and the **editor imports them**, rather than the runtime
+   being a second, simpler renderer. The difference between the two programs is
+   three stated things — `selectable: false`, no markers/ghost/palette imported
+   at all, and framing the camera on load — rather than a second code path.
+   Reachable at `?c=<id>`, which is the same seam the hosted AR route and the
+   bundle export will use, and proved by a probe scenario that builds a bay in
+   the editor and prints the layout again from the runtime: identical part for
+   part, implied feet included.
+3. ~~**Responsive and touch from the start**~~ — **done as part of item 2.**
+   Phone layout is the default in `viewer.css` and desktop is the media query,
+   one-finger orbit and two-finger pan/zoom are stated rather than left to
+   three's defaults, and `touch-action: none` is set on the canvas where it is
+   created. **Not yet done:** tap-to-attach, which is an EDITOR affordance and
+   belongs with Phase 1 rather than here, and nothing has been tried on a real
+   phone.
 4. **The web component `<confgr-modular>`** with **all state per instance** so
    more than one sits on a page (§2). True from the first line or not at all.
 5. **The folder bundle export**, copying Studio's `exportProject.js` shape —
@@ -2492,13 +2609,19 @@ Not the same as the phase order, and worth stating separately:
    Bundle now, hosted `/ar?c=<id>` alongside USDZ. Not a compromise — the two
    were answering different questions, and the configuration id already joins
    them.
-10. **USDZ**, so the AR path reaches iPhones. The GLB half is done; this is the
-    half that needs a converter and a material-variant test.
-11. **A viewer split out of the editor** — responsive and touch from the start —
-    then the bundle export. This is the big one and everything client-facing waits
-    on it.
+10. ~~USDZ, so the AR path reaches iPhones~~ — **done** (§5.20). What remains
+    needs a phone: whether Quick Look wants authored normals, and whether
+    material variants survive.
+11. ~~A viewer split out of the editor — responsive and touch from the start~~ —
+    **done** (§5.21), and smaller than "the project" because it was built by
+    *sharing* the editor's drawing code rather than by writing a second
+    renderer. What is left of this item is the **bundle export**, which is now
+    the big one and is what everything client-facing waits on.
+12. **The folder bundle**, with Studio's offline-guarantee test copied along with
+    the exporter. The runtime exists; making it a folder somebody can send does
+    not.
 
-Items 1–10 are days. Item 11 is the project.
+Items 1–11 are days. Item 12 is the project.
 
 ### And the critical path for the *application*, which is not the same list
 
@@ -2535,8 +2658,17 @@ capability, which is the right way for a range to end.
 
 **What was built:** implied parts (§5.15), collision measurement (§5.16),
 required-part rules (§5.17), the configuration id and headless resolve (§5.18),
-and the GLB export (§5.19). Four of those five were on the roadmap as *not
-started*; §6 is trued up against the code as of today rather than as of the plan.
+the GLB export (§5.19), USDZ (§5.20) and the viewer split (§5.21). Six of those
+seven were on the roadmap as *not started*; §6 is trued up against the code as
+of today rather than as of the plan.
+
+**The session's own theme, and it was not planned:** the same fault kept
+appearing in different clothes — **two implementations of one idea, drifting.**
+The app and the export counting triangles differently; `describeGlb` against
+three.js; the USDZ exporter's private notion of which nodes are product. By the
+time the viewer split came round, the answer was obvious enough to build the
+other way up: `src/viewer/` owns the drawing and the **editor imports it**, so
+the runtime cannot drift from the editor because there is only one of it.
 
 **Four faults found by tools rather than by looking:**
 
