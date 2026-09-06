@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 10 modules, no UI dependencies, 329 tests across the project.
+`src/engine/` — 10 modules, no UI dependencies, 338 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -233,6 +233,12 @@ using it expects — but there is still no export, no runtime and no AR.
   the packers the sheets bolt through. Derived on every read, never stored, so
   they cannot be deleted or fall out of step; placed through their own measured
   joints by the same solver as everything else (§5.15).
+- **Required snaps** (`component.js`, `assembly.js`). A part may declare that a
+  snap MUST be filled — the carcase family does, on both its plugs, because a
+  board across two brackets holds itself up no other way. Satisfied by geometry
+  rather than by the connection graph: the graph is a tree and a cabinet on two
+  brackets is not, so "is there metal under this corner" is the honest question
+  (§5.17).
 - **Collision** (`collision.js`) — oriented-box overlap between every pair of
   placed parts, with a real escape depth and a lap-versus-through call.
   **Measures, does not refuse:** a box is the wrong shape for the L-section
@@ -417,7 +423,7 @@ This is the honest half of the document.
 | **Derived BOM lines** | **Built** (§5.15). `implied.js` derives the parts a configuration implies rather than storing them: the foot goes in the scene through its own measured joint and onto the quote under "Included — not chosen", and the wall fixings and packers come out as counted notes below the total, because they have no part number on file. A 200 mm bay on feet is refused, because those frames have no foot fixing. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). **On feet now moves the floor** by the foot's height rather than only flagging it (§5.12). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
-| **Required-part rules** | Nothing, and there are now two concrete cases: a carcase dropped on ONE bracket and left cantilevering, and an office desktop with no plate behind its arms. Same shape of gap as collision refusal, below. |
+| **Required-part rules** | **Built** (§5.17). `snap.required` is finally set by something - the carcase family, on both of its plugs, because a board across two brackets holds itself up in no other way. Satisfied by GEOMETRY rather than by the connection graph, since the graph is a tree and a cabinet across two brackets is not. It found a real 30 mm gap in the `carcase` scenario the moment it went in. |
 | **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
 | **A part on the TOP of a ladder** | **Nothing.** The 008552 top-panel bracket drops over the top of a ladder stile and carries a board across both ladders — the third way a board attaches, and the only part in the range that meets the ladder anywhere but a rung. `frames` authors sockets at rungs only. It is measured (§5.10) and not authored. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
@@ -1813,6 +1819,75 @@ in one scenario is not a licence to block configurations, and two parts out of
 seventy-eight have proxies.
 
 **329 tests** (27 new in `tests/collision.test.js`).
+
+---
+
+### 5.17 A part held at one end — and the graph is a tree, the product is not
+
+`snap.required` has existed since the first session and **nothing ever set it**.
+`component.js` said *"set in the editor, not in the model"*, there was no editor,
+and so `validateAssembly` reported cheerfully that every assembly was complete —
+including the two that are not:
+
+* a **carcase** dropped on one bracket, its other end in the air
+* an office **desktop** resting on one arm, which is the same part family and
+  therefore the same fault
+
+Both are cantilevers. A cabinet is a board laid across two brackets and screwed
+up from below (`Carcass holder` step 3); it holds itself up in no other way, so
+one bracket is not half a fitting.
+
+**The requirement belongs in the model after all.** It is a fact about the part —
+there is no carcase in the range that rests on one support — so `carcase_snaps`
+sets it on both plugs and nothing per-configuration can. A flag in a spec file
+would be a flag somebody could get wrong.
+
+**And then it fired on a configuration that was correct**, which is where the
+interesting part is. The `carcase` probe scenario fits *two* brackets and it was
+still reported as a cantilever, because:
+
+> **The graph is a tree and the product is not.** A cabinet across two brackets
+> is held by both, but only one of them can be its parent — the second
+> connection is a second path to the same part, which `resolveTransforms`
+> deliberately refuses to walk (§8). So the second bracket is right there,
+> carrying the box, and nothing in `assembly.connections` says so.
+
+The fix is to ask the **geometry** rather than the graph: a required point is
+satisfied by anything compatible sitting in it — same mask, opposite role,
+opposed facing, within **1 mm**. Tight on purpose: this is not "did the person
+mean to connect these", it is "is there metal under this corner". It also means
+the UI never needs a *connect two parts that are already placed* flow, which
+would be a lot of interaction to record something the model can already see.
+
+**Then it fired again, and that one was real.** With the geometric check in, the
+`carcase` scenario *still* reported the cantilever — because since the front rule
+(§5.14) stopped the second ladder being built back to front, marker 11 is that
+ladder's **outboard** face. The bracket was landing at 935.2 with the cabinet's
+free end at 905.1: a **30 mm gap, the box hanging over nothing**. Moved to marker
+12, which is 905.0 — agreement to a tenth of a millimetre, like everything else
+in this range.
+
+Neither the layout nor the collision survey saw it. The layout prints positions
+and both brackets were in sensible places; the collision survey looks for parts
+sharing space and this was a part sharing space with *nothing*. **A gap is
+invisible to every check that looks for a conflict** — which is the argument for
+having both.
+
+The message names the part and where it needs holding, because a count is not
+something a person can act on:
+
+```
+Timber cabinet 900 mm, 450 mm high, for ladder depth 320 mm, 25 mm is not held
+at its right end — nothing under x 905, y 813. It would cantilever.
+```
+
+New probe scenario `cantilever`, and one bug found by the probe reading the
+renderer's console: the panel called `.map` on an undefined `backToFront`,
+because `validity`'s two hand-written fallback objects had not grown the field
+the real result had. Blank window, no exception anywhere a test would see it.
+The fallback is now written once.
+
+**338 tests** (8 new in `tests/required.test.js`).
 
 ---
 

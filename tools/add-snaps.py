@@ -399,11 +399,22 @@ def carcase_snaps(mesh, part, spec):
     half = float(mesh.extents[0]) * 1000.0 / 2.0
     z = (float(mesh.extents[2]) * 1000.0 - depth_mm) / 2.0
     mask = f"youk-{part.get('carriedBy', 'carcase')}-d{depth}"
+    # BOTH of them are REQUIRED, and this is the one family where that is a
+    # fact about the physics rather than a decision. A carcase is a board laid
+    # across two brackets and screwed up from below; it holds itself up in no
+    # other way, so one bracket is not half a fitting, it is a cantilever. The
+    # same is true of the office desktop, which is the same family.
+    #
+    # Set here rather than in the spec because it does not vary: there is no
+    # carcase in the range that rests on one support, and a flag per part would
+    # be a flag somebody could get wrong.
     snaps = [
         {"name": f"md-snap.{mask}.rest-left",
-         "position_mm": (-half, 0.0, z), "facing": "-y", "role": "plug"},
+         "position_mm": (-half, 0.0, z), "facing": "-y", "role": "plug",
+         "required": True},
         {"name": f"md-snap.{mask}.rest-right",
-         "position_mm": (half, 0.0, z), "facing": "-y", "role": "plug"},
+         "position_mm": (half, 0.0, z), "facing": "-y", "role": "plug",
+         "required": True},
     ]
     return snaps, {"mask": mask, "plugX_mm": round(half, 2),
                    "plugZ_mm": round(z, 2), "spacing_mm": round(2 * half, 2)}
@@ -840,6 +851,15 @@ def main():
                 existing["confgrRolls"] = rolls
             else:
                 existing.pop("confgrRolls", None)
+            # Which snaps MUST be filled for the part to be buildable. Replaced
+            # rather than merged, like the rest: a requirement dropped from the
+            # pipeline has to disappear from the model, or a part goes on
+            # refusing to be orderable with nothing saying why.
+            required = [s["name"] for s in snaps if s.get("required")]
+            if required:
+                existing["confgrRequired"] = {name: True for name in required}
+            else:
+                existing.pop("confgrRequired", None)
             sidecar.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf8")
 
         except Exception as err:  # noqa: BLE001

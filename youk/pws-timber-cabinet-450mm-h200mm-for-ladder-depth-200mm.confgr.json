@@ -8,5 +8,9 @@
   "confgrRoles": {
     "md-snap.youk-carcase-d200.rest-left": "plug",
     "md-snap.youk-carcase-d200.rest-right": "plug"
+  },
+  "confgrRequired": {
+    "md-snap.youk-carcase-d200.rest-left": true,
+    "md-snap.youk-carcase-d200.rest-right": true
   }
 }

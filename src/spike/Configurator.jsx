@@ -180,8 +180,17 @@ export default function Configurator() {
   const rootId = assembly.instances[0]?.instanceId || null;
 
   const validity = useMemo(() => {
-    if (!components.size || !assembly.instances.length) return { isValid: true, missingRequiredSnaps: [] };
-    try { return validateAssembly(assembly, components, transforms); } catch { return { isValid: true, missingRequiredSnaps: [] }; }
+    // The shape, in one place. Two hand-written copies of it is how the panel
+    // came to call .map on an undefined `backToFront` the moment a third field
+    // was added to the real result - a blank window, and the only reason it was
+    // caught at all is that the probe reads the renderer's console.
+    const fine = { isValid: true, missingRequiredSnaps: [], backToFront: [] };
+    if (!components.size || !assembly.instances.length) return fine;
+    try {
+      return validateAssembly(assembly, components, transforms);
+    } catch {
+      return fine;
+    }
   }, [assembly, components, transforms]);
 
   // The pointer handlers are attached once and must not close over a stale
@@ -613,6 +622,13 @@ export default function Configurator() {
   );
   const articleFor = useCallback(
     (c) => priceBook?.items?.[c.id]?.article || null,
+    [priceBook],
+  );
+  // The same, from an id rather than a component - for the messages that name a
+  // part they cannot hand you the object for, like "this cabinet is only held
+  // at one end".
+  const describe = useCallback(
+    (id) => priceBook?.items?.[id]?.description || id || 'A part',
     [priceBook],
   );
 
@@ -1437,12 +1453,22 @@ export default function Configurator() {
           {' '}{assembly.connections.length} joint{assembly.connections.length === 1 ? '' : 's'},
           {' '}{markers.length} open point{markers.length === 1 ? '' : 's'}
         </p>
-        {!validity.isValid && (
-          <p className="cfg-invalid">
-            Not ready to order — {validity.missingRequiredSnaps.length} required point
-            {validity.missingRequiredSnaps.length === 1 ? '' : 's'} still empty.
+        {/* NAMED, not counted. "3 required points still empty" is a number, and
+            a number is not something a person can act on; "this cabinet is
+            carried at one end, nothing at x 1380, y 813" is. The part is what
+            is wrong, and where it needs supporting is the thing that fixes it. */}
+        {validity.missingRequiredSnaps.map((m) => (
+          <p key={`${m.instanceId}::${m.snapId}`} className="cfg-invalid">
+            {describe(assembly.instances.find((i) => i.instanceId === m.instanceId)?.componentId)}
+            {' '}is not held at its {m.label.replace(/^rest-/, '')} end — nothing under
+            {' '}x {m.atMm[0]}, y {m.atMm[1]}. It would cantilever.
           </p>
-        )}
+        ))}
+        {validity.backToFront.map((b) => (
+          <p key={b.instanceId} className="cfg-invalid">
+            {describe(b.componentId)} is fitted back to front.
+          </p>
+        ))}
         {resolveError && <p className="cfg-invalid">{resolveError}</p>}
 
         <h2>Mounting</h2>

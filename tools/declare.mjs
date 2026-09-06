@@ -172,6 +172,11 @@ function measureDeclaration(report, existing = null) {
     // either — it just quietly straightens a desk that is meant to be tilted.
     if (existing.confgrRolls) declaration.confgrRolls = existing.confgrRolls;
 
+    // Which snaps must be filled. Same trap as the conditions: dropping this
+    // does not break the model, it silently makes an unbuildable configuration
+    // look orderable — a cabinet carried at one end reads as finished.
+    if (existing.confgrRequired) declaration.confgrRequired = existing.confgrRequired;
+
     // How the part is HELD is a decision, not a measurement, and losing it is
     // worse than losing a role: a part declared mounting "wall" is allowed to
     // have no snaps, so dropping the declaration turns a legitimate part into

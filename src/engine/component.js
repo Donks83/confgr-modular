@@ -314,7 +314,16 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
       // each other at their centers, without any space in between."
       position: node.translation,
       facing: snapFacing(node),
-      required: false,   // set in the editor, not in the model
+      // MUST this be filled for the part to be buildable?
+      //
+      // Was a placeholder — "set in the editor, not in the model" — for as long
+      // as nothing set it, and validateAssembly duly reported that every
+      // assembly was complete. The carcase family is what made it real: a
+      // cabinet is a board laid across two brackets and screwed up from below,
+      // so one bracket is not half a fitting, it is a cantilever. It belongs in
+      // the MODEL after all, because it is a fact about the part rather than a
+      // choice somebody makes per configuration.
+      required: !!desc.extras?.confgrRequired?.[node.name],
       condition,
       // A declared turn about the joint's own axis, in degrees. Zero for every
       // joint that has one sensible orientation; 9 on the office plate, whose

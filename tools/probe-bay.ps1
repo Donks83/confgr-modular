@@ -19,7 +19,7 @@ param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
                'officeclamptilt', 'officefeet', 'feet', 'feetrefused',
-               'condition', 'timber')]
+               'cantilever', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -160,8 +160,14 @@ $clicks = @{
   # different rung, and a carcase across two brackets 355mm apart is not a
   # carcase. The `cabinets` scenario above has that flaw and its comment did not
   # notice - worth knowing before reading it as a passing check.
+  # Marker 12, not 11, since the front rule (§5.14) stopped the second ladder
+  # being built back to front. 11 is now that ladder's OUTBOARD face and puts the
+  # bracket at 935.2, where the cabinet's own free end is at 905.1 - a 30mm gap
+  # with the box hanging over nothing. Neither the layout nor the collision
+  # survey saw it, because the box IS connected to the other bracket and simply
+  # floats past this one; the required-part rule is what caught it.
   carcase = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-            'part:008558,marker:4,part:008558,marker:11,dump,' +
+            'part:008558,marker:4,part:008558,marker:12,dump,' +
             'part:pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm,marker:0,' +
             'choices,choose:0,dump,layout'
   # The office solution, all four joints of it. Bay, a PLATE hooked on rung 3 of
@@ -279,6 +285,18 @@ $clicks = @{
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +
                'mount:feet,ground,layout'
+  # A CABINET CARRIED AT ONE END. The `carcase` scenario below fits two brackets
+  # and then the box; this fits ONE and then the box, which is what a person does
+  # when they are interrupted. The box lands, looks fine from the front, and is a
+  # cantilever - 890mm of it hanging off an 8mm plate.
+  #
+  # `snap.required` existed from the first session and nothing set it, so
+  # validateAssembly reported this as complete. It should now name the part and
+  # say where nothing is holding it. The `dump` is the assertion.
+  cantilever = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+               'part:008558,marker:4,' +
+               'part:pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm,marker:0,' +
+               'choose:0,dump,layout'
   # The FEET THEMSELVES, which nobody clicks. A plain bay, then the mounting
   # option, and the feet appear under both ladders because the frames carry the
   # fixings for them - two 3.40mm holes at z -119 and -81 on the underside,

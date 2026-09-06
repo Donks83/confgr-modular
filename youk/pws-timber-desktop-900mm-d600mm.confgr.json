@@ -8,5 +8,9 @@
   "confgrRoles": {
     "md-snap.youk-desktop-d320.rest-left": "plug",
     "md-snap.youk-desktop-d320.rest-right": "plug"
+  },
+  "confgrRequired": {
+    "md-snap.youk-desktop-d320.rest-left": true,
+    "md-snap.youk-desktop-d320.rest-right": true
   }
 }

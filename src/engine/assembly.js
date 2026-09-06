@@ -14,7 +14,7 @@
 
 import {
   add, sub, rotateVec, multiplyQuat, quatFromYaw, quatFromAxisAngle,
-  normalise, scale, dot, cross, EPS,
+  normalise, scale, dot, cross, length, EPS,
 } from './vec.js';
 import {
   isGridCellId, parseGridCellId, gridAttachPoint, expandGridCells, cellsCovered,
@@ -538,15 +538,51 @@ export function backToFrontParts(assembly, components, transforms) {
 }
 
 /**
+ * How close a required snap and its support must be to count as met, in metres.
+ *
+ * 1 mm. Far tighter than the 80 mm the drag path allows, because this is not
+ * "did the person mean to connect these" — it is "is there metal under this
+ * corner". A millimetre is the assembly tolerance of the range itself.
+ */
+export const SUPPORT_TOLERANCE_M = 0.001;
+
+/**
+ * Is there actually something in this snap, whatever the graph says?
+ *
+ * THE GRAPH IS A TREE AND THE PRODUCT IS NOT. A cabinet laid across two
+ * brackets is held by both, but only one of them can be its parent — the other
+ * connection would be a second path to the same part, which `resolveTransforms`
+ * deliberately refuses to walk (see §8). So the second bracket is right there,
+ * carrying the box, and nothing in `assembly.connections` says so.
+ *
+ * Asking the geometry instead of the graph gets the right answer and needs no
+ * new data: a required point is satisfied by anything compatible sitting in it.
+ * The alternative was a "connect two parts that are already placed" flow in the
+ * UI, which is a lot of interaction to record something the model can see.
+ */
+function supportedByGeometry(snap, allSnaps) {
+  return allSnaps.some((other) => other.instanceId !== snap.instanceId
+    // Same joint, opposite ends — the same pair of tests a drag has to pass.
+    && other.mask === snap.mask
+    && (!other.role || !snap.role || other.role !== snap.role)
+    && length(sub(other.worldPosition, snap.worldPosition)) <= SUPPORT_TOLERANCE_M
+    && dot(normalise(other.worldFacing), normalise(snap.worldFacing)) < -0.95);
+}
+
+/**
  * Is the assembly complete?
  *
  * Mimeeq gates checkout on this, and it is the right place for it: an
  * unterminated shelving run or an open-ended sofa is a real order that cannot
- * be built. A snap marked required and left empty makes the whole thing invalid.
+ * be built. A snap marked required and left empty makes the whole thing invalid
+ * — unless something is demonstrably sitting in it, which is a different
+ * question from whether the graph records a joint. See supportedByGeometry.
  */
 export function validateAssembly(assembly, components, transforms) {
   const snaps = worldSnaps(assembly, components, transforms);
-  const missing = snaps.filter((s) => s.required && !s.occupied);
+  const missing = snaps.filter(
+    (s) => s.required && !s.occupied && !supportedByGeometry(s, snaps),
+  );
   // A part fitted back to front is as unbuildable as a missing one, and a good
   // deal harder to see in a render, so it counts against validity too.
   const backToFront = backToFrontParts(assembly, components, transforms);
@@ -554,7 +590,15 @@ export function validateAssembly(assembly, components, transforms) {
   return {
     isValid: missing.length === 0 && backToFront.length === 0,
     missingRequiredSnaps: missing.map((s) => ({
-      instanceId: s.instanceId, snapId: s.snapId, mask: s.mask, label: s.label,
+      instanceId: s.instanceId,
+      snapId: s.snapId,
+      mask: s.mask,
+      label: s.label,
+      // WHERE it is, in world millimetres. "A required point is empty" is not
+      // an actionable sentence about a cabinet whose left end is in the air;
+      // "carried at 460 mm and nothing at 1380" is. The height is the number
+      // somebody needs in order to fit the bracket that fixes it.
+      atMm: (s.worldPosition || [0, 0, 0]).map((v) => Math.round(v * 1000)),
     })),
     backToFront,
   };
