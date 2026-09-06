@@ -26,6 +26,26 @@ export const SNAP_PREFIX = 'md-snap';
 export const GRID_PREFIX = 'md-grid';
 const BODY_NODE = 'body';
 
+/**
+ * A part may declare WHICH WAY IT FACES, and these are the four answers.
+ *
+ * Horizontal axes only, and deliberately so. A front is a fact about how a part
+ * is fitted in a room — the ladder's wall-fixing holes go against the wall, the
+ * shelf's raised lip goes at the back — and no part in this range is fitted
+ * upside down or on its side. Restricting it to four strings means a front can
+ * be reviewed in a sidecar by reading it, and there is no vector to get subtly
+ * wrong.
+ *
+ * The convention across YouK is that +z is the wall, so a front is -z. That is
+ * measured, not assumed: see FINDINGS, "which end faces the wall".
+ */
+const FRONT_VECTORS = {
+  '+x': [1, 0, 0],
+  '-x': [-1, 0, 0],
+  '+z': [0, 0, 1],
+  '-z': [0, 0, -1],
+};
+
 /** Node-name prefixes that are structure, not visible geometry. */
 const NON_VISIBLE_PREFIXES = [SNAP_PREFIX, GRID_PREFIX, 'col-', 'dim'];
 
@@ -362,6 +382,34 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
   // So a part may say so, and then having no snaps is a declaration rather than
   // an omission. Saying it explicitly keeps the check strict for the other 40-odd
   // parts: a shelf that lost its snaps still fails loudly.
+  // ---- Which way round the part goes ------------------------------------
+  //
+  // Added after a bay was found to be building its SECOND ladder back to front,
+  // in every scenario, since the beginning. A shelf is a `span` part with plugs
+  // facing +x and -x at its two ends; a ladder offers a socket on BOTH faces of
+  // every rung. Nothing chose between them, so the solver did what it always
+  // does — turned the child round until the facings opposed — and the far
+  // ladder's wall-fixing holes ended up pointing into the room.
+  //
+  // The engine could not have caught it, because nothing in mask, role or
+  // facing knows that a ladder HAS a front. So a part may now say so, and the
+  // rule that follows from it is in attachMatrix: a placement that reverses a
+  // declared front is refused rather than silently accepted.
+  //
+  // Optional, and absent means "this part reads the same either way round" —
+  // which is honest for a symmetric shelf and wrong for almost nothing else, so
+  // expect this list to grow as parts are measured rather than guessed at.
+  const frontDeclared = declared?.front ?? null;
+  if (frontDeclared !== null && !FRONT_VECTORS[frontDeclared]) {
+    throw new ComponentError(
+      `Declared front "${frontDeclared}" is not recognised. Use one of `
+      + `${Object.keys(FRONT_VECTORS).join(', ')} — or leave it out for a part that reads `
+      + 'the same either way round.',
+      { code: 'FRONT_INVALID', detail: { front: frontDeclared } },
+    );
+  }
+  const front = frontDeclared ? [...FRONT_VECTORS[frontDeclared]] : null;
+
   const mounting = declared?.mounting ?? null;
   if (mounting !== null && mounting !== 'wall') {
     throw new ComponentError(
@@ -425,6 +473,9 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     // null for anything that joins the product; 'wall' for a part that fixes to
     // the wall and joins nothing, like the YouK shoe rack.
     mounting,
+    // A unit vector in component-local space, or null for a part with no front.
+    // See attachMatrix for the rule this feeds.
+    front,
     snaps,
     grids,
     options,

@@ -178,6 +178,12 @@ function measureDeclaration(report, existing = null) {
     // one that fails to load with NO_SNAPS. Same trap as the roles above, one
     // step further along.
     if (existing.confgr?.mounting) declaration.confgr.mounting = existing.confgr.mounting;
+
+    // Which way round the part is fitted. Carried over for the same reason
+    // again, and it fails the quietest way of the lot: a part that loses its
+    // front still loads, still renders and still connects — it just goes back
+    // to being placeable backwards, which is the bug this was written to stop.
+    if (existing.confgr?.front) declaration.confgr.front = existing.confgr.front;
   }
 
   return declaration;

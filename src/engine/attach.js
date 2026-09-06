@@ -16,10 +16,13 @@
 // cover may be taken. A 3x2 pouch therefore shows fewer markers than a 1x1 one
 // on the same panel, which is the correct and useful behaviour.
 
-import { worldSnaps, resolveTransforms } from './assembly.js';
+import {
+  worldSnaps, resolveTransforms, solveChildTransform, productFront,
+} from './assembly.js';
 import { canConnectLogically, REASONS, REASON_TEXT } from './snapMatch.js';
 import { snapBearingSide } from './component.js';
 import { parseGridCellId, cellsCovered, spanFits } from './grid.js';
+import { dot, rotateVec, normalise } from './vec.js';
 
 /** Stable key for an attach point: which instance, which point on it. */
 export const pointKey = (p) => `${p.instanceId}::${p.snapId}`;
@@ -52,6 +55,10 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
     const component = instance && components.get(instance.componentId);
     return (component?.grids || []).find((g) => g.id === gridId) || null;
   };
+
+  // Which way the product faces, solved once. Null for a product whose parts
+  // declare no front, and then the whole rule below costs one null check.
+  const front = productFront(assembly, components, transforms);
 
   const placements = [];
   const rejected = [];
@@ -154,6 +161,35 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
           continue;
         }
 
+        // Stage 3: WOULD THIS PUT THE PART BACK TO FRONT?
+        //
+        // The one check that needs the answer before it can ask the question:
+        // whether a part ends up reversed depends on the rotation the solver
+        // would choose, and the solver is only ever run once a placement has
+        // been accepted. So it is run here too, on a parent snap already in
+        // world space, which is why worldSnaps carries the roll.
+        //
+        // Cheap, because it runs only for a part that HAS a front on a product
+        // that HAS one — three ladders' worth of candidates, not the catalogue.
+        //
+        // A solve that throws is left alone rather than rejected. Not knowing
+        // which way a part would face is not the same as knowing it would be
+        // backwards, and refusing on an exception would quietly hide joints
+        // that fail for an unrelated reason instead of letting them fail where
+        // a person can see it.
+        if (front && candidate.front) {
+          const reversed = wouldReverseFront(point, mount, candidate.front, front);
+          if (reversed) {
+            rejected.push({
+              point, componentId, mountSnapId: mount.id,
+              ok: false, reason: REASONS.FRONT_REVERSED,
+              message: 'That would fit this part back to front — its wall side would '
+                + 'face into the room.',
+            });
+            continue;
+          }
+        }
+
         placements.push({
           pointKey: pointKey(point),
           point,
@@ -170,6 +206,31 @@ export function attachMatrix(assembly, components, catalogue, transforms, ctx = 
   }
 
   return { placements, rejected };
+}
+
+/**
+ * Would mating `mount` to `point` leave the arriving part facing backwards?
+ *
+ * The parent snap is already in world space, so the solve runs against an
+ * identity parent — the transform it returns IS the child's world pose, and only
+ * its rotation is wanted. Nothing is added to the assembly and nothing is
+ * cached; this is one quaternion.
+ *
+ * A grid cell has no front rule: a pouch on a MOLLE panel takes the panel's
+ * orientation and there is no second cell that would mirror it.
+ */
+function wouldReverseFront(point, mount, localFront, productFacing) {
+  if (point.isGridCell) return false;
+  try {
+    const { rotation } = solveChildTransform(
+      { translation: [0, 0, 0], rotation: [0, 0, 0, 1] },
+      { position: point.worldPosition, facing: point.worldFacing, roll: point.roll || 0 },
+      mount,
+    );
+    return dot(normalise(rotateVec(rotation, localFront)), productFacing) < 0;
+  } catch {
+    return false;
+  }
 }
 
 /** Distinct attach points that could take this component. Part-first flow. */
@@ -418,7 +479,13 @@ export function whyNothingFits(matrix, key) {
   // Prefer a specific geometric reason over a bare mask mismatch, which usually
   // just means "this point is for a different kind of thing".
   const ranked = [...reasons].sort((a, b) => {
-    const rank = { [REASONS.ALREADY_OCCUPIED]: 0, [REASONS.TOO_FAR]: 1, [REASONS.CONDITION_FAILED]: 2, [REASONS.MASK_MISMATCH]: 3 };
+    const rank = {
+      [REASONS.ALREADY_OCCUPIED]: 0,
+      [REASONS.FRONT_REVERSED]: 1,
+      [REASONS.TOO_FAR]: 2,
+      [REASONS.CONDITION_FAILED]: 3,
+      [REASONS.MASK_MISMATCH]: 4,
+    };
     return (rank[a.reason] ?? 9) - (rank[b.reason] ?? 9);
   });
 
@@ -442,14 +509,16 @@ export function whyComponentFitsNowhere(matrix, componentId) {
   const reasons = matrix.rejected.filter((r) => r.componentId === componentId);
   if (!reasons.length) return null;
 
-  // A condition ranks first here, unlike whyNothingFits. It is the only reason
-  // in the list that is a deliberate rule rather than a fact about the scene,
-  // so it is the only one worth putting in front of a person.
+  // A condition ranks first here, unlike whyNothingFits, and a reversed front
+  // second. Those two are the DELIBERATE RULES rather than facts about the
+  // scene, so they are the ones worth putting in front of a person: both have
+  // an answer ("fit it higher up", "turn it round") and the rest do not.
   const rank = {
     [REASONS.CONDITION_FAILED]: 0,
-    [REASONS.ALREADY_OCCUPIED]: 1,
-    [REASONS.TOO_FAR]: 2,
-    [REASONS.MASK_MISMATCH]: 3,
+    [REASONS.FRONT_REVERSED]: 1,
+    [REASONS.ALREADY_OCCUPIED]: 2,
+    [REASONS.TOO_FAR]: 3,
+    [REASONS.MASK_MISMATCH]: 4,
   };
   const ranked = [...reasons].sort(
     (a, b) => (rank[a.reason] ?? 9) - (rank[b.reason] ?? 9),

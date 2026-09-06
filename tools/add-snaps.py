@@ -711,12 +711,15 @@ def main():
             if kind == "bolted":
                 pass
             elif kind == "frame":
+                faces = (f', front {part["front"]}' if part.get("front")
+                         else ', no front declared')
                 print(f'  {"":<46}       {detail["rungs"]} rungs at '
-                      f'{", ".join(f"{t:.0f}" for t in detail["rungTops"])} mm')
+                      f'{", ".join(f"{t:.0f}" for t in detail["rungTops"])} mm{faces}')
             elif kind == "span":
+                faces = f', front {part["front"]}' if part.get("front") else ''
                 print(f'  {"":<46}       plugs at x = +/-{detail["plugX_mm"]}, '
                       f'y {detail["plugY_mm"]} ({detail["bearing"]}) mm '
-                      f'-> frames {detail["spacing_mm"]} mm apart')
+                      f'-> frames {detail["spacing_mm"]} mm apart{faces}')
             elif kind == "carcase":
                 print(f'  {"":<46}       plugs DOWN at x = +/-{detail["plugX_mm"]}, '
                       f'z {detail["plugZ_mm"]} mm '
@@ -744,6 +747,13 @@ def main():
                 "widthMm": dims[0], "heightMm": dims[1], "depthMm": dims[2],
                 "unitScale": "metres",
             }
+            # Which way round the part is fitted, when the part has a way round.
+            # Written into confgr rather than a table of its own because it is a
+            # fact about the PART, like its size, not about one of its snaps -
+            # and because a reviewer reading the sidecar should see it next to
+            # the dimensions rather than three blocks further down.
+            if part.get("front"):
+                existing["confgr"]["front"] = part["front"]
             existing["confgrRoles"] = {s["name"]: s["role"] for s in snaps}
             # Conditions travel the same way, and are REPLACED rather than
             # merged: the spec is the source, so a rule removed from the spec

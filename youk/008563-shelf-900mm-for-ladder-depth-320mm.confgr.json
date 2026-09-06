@@ -3,7 +3,8 @@
     "widthMm": 950.1,
     "heightMm": 68.5,
     "depthMm": 287.0,
-    "unitScale": "metres"
+    "unitScale": "metres",
+    "front": "-z"
   },
   "confgrRoles": {
     "md-snap.youk-d320.mount-left": "plug",

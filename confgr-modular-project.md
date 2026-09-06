@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 8 modules, no UI dependencies, 265 tests across the project.
+`src/engine/` — 8 modules, no UI dependencies, 281 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -221,6 +221,13 @@ using it expects — but there is still no export, no runtime and no AR.
   never join. This exists because a facing check does not work: the solver
   *always* succeeds on facing, by yawing the child 180°. Without roles an
   upright attached to another upright and passed straight through a shelf.
+- **A part has a front** (`component.js`, `attach.js`). A component may declare
+  `front` — one of `+x -x +z -z` in its own space — and then no placement may
+  reverse it relative to the product's. The other half of the same problem the
+  roles solved: roles stop the wrong *pair* of snaps joining, a front stops the
+  right pair joining the wrong *way round*. Every bay put its second ladder in
+  back to front until this existed (§5.14). Optional, so a symmetric part is
+  unaffected.
 - **Derived transforms** (`assembly.js`). Connected parts store `position: null`;
   every transform is recomputed by walking the connection graph. Move the anchor
   and everything follows. The graph is a **tree** — first path wins through a
@@ -1542,6 +1549,95 @@ happened to click, then written into the documentation as a property of the
 parts. The same sentence pattern as the office arm hooking a rung, and as the
 clamping slot's ends: **a number that came out of the tooling, promoted to a fact
 about the range.**
+
+---
+
+### 5.14 A part has a front — the rule the engine was missing all along
+
+The last section ended with a question about which way the office assembly is
+handed. Adding the `wall ±z` column to `__cfgLayout` to chase it answered a much
+larger one first:
+
+```
+i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0      wall +z
+i3 236758-ladder-depth-320mm @ 920.1,0.0,-0.0   wall -z
+```
+
+**Every bay this app has ever built put its second ladder in back to front** —
+wall fixings facing the room — in every scenario, since the first one. Matt saw
+it in a screenshot. Nothing else could have: the ladder is in exactly the right
+*place* either way round, so every coordinate anything asserts is correct.
+
+**Why.** A shelf is a `span` part with a plug at each end, facing +x and −x. A
+frame offers a socket on **both faces** of every rung, `rung-1-left` and
+`rung-1-right`. Both satisfy the shelf's free plug — one seats the frame as it
+stands, the other needs a 180° yaw, which `solveChildTransform` performs without
+comment because facing is the only thing it is asked about. Then
+`distinctPlacements` keys options by world bounding box, a symmetric ladder's box
+is identical either way round, and the two collapsed into one. First one won.
+
+Three separate rules — mask, role, facing — and not one of them knows that a
+ladder **has a front**. §5.1 recorded "no wall entity, which turned out not to be
+needed". Third time of asking; this time it was needed.
+
+**The rule.** A component may declare `front`, one of `+x -x +z -z` in its own
+local space. A product has ONE front, taken from the first placed part that
+declares one — not a world constant, because the whole product turns in AR and
+the rule has to turn with it. `attachMatrix` then solves each candidate's
+rotation before offering it, and refuses any placement whose world front opposes
+the product's, with `FRONT_REVERSED` and a message a person can act on.
+`validateAssembly` reports the same thing for an assembly that arrives already
+wrong, since stored configurations do not come through `attachMatrix`.
+
+Three deliberate limits:
+
+* **Optional.** No front means "reads the same either way round", so every model
+  authored before this works unchanged and the rule costs one null check.
+* **Sign test, not an angle.** There is nothing between facing the room and
+  facing the wall worth allowing, and a tolerance would only decide how far round
+  a ladder may be twisted before somebody notices.
+* **A solve that throws is left alone.** Not knowing which way a part would face
+  is not the same as knowing it would be backwards.
+
+**Declared on measured evidence only, which is two families of the six.** The
+ladders: the wall fixings are on the z = +160 face and nowhere else (§5.13), so
+the front is −z. The metal shelves 008561–64: sliced into 10 mm bands along z,
+all four read identically — the band at +114.8…+143.5 reaches y 68.5, the one at
+−143.5…−114.8 only 20.0. **The raised back lip is at +z**, so the front is −z,
+which is the ladder's answer arrived at independently.
+
+A sweep of all 77 parts against their own mirror in z says most of the rest are
+asymmetric too, and *that is not enough to declare a front with*. The racks and
+the depth-mounted hook strips came back symmetric to the vertex, so they
+genuinely have none. The clothes rails and the width-mounted hook strips are
+asymmetric, but they hang *below* their rung, so their tallest material is the
+mounting sheet rather than anything you can see, and the test that settles a
+shelf says nothing about them. Left open rather than guessed.
+
+**What it fixed, and what it exposed.**
+
+| Scenario | Before | After |
+|---|---|---|
+| `bay`, `hooks`, `wallfixed`, `stagger`, `timber` | second ladder `wall -z` | all parts `wall +z`, same coordinates |
+| `run` | second and third ladders reversed, and the shelf run to the LEFT was turned round with its back lip standing at the front | every part `wall +z`, every coordinate identical — the solver simply mates that shelf by its other plug |
+| `cabinets`, `carcase` | second cabinet bracket reversed | both brackets `wall +z` |
+| `officeclamp` | angles at z ∓143.0 | **both at −143.0** |
+| `office` | marker 3 was ladder 2's inboard face | marker 3 is now its **outboard** face — scenarios moved to marker 4, all numbers restored |
+
+That last row is the honest one. With the ladder reversed, a plate on its
+`rung-3-right` socket came out mirrored *for free*, and the two errors cancelled:
+the arms landed inboard and §5.13's handedness argument was invisible. Held the
+right way round, the un-mirrored theory is now something you can look at — both
+arms pointing the same way, the right one at 962.4, the desk missing it entirely.
+Marker 4 restores the working numbers by turning the **plate** round instead.
+
+**Neither is a fix.** The question is unchanged: 008551 almost certainly ships as
+a handed pair and one STEP file is standing in for both. What changed is that the
+question now stands where it can be seen instead of being cancelled out by a
+second mistake. That is what the rule bought — not a correct office desk, but an
+office desk whose remaining error is visible.
+
+**281 tests** (16 new in `tests/partFront.test.js`), 77 components.
 
 ---
 

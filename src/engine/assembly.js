@@ -407,6 +407,11 @@ export function worldSnaps(assembly, components, transforms) {
     required: !!point.required,
     span: point.span || null,
     role: point.role || null,
+    // Carried through so a caller can re-solve this joint from the world point
+    // alone — see attachMatrix, which needs the child's resulting rotation and
+    // has no parent transform to hand. Dropping it here made a tilted joint
+    // solve flat, which is a 9-degree lie in exactly the place it matters.
+    roll: point.roll || 0,
     worldPosition: add(transform.translation, rotateVec(transform.rotation, point.position)),
     worldFacing: normalise(rotateVec(transform.rotation, point.facing)),
     ...extra,
@@ -469,6 +474,70 @@ export function occupiedCellsFor(assembly, components, instanceId, gridId) {
 }
 
 /**
+ * Which way a placed part is facing, in world space, or null if it has no front.
+ */
+export function worldFrontOf(component, transform) {
+  if (!component?.front || !transform) return null;
+  return normalise(rotateVec(transform.rotation, component.front));
+}
+
+/**
+ * WHICH WAY THE WHOLE PRODUCT FACES.
+ *
+ * A product has ONE front. That is not a simplification for the sake of an easy
+ * rule — it is what a wall-mounted range is: every ladder in a run goes against
+ * the same wall, and a bay whose far ladder faced the room would be a bay you
+ * could not fix to anything. Kesseböhmer's own photography has no counter-example
+ * and neither does their instruction set.
+ *
+ * Taken from the first placed part that HAS a front, in the order the parts were
+ * added, which is the anchor in every assembly the app builds. Deliberately not
+ * a world constant: the whole product can be turned round in AR, and when it is,
+ * the rule has to turn with it.
+ *
+ * Null when nothing declares a front, and then the rule below is simply inert —
+ * which is what keeps every part authored before this change working unchanged.
+ */
+export function productFront(assembly, components, transforms) {
+  for (const instance of assembly?.instances || []) {
+    const front = worldFrontOf(
+      components?.get(instance.componentId),
+      transforms?.get(instance.instanceId),
+    );
+    if (front) return front;
+  }
+  return null;
+}
+
+/**
+ * Parts that ended up back to front.
+ *
+ * The check is a sign test, not an angle: a part is wrong the moment its front
+ * has any component pointing away from the product's. There is nothing between
+ * "facing the room" and "facing the wall" that is worth allowing, and a
+ * tolerance here would only decide how far round a ladder may be twisted before
+ * somebody notices.
+ *
+ * Reported rather than thrown, because an assembly that arrives in this state
+ * came from stored data or from a wiring change, and the useful thing is to name
+ * the parts. attachMatrix stops NEW ones being created.
+ */
+export function backToFrontParts(assembly, components, transforms) {
+  const front = productFront(assembly, components, transforms);
+  if (!front) return [];
+
+  const out = [];
+  for (const instance of assembly?.instances || []) {
+    const component = components?.get(instance.componentId);
+    const own = worldFrontOf(component, transforms?.get(instance.instanceId));
+    if (own && dot(own, front) < 0) {
+      out.push({ instanceId: instance.instanceId, componentId: instance.componentId });
+    }
+  }
+  return out;
+}
+
+/**
  * Is the assembly complete?
  *
  * Mimeeq gates checkout on this, and it is the right place for it: an
@@ -478,11 +547,15 @@ export function occupiedCellsFor(assembly, components, instanceId, gridId) {
 export function validateAssembly(assembly, components, transforms) {
   const snaps = worldSnaps(assembly, components, transforms);
   const missing = snaps.filter((s) => s.required && !s.occupied);
+  // A part fitted back to front is as unbuildable as a missing one, and a good
+  // deal harder to see in a render, so it counts against validity too.
+  const backToFront = backToFrontParts(assembly, components, transforms);
 
   return {
-    isValid: missing.length === 0,
+    isValid: missing.length === 0 && backToFront.length === 0,
     missingRequiredSnaps: missing.map((s) => ({
       instanceId: s.instanceId, snapId: s.snapId, mask: s.mask, label: s.label,
     })),
+    backToFront,
   };
 }

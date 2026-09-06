@@ -35,6 +35,7 @@ export const REASONS = {
   ROLE_CLASH: 'role-clash',
   TOO_FAR: 'too-far',
   FACING_WRONG: 'facing-wrong',
+  FRONT_REVERSED: 'front-reversed',
 };
 
 export const REASON_TEXT = {
@@ -45,6 +46,7 @@ export const REASON_TEXT = {
   [REASONS.ROLE_CLASH]: 'These are both the same kind of fitting — one has to be a mount and the other a mounting point.',
   [REASONS.TOO_FAR]: 'Move the parts closer together.',
   [REASONS.FACING_WRONG]: 'These faces point the same way — turn one of the parts around.',
+  [REASONS.FRONT_REVERSED]: 'Fitting it here would put it back to front.',
 };
 
 /**

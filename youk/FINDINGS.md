@@ -1316,3 +1316,88 @@ to the plug height would touch it.
 So the question stays open and stays with Kesseböhmer, but two readings are now
 gone: it is not a per-part quirk (two families, identical number), and it is not
 a mis-stated sheet thickness (there is no flat sheet to mis-state).
+
+---
+
+## Which way round every part goes — a front, and what has one
+
+Chasing the office handedness produced a bigger finding first. `__cfgLayout`
+gained a column reporting which way each placed part's local +z points, and the
+very first bay it printed said:
+
+```
+i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0      wall +z
+i3 236758-ladder-depth-320mm @ 920.1,0.0,-0.0   wall -z
+```
+
+**The second ladder of every bay was in back to front** — wall fixings facing the
+room — in every scenario, since the first one. It is in exactly the right *place*
+either way round, which is why no number ever caught it.
+
+The engine rule that fixes it is in the project file, §5.14. What belongs here is
+the evidence about the PARTS: which of them have a front, and how it was
+established. **A part gets a front only when something measurable decides it.**
+
+### Declared
+
+| Part | Front | Evidence |
+|---|---|---|
+| Ladders 236746/48/50/54/58/62 | **−z** | The wall fixings — Ø10 hole and Ø6.5 slot, top and bottom — are on the z = +160 face and nowhere else. The z = −160 face carries nothing but 1.95 mm corner radii. Three independent confirmations, tabulated further up this file. |
+| Metal shelves 008561/62/63/64 | **−z** | A **raised back lip**. Sliced into ten bands along z, all four sizes read identically: the band at z +114.8…+143.5 reaches y **68.5**, the band at −143.5…−114.8 only reaches **20.0**. The tall lip is on the +z side, which is the wall. |
+
+The two agree without being derived from one another, which is the useful part:
+the shelf was measured on its own geometry and landed on the same convention the
+frame's fixings give.
+
+### The survey — asymmetric is NOT the same as having a front
+
+Every part's body was compared against its own mirror in z, on a 2 mm grid. The
+fraction of cells that fail to match:
+
+| Fraction | Parts |
+|---|---|
+| 1.000 | shoe racks 008553–56 |
+| 0.96–0.99 | office plate and clamping angle, hook strips **by ladder width** 008538–41 |
+| 0.94 | timber cabinets (all 40) |
+| 0.78–0.94 | clothes rails 008530/31/32 |
+| 0.54–0.72 | the six ladders |
+| 0.10–0.33 | metal shelves, YouboXx sets |
+| ~0 | rack 008543/42, hook strips **by ladder depth** 008536/37 |
+
+Two things worth keeping out of that:
+
+* **The depth-mounted racks and hook strips are symmetric to the vertex.** Their
+  band profiles mirror exactly, vertex counts included. They genuinely have no
+  front, so seeing one of them report `wall -z` in a layout is correct and means
+  nothing — it is the same part either way round.
+* **Asymmetry alone does not tell you which way.** The clothes rails come back
+  "tall side −z", the opposite of the shelves. That is not a contradiction, it is
+  the test failing: a rail HANGS BELOW its rung, so its highest material is the
+  mounting sheet, not a feature anyone can see. The same applies to the
+  width-mounted hook strips. **Not declared.** They want reading off the
+  instruction sheets against a real part.
+
+The timber cabinets and desktops are generated, and they meet their brackets on a
+vertical joint where yaw is fixed at the product's orientation — the solver
+cannot turn them round, so a front would be inert. Left off for now.
+
+### What the rule did NOT settle
+
+The office handedness, still. With the ladder held the right way round, the plate
+on its `rung-3-right` socket no longer comes out mirrored for free, and the
+`office` scenarios had to move from marker 3 to marker 4 to keep their numbers.
+
+Both readings are now visible and both are wrong in a way you can see:
+
+* **Marker 3** (both plates the same way round, which is what step 1 appears to
+  draw): both arms point the same way, the right one lands **outboard** at 962.4,
+  and the desk misses it entirely.
+* **Marker 4** (plate turned round, which is what the numbers want): arms inboard
+  at 42.2 and 877.9, desk centred and clear — but the plate itself reads
+  `wall -z`, and the clamping angles come out at z **∓143.0**, one stop at the
+  front and one at the wall.
+
+Before the front rule, the reversed ladder cancelled the first of these and the
+argument was invisible. It is the same conclusion as before, now with the second
+mistake removed from underneath it: **008551 ships as a handed pair and one STEP
+file is standing in for both.** That needs Kesseböhmer.

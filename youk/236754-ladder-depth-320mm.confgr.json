@@ -3,7 +3,8 @@
     "widthMm": 30.0,
     "heightMm": 905.0,
     "depthMm": 320.0,
-    "unitScale": "metres"
+    "unitScale": "metres",
+    "front": "-z"
   },
   "confgrRoles": {
     "md-snap.youk-d320.rung-1-right": "socket",

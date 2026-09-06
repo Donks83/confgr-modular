@@ -189,8 +189,19 @@ $clicks = @{
   # cannot pass through the frame holding it up, so that theory is out. See
   # youk/FINDINGS.md - the likeliest answer is that 008551 ships as a handed
   # PAIR and one STEP file stands in for both.
+  #
+  # The front rule sharpened that rather than settling it. Before it, the SECOND
+  # LADDER was itself turned round, so a plate on its `rung-3-right` socket came
+  # out mirrored for free and the two effects cancelled: the arms landed inboard
+  # and the handedness argument was invisible. With the ladder now held the right
+  # way round, marker 3 is that ladder's OUTBOARD face and the un-mirrored theory
+  # is what you see - both arms pointing the same way, the right one at 962.4,
+  # the desk missing it entirely. Marker 4 is the inboard face, restores the
+  # numbers below, and turns the PLATE round instead, which is the same question
+  # standing where it can be seen. Neither is a fix; the part has to be measured
+  # against a real pair.
   office = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-           'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+           'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:4,' +
            'part:008551-shelf-supports,marker:0,choose:0,' +
            'part:008551-shelf-supports,marker:1,choose:0,dump,' +
            'part:pws-timber-desktop-900mm-d600mm,marker:0,choices,choose:0,dump,layout'
@@ -205,7 +216,7 @@ $clicks = @{
   # is not, and the solver refused that pairing outright until it learned to
   # align two facings by the shortest arc instead of by yaw alone.
   officetilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:4,' +
                'part:008551-shelf-supports,marker:0,choose:1,' +
                'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,dump,layout'
@@ -220,7 +231,7 @@ $clicks = @{
   # base, which is the top of a 25mm board sitting on the 1.5mm packer. In world
   # terms with the arms at y 575.0 that is y 651.5 - Kesseboehmer's own 650.
   officeclamp = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+                'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:4,' +
                 'part:008551-shelf-supports,marker:0,choose:0,' +
                 'part:008551-shelf-supports,marker:1,choose:0,dump,' +
                 'part:008551-clamping-angles,marker:0,' +
@@ -240,7 +251,7 @@ $clicks = @{
   # and that symmetry looked like a pass for an afternoon: one stop at the wall
   # and one at the front, on a desk that has one back edge.
   officeclamptilt = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-                    'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+                    'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:4,' +
                     'part:008551-shelf-supports,marker:0,choose:1,' +
                     'part:008551-shelf-supports,marker:1,choose:1,dump,' +
                     'part:008551-clamping-angles,marker:0,' +
@@ -257,7 +268,7 @@ $clicks = @{
   # number in the range depends on that - and the FLOOR drops to -100. Its top is
   # 626.5 + 25 = 651.5 in the product, which is 751.5 above the floor.
   officefeet = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
-               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:3,' +
+               'part:008551-base-brackets,marker:0,part:008551-base-brackets,marker:4,' +
                'part:008551-shelf-supports,marker:0,choose:0,' +
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +

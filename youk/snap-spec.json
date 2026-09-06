@@ -62,38 +62,58 @@
     "The ladder frames. Converted with their 320mm depth along X, which cannot be",
     "right - a shelf's width is also along X, and a shelf spans BETWEEN two",
     "frames. rotateYdeg brings the depth onto Z and the 30mm thickness onto X,",
-    "the axis the frames are spaced along."
+    "the axis the frames are spaced along.",
+    "",
+    "front: which way the ladder is fitted. After rotateYdeg 90 the ladder runs",
+    "x -15..+15, z -160..+160, and the wall-fixing holes are in the z=+160 face -",
+    "measured three independent ways, see FINDINGS 'which end faces the wall'.",
+    "So the room side is -z, and that is the front.",
+    "",
+    "It is here because every bay was building its SECOND ladder back to front.",
+    "A shelf plugs +x at one end and -x at the other; a ladder offers a socket on",
+    "BOTH faces of every rung; nothing chose between them, so the solver turned",
+    "the far ladder round to make the facings oppose and its wall holes ended up",
+    "pointing into the room. Declaring the front is what lets the engine refuse",
+    "that placement instead of solving it. Only the frames carry one today - the",
+    "rest of the range follows from them, and a front should be measured before",
+    "it is declared rather than assumed from the convention."
   ],
   "frames": [
     {
       "id": "236746-leiterregal-ladder-depth-200mm",
       "depth": 200,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     },
     {
       "id": "236748-ladder-depth-2000mm",
       "depth": 200,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     },
     {
       "id": "236750-ladder-depth-320mm",
       "depth": 320,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     },
     {
       "id": "236754-ladder-depth-320mm",
       "depth": 320,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     },
     {
       "id": "236758-ladder-depth-320mm",
       "depth": 320,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     },
     {
       "id": "236762-ladder-depth-320mm",
       "depth": 320,
-      "rotateYdeg": 90
+      "rotateYdeg": 90,
+      "front": "-z"
     }
   ],
   "_span": [
@@ -132,28 +152,49 @@
     "1mm bands down from the top gives the hook strip the same profile as the",
     "clothes rail - dense at 0-2mm, tailing to 3mm, then a gap to 5mm - which is",
     "the 1.5mm top sheet with its bend radius. The rail is already verified at",
-    "\"top\", so the strip presenting an identical sheet settles it."
+    "\"top\", so the strip presenting an identical sheet settles it.",
+    "",
+    "front: the metal shelves have a RAISED BACK LIP, and it decides which way",
+    "they go in. Sliced into 10mm bands along z, all four sizes read identically:",
+    "the band at z +114.8..+143.5 reaches y 68.5, the band at -143.5..-114.8 only",
+    "reaches 20.0. The tall lip is on the +z side, which is the wall, so the front",
+    "is -z - the same answer the ladder gives, arrived at independently.",
+    "",
+    "It matters because a shelf run to the LEFT of a frame mates by its other",
+    "plug, and without a front the solver was free to turn the whole shelf round",
+    "instead and stand the lip up at the front of the desk. The `run` scenario had",
+    "one of those in it.",
+    "",
+    "The clothes rails and the hook strips are NOT given a front here. Both are",
+    "asymmetric in z, so both probably have one, but the tall-side test that",
+    "settles a shelf says nothing useful about a part that hangs BELOW its rung -",
+    "its highest material is the mounting sheet, not a feature you can see. Those",
+    "want measuring against the instruction sheets, not guessing."
   ],
   "span": [
     {
       "id": "008561-shelf-450mm-for-ladder-depth-320mm",
       "depth": 320,
-      "bearing": "base"
+      "bearing": "base",
+      "front": "-z"
     },
     {
       "id": "008562-shelf-600mm-for-ladder-depth-320mm",
       "depth": 320,
-      "bearing": "base"
+      "bearing": "base",
+      "front": "-z"
     },
     {
       "id": "008563-shelf-900mm-for-ladder-depth-320mm",
       "depth": 320,
-      "bearing": "base"
+      "bearing": "base",
+      "front": "-z"
     },
     {
       "id": "008564-shelf-1200mm-for-ladder-depth-320mm",
       "depth": 320,
-      "bearing": "base"
+      "bearing": "base",
+      "front": "-z"
     },
     {
       "id": "008530-clothes-rail-600mm",
