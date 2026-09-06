@@ -1,8 +1,11 @@
 {
   "confgr": {
     "widthMm": 168.3,
-    "heightMm": 48,
-    "depthMm": 315,
+    "heightMm": 48.0,
+    "depthMm": 315.0,
     "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-d320.mount": "plug"
   }
 }

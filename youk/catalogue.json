@@ -467,6 +467,28 @@
       "costEach": null,
       "priceEach": {}
     },
+    "008565-lower-umbrella-stand": {
+      "article": "008565",
+      "description": "YouK lower umbrella stand",
+      "sizeMm": [
+        149,
+        94,
+        315
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
+    "008565-upper-umbrella-stand": {
+      "article": "008565",
+      "description": "YouK upper umbrella stand",
+      "sizeMm": [
+        168.3,
+        48,
+        315
+      ],
+      "costEach": null,
+      "priceEach": {}
+    },
     "008548-youboxx-set-5": {
       "article": "008548",
       "description": "YouK YouboXx Set 5",
