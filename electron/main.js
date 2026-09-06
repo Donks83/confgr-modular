@@ -115,6 +115,9 @@ function createWindow() {
           //   mount:floor|wall      drive the mounting dropdown for real
           //   ground                print the ground and AR state FROM THE SCENE
           //   collisions            print every pair of parts sharing space
+          //   id                    print the configuration id and its digest
+          //   load:<id>             replace the product with that id's
+          //   reload                take the current id and load it straight back
           //   palette[:N]           print the first N palette entries: id => label
           //   choices               print the "how should it sit" options on offer
           //   choose:N              take the Nth of them
@@ -153,6 +156,30 @@ function createWindow() {
                     // every coordinate anyone checked came out right.
                     : kind === 'collisions'
                     ? 'window.__cfgCollisions ? window.__cfgCollisions() : "no collision dump"'
+                    // THE ROUND TRIP. `id` writes the configuration down and
+                    // `load` reads one back, and a scenario that does both with
+                    // a `layout` on each side is the only test that proves an
+                    // id means the same product it came from.
+                    //
+                    // `id` prints "<digest> <id>", so a scenario can carry the
+                    // id forward by pasting it and a human reading the log has
+                    // a short reference to talk about.
+                    : kind === 'id'
+                    ? 'window.__cfgId ? window.__cfgId() : "no configuration"'
+                    : kind === 'load'
+                    ? `window.__cfgLoad ? window.__cfgLoad(${JSON.stringify(rest.join(':'))}) : "no loader"`
+                    // Take the id the app is showing NOW and immediately load
+                    // it back. One step rather than two, because a probe cannot
+                    // paste - and because what is being checked is that the
+                    // product survives the trip, not that a string can be
+                    // copied.
+                    : kind === 'reload'
+                    ? `(() => {
+                         if (!window.__cfgId || !window.__cfgLoad) return 'no configuration';
+                         const printed = window.__cfgId();
+                         const id = printed.split(' ').pop();
+                         return 'round trip via ' + printed.split(' ')[0] + ': ' + window.__cfgLoad(id);
+                       })()`
                     // The other end of the joint. `choices` lists what the app is
                     // offering; `choose:N` takes the Nth. Separate steps on
                     // purpose - a probe that only ever clicked would not notice

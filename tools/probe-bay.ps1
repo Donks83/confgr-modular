@@ -19,7 +19,7 @@ param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
                'officeclamptilt', 'officefeet', 'feet', 'feetrefused',
-               'cantilever', 'condition', 'timber')]
+               'cantilever', 'roundtrip', 'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -285,6 +285,19 @@ $clicks = @{
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +
                'mount:feet,ground,layout'
+  # THE ROUND TRIP. Build a bay by clicking, write the configuration down, load
+  # it straight back, and print the layout on both sides of the trip.
+  #
+  # The two `layout` blocks must be IDENTICAL except for the instance ids, which
+  # change from i1/i2/i3 to p0/p1/p2 - that difference is the point rather than
+  # a defect, because an id that carried the session's own counter would only
+  # mean something in the session that wrote it.
+  #
+  # Comparing RESOLVED POSITIONS rather than the decoded object matters: two
+  # assemblies can match field for field and still put a shelf somewhere else,
+  # which is exactly the class of fault this whole probe set exists for.
+  roundtrip = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+              'mount:feet,layout,id,reload,layout,ground,quote'
   # A CABINET CARRIED AT ONE END. The `carcase` scenario below fits two brackets
   # and then the box; this fits ONE and then the box, which is what a person does
   # when they are interrupted. The box lands, looks fine from the front, and is a

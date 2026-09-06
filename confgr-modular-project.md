@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 10 modules, no UI dependencies, 338 tests across the project.
+`src/engine/` — 11 modules, no UI dependencies, 356 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -239,6 +239,11 @@ using it expects — but there is still no export, no runtime and no AR.
   rather than by the connection graph: the graph is a tree and a cabinet on two
   brackets is not, so "is there metal under this corner" is the honest question
   (§5.17).
+- **The configuration id** (`configuration.js`) — the whole product as one
+  versioned, self-contained string, and `resolveConfiguration` to turn it back
+  into geometry, validity and a quote with no editor and no three.js. The seam
+  everything downstream needs: AR export, the tear sheet, a saved project, a
+  quote a customer can reopen (§5.18).
 - **Collision** (`collision.js`) — oriented-box overlap between every pair of
   placed parts, with a real escape depth and a lap-versus-through call.
   **Measures, does not refuse:** a box is the wrong shape for the L-section
@@ -413,7 +418,7 @@ This is the honest half of the document.
 | **A snap editor** | Nothing. Snaps come from a hand-authored spec file plus a Python script. |
 | **Branding / theming** | Nothing. Studio's `accentColor` / `logo` / `font` are not ported. |
 | **Save and load a project** | IPC handlers exist; no UI calls them (§3.7). |
-| **A shareable configuration ID** | Nothing — and the plan says build this in week one. |
+| **A shareable configuration ID** | **Built** (§5.18). Versioned, self-contained, refusing an unknown format rather than guessing, and NAMING a part the catalogue no longer has rather than dropping it. `resolveConfiguration(id, components, {catalogue})` is the headless resolve everything downstream was waiting on — assembly, transforms, implied parts, validity, collisions and quote, with no editor and no three.js. The round trip is a probe scenario, compared on resolved positions. **No short-code service and no `/ar?c=` route yet** — the id is 416 characters, which is a link rather than a text message. |
 | **PDF / tear sheet** | Nothing. |
 | **AR / "view in your room" / QR** | **Readiness checks only** (§3.4). No USDZ, no GLB export of a configuration, no QR, no landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
@@ -1888,6 +1893,84 @@ the real result had. Blank window, no exception anywhere a test would see it.
 The fallback is now written once.
 
 **338 tests** (8 new in `tests/required.test.js`).
+
+---
+
+### 5.18 A configuration you can send someone — the plan's week-one item
+
+Outstanding since the first session, and it is worth being precise about why it
+matters, because "a shareable id" sounds like a feature and it is not. **It is
+the seam** — the point where the configurator stops being an application
+somebody is using and becomes a value other things consume. Four things are
+waiting on it and none of them can start without it:
+
+| | |
+|---|---|
+| the AR handoff | `/ar?c=<id>` resolves the assembly and exports a GLB |
+| the tear-sheet PDF | the same resolve, rendered to paper |
+| a saved project | an id in a file, not a serialised editor |
+| a quote a customer keeps | an id in an email that still opens next year |
+
+So the id encodes **exactly what the resolver needs and nothing about the
+editor**: no camera, no selection, no pending click, no panel state. What comes
+back is a product, not a session. Instance ids are regenerated — the live ones
+come from a counter that restarts with the process, and writing those down would
+make an id that only meant something in the session that produced it.
+
+**Two properties matter more than compactness.**
+
+*It is versioned.* The decoder refuses a version it does not know rather than
+reading the fields it recognises and dropping the rest. An id that will not read
+is a bad afternoon; **an id that reads as a different product is a wrong order.**
+
+*It fails loudly.* A component the catalogue no longer has is **named** in the
+error, not skipped — the same rule as `quote.js`'s "a missing price is not
+zero". A configuration that has lost a part is not a smaller configuration.
+
+**The format is JSON with dictionaries, base64url'd.** A delimiter-separated
+string would be ~40% shorter and would need escaping rules, because component
+ids carry hyphens and snap ids carry dots — and escaping rules go wrong silently,
+on the one part whose name contains the delimiter. The dictionaries get most of
+the saving anyway: a bay names its ladder once and refers to it twice.
+
+A three-part bay on feet comes to **416 characters**, and almost all of it is the
+ids —`pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm` is forty-nine
+before anything is encoded. That is a link, not a text message, and the answer
+when a short one is wanted is a short-code service rather than a cleverer string.
+
+**One saving was considered and refused.** A snap could be stored as an index
+into its component's own snap list — unambiguous, and tiny. It would also bind
+every id ever issued to the order the snaps happen to sit in the GLB, so
+re-exporting a model with its nodes reordered would silently change what every
+stored id means. Undetectably. The ids are long because the ids are long.
+
+**`resolveConfiguration(id, components, { catalogue, tierId })`** is the headless
+function the plan has been asking for. No editor, no three.js: it runs in a
+test, in Node, and one day in a lambda. It returns the assembly, the transforms,
+the scene *including implied parts*, the validity, the collision survey and the
+quote — everything the app knows, from a string.
+
+**And the round trip is a probe scenario, not just a unit test.** `roundtrip`
+builds a bay by clicking, writes the id, loads it straight back, and prints the
+layout on both sides:
+
+```
+i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0        wall +z
+i2 008563-shelf-900mm...     @ 460.1,100.0,-0.0   wall +z
+i3 236758-ladder-depth-320mm @ 920.1,0.0,-0.0     wall +z
+--- round trip via be75bef0 ---
+p0 236758-ladder-depth-320mm @ 0.0,0.0,0.0        wall +z
+p1 008563-shelf-900mm...     @ 460.1,100.0,-0.0   wall +z
+p2 236758-ladder-depth-320mm @ 920.1,0.0,-0.0     wall +z
+```
+
+Identical but for the ids, which is the point. Compared as **resolved
+positions** rather than as decoded objects, because two assemblies can match
+field for field and still put a shelf somewhere else — the exact class of fault
+this whole probe set exists for. The mounting survives too: `clearance=100mm
+floorY=-100mm` on both sides, and the implied feet come back under both ladders.
+
+**356 tests** (18 new in `tests/configuration.test.js`).
 
 ---
 

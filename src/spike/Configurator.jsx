@@ -35,6 +35,9 @@ import {
   impliedParts, impliedBom, withImplied, impliedComponentIds, isImplied,
 } from '../engine/implied.js';
 import { overlaps, formatOverlaps } from '../engine/collision.js';
+import {
+  encodeConfiguration, decodeConfiguration, configurationDigest,
+} from '../engine/configuration.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -688,6 +691,43 @@ export default function Configurator() {
       ? formatQuote(priced)
       : `no price book loaded${priceBookError ? `: ${priceBookError}` : ''}`);
   }, [priced, priceBookError]);
+
+  // THE CONFIGURATION AS A STRING, and back again.
+  //
+  // Exposed to the harness before it is exposed to a person, because the useful
+  // test is the round trip and it needs both halves: build a bay by clicking,
+  // take the id, load it back, and compare the RESOLVED LAYOUT. Two assemblies
+  // can match field by field and still put a shelf somewhere else.
+  //
+  // `load` replaces the whole product rather than merging, which is what an id
+  // means: it is a product, not a patch.
+  useEffect(() => {
+    window.__cfgId = () => {
+      if (!assembly.instances.length) return 'nothing configured yet';
+      try {
+        const id = encodeConfiguration(assembly, { mounting, footHeightMm });
+        return `${configurationDigest(id)} ${id}`;
+      } catch (err) {
+        return `cannot be written down: ${err.message}`;
+      }
+    };
+    window.__cfgLoad = (id) => {
+      try {
+        const decoded = decodeConfiguration(id);
+        setAssembly(decoded.assembly);
+        setMounting(decoded.mounting);
+        setFootHeightMm(decoded.footHeightMm);
+        setSelectedId(null);
+        setPendingPart(null);
+        setPendingPoint(null);
+        setPendingChoice(null);
+        return `loaded ${decoded.assembly.instances.length} parts, `
+          + `mounting ${decoded.mounting}`;
+      } catch (err) {
+        return `refused: ${err.message}`;
+      }
+    };
+  }, [assembly, mounting, footHeightMm]);
 
   // ------------------------------------------- rebuild the product from state
   useEffect(() => {
