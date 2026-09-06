@@ -293,9 +293,17 @@ async function main(argv) {
   }
 }
 
-// `file://` + a path is not the same string as a Windows file URL — the drive
-// letter gets a third slash — so this asks Node to do the conversion rather
-// than guessing at it. The hand-rolled version silently did nothing at all.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// Am I the script, or is something importing me?
+//
+// Two traps here, both hit for real. `file://` + a path is not the same string
+// as a Windows file URL - the drive letter gets a third slash - so this asks
+// Node for the conversion rather than guessing at it; the hand-rolled version
+// silently did nothing at all and the tool exited 0 printing nothing.
+//
+// And `process.argv[1]` is UNDEFINED under `node -e`, which threw inside
+// `pathToFileURL` before any importer could use a single export. A guard that
+// crashes the module it is guarding is worse than no guard.
+const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : null;
+if (entry && import.meta.url === entry) {
   main(process.argv.slice(2)).then((code) => process.exit(code));
 }

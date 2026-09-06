@@ -68,10 +68,11 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 261 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 405 unit tests, ~4 s. Run this before believing anything. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
-| `npm run inspect youk` | What still blocks each of the 45 YouK parts from being a component. |
+| `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
+| `npm run youk:export -- --demo --out demo.glb` | Builds a bay with **no editor at all** and writes it as one GLB, floor-rebased and stripped of snap planes. Add `--id <configuration-id>` to export a real one, `--raw` to skip the size optimisations and compare (§5.19). |
 
 The probe takes a `-Scenario`, and each one exists because something went wrong
 without it:
@@ -87,10 +88,26 @@ tools/probe-bay.ps1 -Scenario bay        a full 7-part bay, the general regressi
                               timber     a timber shelf and a metal one in one bay
                               carcase    a cabinet laid on two brackets (§5.6)
                               office     a desktop on the office arms (§5.7)
+                              officetilt        the same arms, rolled 9° (§5.9)
+                              officeclamp       the clamping angle on the arm (§5.10)
+                              officeclamptilt   both at once, which is where the
+                                                collision survey found the upstand
+                                                inside the board (§5.16)
+                              officefeet        the office assembly, standing on feet
+                              feet       the implied foot under every frame (§5.15)
+                              feetrefused       a 200 mm bay, which has no foot
+                                                fixing and must be told so
+                              cantilever a carcase on ONE bracket, which the
+                                         required-part rule must call invalid (§5.17)
+                              roundtrip  a configuration id out, back in, and the
+                                         same product on the other side (§5.18)
                               condition  a part that may only go at certain rungs
                               mount      floor / floating / feet, read from the scene
                               palette    what every palette entry actually says
 ```
+
+Add `-Append` to keep a previous scenario's output rather than overwriting it,
+which is how two scenarios get compared line by line.
 
 There is also `-Steps '<click string>'`, which runs an ad-hoc sequence instead of
 a named scenario and captures to `youk/steps.png`. Marker indices shift as the
@@ -204,15 +221,16 @@ in the spike are exactly the pattern the exported viewer must not use. They are
 fine in the editor, which is one instance by definition. They do not go into the
 viewer bundle.
 
-## 3. Where We Are — Current State (verified against code, 5 September 2026)
+## 3. Where We Are — Current State (verified against code, 6 September 2026)
 
 Read this section as: **the engine is real, the product around it is not.** That
-was truer yesterday than it is today — the editor now behaves the way somebody
-using it expects — but there is still no export, no runtime and no AR.
+gets less true with each session — the editor now behaves the way somebody using
+it expects, and a configuration now leaves the app as an id and as a GLB — but
+there is still no runtime, no embed and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 11 modules, no UI dependencies, 356 tests across the project.
+`src/engine/` — 11 modules, no UI dependencies, 405 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -243,7 +261,9 @@ using it expects — but there is still no export, no runtime and no AR.
   versioned, self-contained string, and `resolveConfiguration` to turn it back
   into geometry, validity and a quote with no editor and no three.js. The seam
   everything downstream needs: AR export, the tear sheet, a saved project, a
-  quote a customer can reopen (§5.18).
+  quote a customer can reopen (§5.18). **And now truly with no three.js:**
+  `tools/describe-glb.mjs` reads a part from the glTF JSON header alone, so the
+  seam no longer depends on a DOM to load the parts it resolves against (§5.19).
 - **Collision** (`collision.js`) — oriented-box overlap between every pair of
   placed parts, with a real escape depth and a lap-versus-through call.
   **Measures, does not refuse:** a box is the wrong shape for the L-section
@@ -291,8 +311,9 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.2 The supplier model pipeline — built, but command-line only
 
-Five tools, all documented, all with real supplier files through them — and one
-that generates parts no supplier will ever send.
+Seven tools, all documented, all with real supplier files through them — one
+that generates parts no supplier will ever send, and two that go the other way
+and turn a configuration back into a file.
 
 | Tool | Does |
 |---|---|
@@ -302,10 +323,18 @@ that generates parts no supplier will ever send.
 | `tools/inspect-model.mjs` | Says what a model is and what stands between it and being a component. Reports every fault at once, ordered by fix precedence. Modifies nothing. |
 | `tools/measure-part.py`, `tools/check-joint.py` | Find a part's features; place two parts together and report whether the metal actually fits. |
 | `tools/make-timber.py` | Generates the parts that have no supplier CAD. It writes `<id>.converted.glb` — the suffix `add-snaps.py` reads — so a part we invented enters the pipeline at the same door as a supplier part rather than taking a private route nothing checks. §5.5. |
+| `tools/describe-glb.mjs` | Reads a GLB into the shape `extractComponent` wants, **in Node, with no three.js and no binary decoding** — the accessors already declare their bounds, because glTF requires it. This is what made the engine genuinely headless. §5.19. |
+| `tools/export-glb.mjs` | A configuration id → one GLB, editor closed. Merges every placed part *including the implied ones*, rebases it onto the floor, strips the snap planes and their geometry, and reports the AR budget from real bytes. §5.19. |
 
-**Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
-from a 138,000-triangle worst case), **37 load as components with no blocker**,
-and 40 generated timber parts make **77 components in the palette**, plus the adjustable foot, which is loaded but never offered (§5.15).
+**Result on the YouK range, measured 6 September 2026 by loading the folder the
+way the app does:** **80 GLBs, 80 load as components, 0 failures**, against 80
+catalogue entries. No part exceeds the 40,000-triangle budget — the worst is
+`008545-youboxx-set-2` at 36,316, down from a 138,000-triangle worst case before
+re-tessellation. **79 appear in the palette**; the eightieth is the adjustable
+foot, loaded but never offered, because nobody chooses a foot (§5.15).
+
+That is the whole published range: 40 converted from Kesseböhmer's STEP files
+and 40 timber boards generated from our own measurements.
 
 The spec now has six families: `frames`, `span`, `hang`, `carcase`, `bolted` and
 `wall` — the last for parts that join nothing at all. What is authored per part
@@ -420,11 +449,11 @@ This is the honest half of the document.
 | **Save and load a project** | IPC handlers exist; no UI calls them (§3.7). |
 | **A shareable configuration ID** | **Built** (§5.18). Versioned, self-contained, refusing an unknown format rather than guessing, and NAMING a part the catalogue no longer has rather than dropping it. `resolveConfiguration(id, components, {catalogue})` is the headless resolve everything downstream was waiting on — assembly, transforms, implied parts, validity, collisions and quote, with no editor and no three.js. The round trip is a probe scenario, compared on resolved positions. **No short-code service and no `/ar?c=` route yet** — the id is 416 characters, which is a link rather than a text message. |
 | **PDF / tear sheet** | Nothing. |
-| **AR / "view in your room" / QR** | **Readiness checks only** (§3.4). No USDZ, no GLB export of a configuration, no QR, no landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
+| **AR / "view in your room" / QR** | **The GLB half is built** (§5.19). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles and 443,980 bytes, within budget. **Still nothing for:** USDZ, so no iOS; no QR; no `/ar?c=` landing route. The nine AR-safe rules are honoured in the asset pipeline, which was the point. |
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
-| **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except the two office ones, where it is right — the clamping angle's upstand really is inside the board (§5.13's handedness, found again from geometry). The two L-section parts now carry authored `col-` proxies; the other 76 use their body box. Nothing is blocked. |
+| **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except the two office ones, where it is right — the clamping angle's upstand really is inside the board (§5.13's handedness, found again from geometry). The two L-section parts now carry authored `col-` proxies; the other 78 use their body box. Nothing is blocked. |
 | **Derived BOM lines** | **Built** (§5.15). `implied.js` derives the parts a configuration implies rather than storing them: the foot goes in the scene through its own measured joint and onto the quote under "Included — not chosen", and the wall fixings and packers come out as counted notes below the total, because they have no part number on file. A 200 mm bay on feet is refused, because those frames have no foot fixing. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). **On feet now moves the floor** by the foot's height rather than only flagging it (§5.12). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
@@ -434,7 +463,7 @@ This is the honest half of the document.
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
-~~There is also no git remote.~~ **Retired.** 49 commits are on
+~~There is also no git remote.~~ **Retired.** 67 commits are on
 `github.com/Donks83/confgr-modular`, private, branch `main`. Private because the
 repo carries measurements of Kesseböhmer's range and readings of their
 instruction sheets, and they are a partnership prospect. **No supplier CAD is
@@ -1974,16 +2003,144 @@ floorY=-100mm` on both sides, and the implied feet come back under both ladders.
 
 ---
 
+### 5.19 A file a customer could hold — and the moment the engine actually became headless
+
+The previous section made a configuration a *value*. This one turns that value
+into a **file**, with the editor closed:
+
+```
+npm run youk:export -- --demo --out demo.glb
+
+demo configuration
+be75bef0  3 parts chosen, 2 implied, mounting feet
+  bounds  -15..935 x  -100..1500 y  -160..160 z  mm
+  moved   -460, 100, 0 mm to sit on the floor, centred
+  wrote   demo.glb  433.6 kB, 34,106 triangles
+  AR      within budget, goes on the floor
+```
+
+This is the gate on the whole AR path. Scene Viewer and Quick Look both take a
+**file**; until now a configuration only existed as state inside a running
+Electron window, so there was nothing to hand them.
+
+#### The claim that was not true
+
+The engine has been described as renderer-free since the first session, and in
+one specific way it never was. `src/engine/*` imports no three.js — that part
+was real — but `src/three/loadGlb.js` was the **only** thing that could turn a
+GLB into a component, and it needs three.js, which needs a DOM. So the headless
+resolve of §5.18 was headless right up until it needed a part, which is to say
+immediately.
+
+`tools/describe-glb.mjs` closes it. It produces exactly the description
+`extractComponent` takes — same fields, same units, same meaning — from the
+glTF JSON header, with **no binary decoding at all.**
+
+That is not a shortcut. glTF requires it:
+
+> "Accessors of a POSITION attribute … **MUST** have `min` and `max`"
+> — glTF 2.0 §3.7.2.1
+
+which is the bounding box, already computed by whatever wrote the file. `count`
+gives the vertex count; the index accessor's count gives the triangles.
+Everything needed is in the header, so describing eighty parts costs
+milliseconds rather than megabytes.
+
+**How we know it is faithful, rather than merely plausible.** The test that
+matters in `tests/exportGlb.test.js` is not "does this produce something
+sensible". It gives *both* readers the same file and requires the **same
+answer** — node for node, bound for bound, to a micrometre, with quaternions
+compared by what they do rather than by their four numbers. The two take
+completely different routes: three.js decodes the vertex buffer and computes a
+box; this trusts the box the file declares. If the pipeline ever writes bounds
+that disagree with its own vertices, they stop agreeing and this file says so.
+Nothing else in the project would notice.
+
+#### Three decisions in the export, none of them defaults
+
+**It includes the parts nobody chose.** A bay on feet exports *with its feet*,
+because a bay on feet is what was priced (§5.15). An export that showed
+something other than what the quote charges for would be a different kind of
+bug from a wrong number, and a worse one.
+
+**It is rebased onto the floor.** The product's origin is the anchor frame's
+base centre, which on feet is 100 mm *above* the floor and on a wide run is
+nowhere near the middle. An AR viewer drops a model onto a plane at its own
+origin. So the export is translated to sit **on** that plane and centred in
+plan; anything else arrives sunk into the carpet or off to one side. The
+`moved -460, 100, 0` line above is that correction, and the 100 is exactly the
+foot.
+
+**It strips the editor's structure, and the geometry behind it.** `md-snap`,
+`md-grid`, `col-` and `dim` are scaffolding: eighty invisible quads is eighty
+invisible quads in somebody's living room. The subtlety is that disposing a
+*node* leaves its mesh and accessors in the file — invisible and still paid
+for — so the meshes go too.
+
+#### The number that had never been real
+
+`arReadiness` has taken a `bytes` argument since the day it was written and had
+never once been given a real one. Now it is: **443,980 bytes, 34,106 triangles**
+for the demo bay.
+
+And the saving from `dedup` + `prune` is measured rather than claimed, which is
+why `--raw` exists — it writes the same document without them so the two files
+can be put side by side. **786,948 bytes against 443,980: 44% off, with an
+identical triangle count.** It is the second copy of the ladder mesh (a bay uses
+the same ladder twice, and each placement was read from its own file) plus the
+snap planes' orphaned accessors.
+
+`unpartition` is in that chain too, and it is not cosmetic: a GLB is allowed 0
+or 1 buffers, merging four parts gives four, and `writeBinary` refuses the
+document outright. That is what the error `GLB must have 0-1 buffers` meant, and
+it took a minute to find and a second to fix — the useful kind of error, which
+is the kind that refuses rather than the kind that guesses.
+
+#### And then the two numbers disagreed
+
+Having a real byte count made a second measurement possible for the first time,
+and the app and the file did not agree. The same bay: **19,010 triangles in the
+app, 34,106 in the exported GLB.**
+
+The gap is the two adjustable feet, at **7,548 triangles each** — a foot is very
+nearly as heavy as a ladder (7,475), being all thread and radii. `arReadiness`
+in the app was being handed `assembly`, the parts the customer chose, while the
+export hands it the scene *as drawn*, implied parts included. So the app's AR
+budget check was not slightly low, it was **44% low on a two-frame bay**, and the
+error grew with every frame added.
+
+Fixed by passing `scene` rather than `assembly`, and the probe now reports
+`tris=34106` for the `feet` scenario — the same number the file has in it. **A
+budget check that measures something other than the thing being sent is worse
+than no check**, because it reports "within budget" with authority.
+
+This is the argument for the second implementation, made concretely. Nothing was
+wrong with either piece of code in isolation; the fault only existed in the
+relationship between them, and it could not be seen until there were two things
+to compare. The same is true of `describeGlb` against three.js, one section
+above. Both were built for other reasons and both immediately found something.
+
+**405 tests** (49 new in `tests/exportGlb.test.js`).
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
-Phase 0 and into a bit of Phase 3, with none of Phase 1 or 2.**
+Phase 0, into a bit of Phase 3, and — as of session 6 — into the first item of
+Phase 2 and half of the sixth.** Phase 1, the editor, is still not started, and
+the shape of the work so far is worth naming: nearly everything built has been
+*engine*, because every
+question the YouK range asked turned out to be a question about what a product
+IS rather than about how to draw one.
 
 ### Phase 0 — Prove the snap system — **DONE, and overshot**
 
 Planned as two weeks of synthetic parts. Delivered that, then went further: a
-real 45-part supplier range through a repeatable pipeline, a joint-verification
-tool, and a commercial layer. The one Phase 0 item **not** proven is grids with
+real supplier range — **all 80 parts of it**, 40 converted from Kesseböhmer's
+STEP files and 40 timber boards generated from our own measurements — through a
+repeatable pipeline, plus a joint-verification tool and a commercial layer. The
+one Phase 0 item **not** proven is grids with
 parts spanning several cells — `grid.js` and its 34 tests exist, but no real
 gridded product (MOLLE, camera case) has been through it.
 
@@ -2032,9 +2189,8 @@ Corrections from experience:
   feet, 100 or 150 mm, still no height field: choosing a foot is choosing one of
   two SKUs, not typing a number. `isGrounded()` now decides whether the view
   draws a floor, so feet keep the grid and only floating loses it (§5.1
-  correction). **Still to do:** one foot per ladder on the *quote*. That waits
-  for derived BOM lines, which feet, screws and the 1.5 mm packers all need, and
-  which should be built once rather than three times.
+  correction). The follow-on — one foot per ladder on the *quote* — is **done
+  too**, as the implied-parts mechanism below.
 - **An accessory-to-span joint**: hook strip bolted under a shelf with 1.5 mm
   packers. The packer is a **system-wide constant** — four separate instruction
   sheets put the same 1.5 mm shim between a bracket and the panel above it — so
@@ -2067,24 +2223,51 @@ Corrections from experience:
 - ~~**Vertical joints**~~ — **done** (§5.6), and not planned for. A part laid on
   another rather than meeting it edge-on. The cabinets forced it and the office
   desktop needs the same thing, so it was paid for twice.
-- **A required-part rule.** New on this list and it has a concrete case now: a
-  carcase can be dropped on one bracket and left cantilevering, because nothing
-  says a second bracket is needed. Closely related to collision refusal below —
-  both are "this configuration cannot exist" rather than "these two do not fit".
-- **Collision boxes and overlap refusal** belong here, but the rule is subtler
-  than "nothing overlaps". Every part already reports `NO_COLLISION_BOX`, and
-  there is a concrete case: a tray on a middle frame's inner face cantilevers
-  straight through a shelf and the app allows it. That one is wrong; a hook rail
-  1.5 mm under a shelf is right. The test cannot be proximity alone.
+- ~~**A required-part rule**~~ — **done** (§5.17), and the interesting part was
+  not the rule. `snap.required` had existed unset since the first commit; making
+  the model set it took an afternoon. What took the rest was discovering that
+  **the connection graph cannot answer the question**: it is a tree, and a
+  carcase on two brackets is a cycle, so asking the graph reported every
+  correctly-built product as a cantilever. The check reads *geometry* — is there
+  an opposing snap of the same mask within a millimetre — which is what "held"
+  actually means.
+- ~~**Collision boxes and overlap refusal**~~ — **done** (§5.16), and the survey
+  changed the plan it was meant to serve. Running SAT over the whole range first
+  found that **overlaps are normal**: parts lap by design at nearly every joint.
+  So refusal is not "nothing overlaps" but a measured distinction — a part
+  passing *through* another versus lapping *against* it — with the threshold
+  taken from the range rather than guessed. `col-` proxies make L-sections
+  honest, and `FLUSH_TOL_M` exists because a 950.2 shelf on a 950.1 span
+  overhangs by 0.1 mm and that is not a fault.
+- ~~**One foot per ladder on the quote**~~ — **done** (§5.15), and it became the
+  general mechanism it should have been: **implied parts**. A part the customer
+  never chooses, derived from the configuration each time rather than stored, so
+  it cannot go stale and cannot be edited into an inconsistent state. Feet were
+  the first case; screws and the 1.5 mm packers are the next two and now cost
+  nothing.
 
-### Phase 2 — The runtime, the embed, mobile and AR — **NOT STARTED**
+### Phase 2 — The runtime, the embed, mobile and AR — **STARTED**
 
 The most commercially important phase, and where AR and mobile live. In dependency
 order rather than wish order:
 
-1. **The headless resolve function** — configuration ID → resolved assembly with
-   no editor. The PDF, the AR export and any server render all call it. The plan
-   says week one; it is late; everything below waits on it.
+1. ~~**The headless resolve function**~~ — **done** (§5.18). A configuration is
+   now a *value*: `encodeConfiguration` turns an assembly into a versioned
+   base64url id, `resolveConfiguration` turns that id back into placed parts with
+   no editor, no window and no three.js. The probe round-trips one through the
+   running app — `id`, `reload`, `load:<id>` — and gets the same product back,
+   feet and all.
+   **What the id deliberately is not:** a serialisation of the scene. It stores
+   *choices* — which parts, which joints, which mounting — and re-solves from
+   them, so a corrected part model corrects every id ever issued rather than
+   pinning customers to old geometry. It carries a version so a future format can
+   refuse an old id honestly instead of misreading it.
+   **And it needed one thing nobody planned for:** the engine could not read a
+   part without three.js. `tools/describe-glb.mjs` fixed that — it produces
+   `extractComponent`'s input from the glTF JSON header alone, decoding no
+   binary at all, because glTF requires accessors to declare their own bounds.
+   The engine is only *now* genuinely headless; before this it was headless
+   until it needed a part.
 2. **A viewer split out of the editor**, built on `src/engine/*` (already UI-free,
    which was the hard part) with **no editing affordances**.
 3. **Responsive and touch from the start**, not as a later pass — one-finger
@@ -2095,9 +2278,21 @@ order rather than wish order:
 5. **The folder bundle export**, copying Studio's `exportProject.js` shape —
    *and* its offline-guarantee test, which blocks every outbound request and
    drives the tour. Copy the test, not just the exporter.
-6. **AR:** GLB export of a configuration → USDZ conversion (test material
-   variants early) → the hosted `/ar?c=<id>` landing route → the QR handoff
-   (§4.5). `arReadiness` already gates whether a configuration will be accepted.
+6. **AR:** ~~GLB export of a configuration~~ — **done** (§5.19) → USDZ conversion
+   (test material variants early) → the hosted `/ar?c=<id>` landing route → the
+   QR handoff (§4.5).
+   `tools/export-glb.mjs` turns an id into a file with the editor closed. Three
+   decisions in it that are not defaults: the export **includes implied parts**
+   (a bay on feet exports with its feet, because that is what was priced); it is
+   **rebased onto the floor and centred in plan**, because an AR viewer drops a
+   model at its own origin and the product's origin is the anchor frame's base
+   centre, which on feet is 100 mm underground; and it **strips every snap plane
+   and collision proxy along with their meshes and accessors**, because eighty
+   invisible quads is eighty invisible quads in somebody's living room.
+   `arReadiness` has taken a `bytes` argument since it was written and has never
+   had a real number to give it. The demo bay: 34,106 triangles, 443,980 bytes,
+   within budget. Next is USDZ, which is the one step that needs a tool we do not
+   yet have.
 7. **Save / reload, shareable URL state, tear-sheet PDF.**
 8. **PWA wrapper** — manifest and service worker — *only if a client asks for "an
    app"*. **No native app** (§4.5).
@@ -2139,17 +2334,25 @@ Not the same as the phase order, and worth stating separately:
    cabinets and the office desktop. This is what makes a demo look like their
    photography instead of a metal frame, and it is the reason the `office`
    probe capture is the first render of this range that reads as furniture.
-6. **The shareable configuration ID / headless resolve** — the plan says week
-   one, and it is already late. Cheap now, painful later, and AR cannot start
-   without it.
-7. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
-   it changes what the exporter is.
-8. **A viewer split out of the editor** — responsive and touch from the start —
-   then the bundle export. This is the big one and everything client-facing waits
-   on it.
-9. **Collision refusal**, before a customer builds something that cannot exist.
+6. ~~The shareable configuration ID / headless resolve~~ — **done** (§5.18), and
+   with it the GLB export (§5.19). A configuration is a value, and that value
+   turns into a file with nothing running.
+7. ~~Collision refusal~~ — **done** (§5.16), and it arrived before a customer
+   could build something that cannot exist rather than after.
+8. **Their price list**, still. It is item 2 as well, and it stays on the list
+   twice because it is the only thing here that no amount of work on our side can
+   unblock.
+9. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
+   it changes what the exporter is. **This is now the next thing on the critical
+   path**, because everything below it is shaped by the answer and the GLB
+   export has removed the last excuse for deferring it.
+10. **USDZ**, so the AR path reaches iPhones. The GLB half is done; this is the
+    half that needs a converter and a material-variant test.
+11. **A viewer split out of the editor** — responsive and touch from the start —
+    then the bundle export. This is the big one and everything client-facing waits
+    on it.
 
-Items 1–7 are days. Item 8 is the project.
+Items 1–10 are days. Item 11 is the project.
 
 ### And the critical path for the *application*, which is not the same list
 
@@ -2171,6 +2374,53 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 6 — 6 September 2026
+
+Matt's instruction was *"don't worry about my input, use your expertise and
+understanding and let's finish it"* — so this session has no corrections in it,
+which is worth noting as a difference rather than as an achievement. Every
+previous session's best findings came from him looking at a picture. This one
+had to find its own faults, and the way it found them is the thing to keep.
+
+**The range is complete: 80 of 80.** The umbrella stand (008565, two pieces
+sharing one article number) went in as ordinary `hang` entries and needed no new
+capability, which is the right way for a range to end.
+
+**What was built:** implied parts (§5.15), collision measurement (§5.16),
+required-part rules (§5.17), the configuration id and headless resolve (§5.18),
+and the GLB export (§5.19). Four of those five were on the roadmap as *not
+started*; §6 is trued up against the code as of today rather than as of the plan.
+
+**Four faults found by tools rather than by looking:**
+
+- **The reversed second ladder** (§5.14). Every bay this project has ever drawn
+  put its second frame in back to front, and no screenshot showed it because a
+  ladder is nearly symmetric. It took `front` being added as an engine rule for
+  the wrongness to become expressible.
+- **A crash that only the probe caught.** The `validity` memo had two
+  hand-written fallback objects and one had not grown a new field, so the window
+  went blank. Nobody was watching the window; the probe reads the renderer
+  console, and that is the only reason it was seen the same minute it was
+  introduced.
+- **A guard that crashed the module it was guarding.** `process.argv[1]` is
+  undefined under `node -e`, so the export tool's is-this-the-entry-point check
+  threw before any importer could use a single export from it. Found by trying
+  to import the tool to count something.
+- **The app's AR budget check was 44% low** (§5.19). It counted the parts the
+  customer chose and not the feet the configuration adds, which are nearly as
+  heavy as a ladder each. Invisible until the GLB export produced a second
+  count of the same thing — which is the general lesson of this session, and
+  the reason to keep building the second measurement even when the first one
+  looks fine.
+
+**Two of the session's own numbers were wrong before they were checked**, both
+mine, both caught by the project's own rule that nothing gets written down
+unless it was measured: a collision depth I predicted at 30 mm which SAT
+correctly reports as 57.05 (SAT returns the shortest *escape* distance, not the
+thickness of the shared region), and a "1.4 MB to 452 kB" saving I typed into a
+comment before running the tool once. The real figures are 786,948 → 443,980.
+The rule earned its keep twice in one session.
 
 ### Session 5 — 5 September 2026
 
@@ -2462,7 +2712,10 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
    parts are the exception and worth noticing:** 40 of the 76 components came out
    of one script and cost minutes each, because their geometry is describable
    rather than drawn. Where a client's range has that property, the permanent
-   cost is much lower than this risk implies.
+   cost is much lower than this risk implies. **Updated:** the range is now 80
+   parts, 40 converted and 40 generated, and the split held exactly — the
+   generated half still costs minutes, the converted half still costs a session
+   per dozen or so.
 3. **A hand-maintained list of things that already exist somewhere else.** Twice
    now — `frames + span + hang + wall` spelled out in two tools — a new family
    has been silently dropped, once losing 24 parts from the palette with no
@@ -2474,10 +2727,30 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
    materials are both right; the graph is not. **A carcase makes this visible:**
    it is carried by two brackets and joined to one, so deleting the other leaves
    it hanging in mid-air looking supported.
-5. **Nothing stops an impossible configuration.** No collision, no required-part
-   validation before checkout, no rules engine. A cabinet on a single bracket is
-   the newest example and the easiest to build by accident.
-6. **The static-export vs hosted-AR tension** (§4.1) is undecided.
+   **Sharpened rather than retired.** The required-part check (§5.17) had to stop
+   asking the graph entirely and read the geometry instead, precisely because of
+   this. So the graph is now *known* to be the wrong thing to ask about physical
+   truth, and two things — validity and the collision survey — deliberately do
+   not consult it. Deletion is still the open case: nothing yet re-checks a
+   product after a part is removed, so the cantilever this risk describes can
+   still be created by deleting rather than by building.
+5. ~~**Nothing stops an impossible configuration**~~ — **largely retired.**
+   Collision refusal (§5.16) and required-part validation (§5.17) both exist, and
+   both are reported in the app. What is left is narrower and worth stating
+   precisely: **nothing gates checkout on them.** The quote is produced from an
+   assembly that may be invalid, and says so, but a customer could still send it.
+   A rules engine beyond these two remains unbuilt, and *deletion* is unchecked
+   (see risk 4).
+6. **The static-export vs hosted-AR tension** (§4.1) is undecided — and it is now
+   the top item on the critical path (§6), because the GLB export exists and
+   every step after it depends on the answer.
+7. **Three of Kesseböhmer's own facts are still unconfirmed by Kesseböhmer.**
+   The handed office arm (§5.10, three independent lines of evidence and no
+   answer), the clothes rail's 1.00 mm bracket engagement, and the two errors in
+   their published data (§5.3). All three are recorded in `youk/FINDINGS.md` with
+   the measurements behind them. The risk is not that we are wrong; it is that a
+   partnership conversation opens with us telling them their data is wrong, and
+   that goes better with their reply in hand than without it.
 
 ### Open questions
 
@@ -2490,8 +2763,12 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   wall is *drawn* is still a choice; whether it exists as a thing to attach to is
   no longer one.
 - The clothes rail's 1.00 mm of bracket inside the rung, reported by `check-joint`
-  on all three sizes, is now the **only** joint question the instruction sheets do
-  not settle. Everything else Matt listed is answered in `youk/FINDINGS.md`.
+  on all three sizes, is one of two joint questions the instruction sheets do not
+  settle. Everything else Matt listed is answered in `youk/FINDINGS.md`.
+- **Is the office arm handed?** The second, and the better evidenced: three
+  independent lines — the clamping slots on the drawing, the angles at z ∓143.0
+  in the layout, and a collision survey that found the upstand 25 mm inside the
+  board (§5.10, §5.16). Geometry alone says yes. Kesseböhmer have not said so.
 - Should a span accessory record **both** of its ends?
 - Should the app refuse a part that would hang below the floor — still needed for
   floor standing, and it does not apply when floating.
@@ -2520,7 +2797,14 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 - Grids with multi-cell spans on a real product — the one unproven piece of the
   attach model.
 - Do glTF material variants survive conversion to USDZ at all? The plan flags
-  testing this early with one real gloss and one real glazed material.
+  testing this early with one real gloss and one real glazed material. **Now
+  actionable rather than theoretical:** `npm run youk:export` produces the GLB to
+  test it with, so this stops being a question and becomes an afternoon.
+- **What is the real AR budget?** `arReadiness` gates on byte and triangle counts
+  it was given before anything could measure them. The demo bay comes in at
+  34,106 triangles and 443,980 bytes — comfortably inside — but a five-bay run
+  with cabinets has never been exported and nobody knows where the line is.
+  Measure a realistic worst case before quoting the limit to anyone.
 - Why was Studio's PDF-quote control removed on 11 August 2026? The plan says
   find out before rebuilding it.
 

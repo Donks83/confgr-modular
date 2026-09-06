@@ -608,9 +608,19 @@ export default function Configurator() {
     [assembly, components, priceBook, tierId, mounting, footHeightMm, implied],
   );
 
+  // AR readiness is judged on the assembly WITH its implied parts, because that
+  // is what gets exported and therefore what the phone has to download.
+  //
+  // It was judged on `assembly` alone until the GLB export made the two numbers
+  // comparable and they disagreed: 19,010 triangles in the app against 34,106
+  // in the file, for the same bay. The gap is two adjustable feet at 7,548
+  // triangles each - a foot is very nearly as heavy as a ladder, being all
+  // thread and radii - so the old count was not slightly low, it was 44% low,
+  // and it got worse with every frame added. A budget check that measures
+  // something other than the thing being sent is worse than no check.
   const ar = useMemo(
-    () => arReadiness(assembly, components, { mounting }),
-    [assembly, components, mounting],
+    () => arReadiness(scene, components, { mounting }),
+    [scene, components, mounting],
   );
 
   // What a part is CALLED, and it is not the filename. Kesseböhmer's English
