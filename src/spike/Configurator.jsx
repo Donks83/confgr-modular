@@ -687,8 +687,23 @@ export default function Configurator() {
         const p = new THREE.Vector3();
         group.getWorldPosition(p);
         const mm = (v) => (v * 1000).toFixed(1);
+        // WHICH WAY IT IS FACING, not just where it is. Position alone cannot
+        // tell a part from the same part turned round, and this range has
+        // three things that care: which side of a ladder its wall fixings are
+        // on, which end of an office arm the clamping angle sits at, and which
+        // way a cabinet door opens. Matt has now caught two orientation faults
+        // in renders that the numbers here reported as correct.
+        //
+        // Reported as where the part's own +Z ends up, because +Z IS THE WALL
+        // (see carcase_snaps) - so `wall +z` on every frame of a bay is what
+        // should be there, and one reading `wall -z` is a frame back to front.
+        const q = group.getWorldQuaternion(new THREE.Quaternion());
+        const f = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+        const axis = Math.abs(f.x) > Math.abs(f.z)
+          ? `${f.x >= 0 ? '+' : '-'}x`
+          : `${f.z >= 0 ? '+' : '-'}z`;
         return `${instance.instanceId} ${instance.componentId} `
-          + `@ ${mm(p.x)},${mm(p.y)},${mm(p.z)}`;
+          + `@ ${mm(p.x)},${mm(p.y)},${mm(p.z)}  wall ${axis}`;
       });
       const conns = (assembly.connections || []).map(
         (c) => `${c.fromInstanceId}:${c.fromSnapId} -> ${c.toInstanceId}:${c.toSnapId}`,

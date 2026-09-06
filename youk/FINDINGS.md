@@ -850,10 +850,43 @@ Fourteen scenarios agreed with an impossible assembly, because every assertion i
 them was a coordinate I had predicted. Nothing in the probe set asks whether two
 parts occupy the same space.
 
-**So the handed-arm question stands open.** The likeliest answer is that 008551
-ships as a handed **pair** and the one STEP file stands in for both — which would
-make the mirrored mesh correct and the swapped clamping slot an artefact of using
-one model twice. That is a question for Kesseböhmer, not for the drawings.
+~~**So the handed-arm question stands open.**~~ **Answered, and it was not about
+the arm at all.**
+
+Matt looked at the render again: he could see the wall-mounting holes on the
+RIGHT ladder, on the wrong side. The layout dump now reports which way each part
+faces, and it says so outright:
+
+```
+i1 236758-ladder-depth-320mm  @    0.0,0.0,0.0   wall +z
+i3 236758-ladder-depth-320mm  @  920.1,0.0,-0.0  wall -z
+i4 008551-base-brackets       @    3.6,511.5     wall +z
+i5 008551-base-brackets       @  916.5,511.5     wall -z
+i6 008551-shelf-supports      @   42.2,575.0     wall +z
+i7 008551-shelf-supports      @  877.9,575.0     wall -z
+```
+
+**The SECOND LADDER OF EVERY BAY IS FITTED BACK TO FRONT**, and everything
+hanging on it inherits that — plate, arm, and therefore the clamping angle at the
+opposite end. The arm is handed, but nothing was asking it to be two-handed: it
+is the frame under it that is reversed.
+
+**Why.** A shelf is a `span` part with plugs facing ±x at its two ends. A frame
+has a rung socket on *both* faces, and both probes pick the same label —
+`rung-1-right` — so to make the facings oppose, the solver turns the second frame
+round. Using that frame's `rung-1-left` socket instead would seat it the same way
+up with no yaw at all. Nothing chooses between them, because nothing in the
+engine knows a frame HAS a front and a back.
+
+**Which is the wall entity §5.1 decided was not needed** — "no wall *entity*,
+which turned out not to be needed". Third time of asking. A part with wall
+fixings on one face cannot be turned round, and the engine has no way to say so.
+
+**Not fixed here.** It is a real engine rule — *a part may declare that it has a
+front, and the solver must then refuse any placement that reverses it* — and it
+wants its own pass, its own tests and its own probe, not a change tacked onto the
+end of this one. It is almost certainly the single root cause behind the office
+handedness, the ∓143 clamping angles, and the desktop-width argument above.
 
 And §5.9's "mirrored, one part serves both ladders" was still read off what a
 probe happened to click rather than off a drawing — then written down as a
