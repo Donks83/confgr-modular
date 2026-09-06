@@ -76,44 +76,82 @@
     "pointing into the room. Declaring the front is what lets the engine refuse",
     "that placement instead of solving it. Only the frames carry one today - the",
     "rest of the range follows from them, and a front should be measured before",
-    "it is declared rather than assumed from the convention."
+    "it is declared rather than assumed from the convention.",
+    "",
+    "holes: the two fixings the adjustable foot screws up into, on the frame's",
+    "UNDERSIDE. Two 3.40mm full rings at x 0.00, z -119.00 and -81.00 - 38.00mm",
+    "apart, fitted to 0.00mm, on all four 320mm frames.",
+    "",
+    "The 200mm frames DO NOT HAVE THEM. Their undersides carry corner radii and",
+    "nothing else. That is a product rule, not an omission in the CAD: the foot",
+    "only fits a 320mm ladder, so choosing to stand a 200mm bay on feet is a",
+    "configuration that cannot be built, and the app now says so rather than",
+    "drawing feet that would screw into nothing.",
+    "",
+    "Two masks, not one. The foot's top plate has a round hole one side and a",
+    "3mm SLOT the other, and they are different fittings - a bolt that locates",
+    "and a bolt that adjusts. Separate masks make each end pair with its own",
+    "counterpart, so the foot cannot be fitted 100mm out by matching the wrong",
+    "pair. Either connection lands it in the same place, which is the check."
   ],
   "frames": [
     {
       "id": "236746-leiterregal-ladder-depth-200mm",
       "depth": 200,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2
     },
     {
       "id": "236748-ladder-depth-2000mm",
       "depth": 200,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2
     },
     {
       "id": "236750-ladder-depth-320mm",
       "depth": 320,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2,
+      "holes": [
+        { "label": "foot", "x": 0, "y": 0, "z": -119, "face": "-y", "mask": "foot", "role": "socket" },
+        { "label": "foot-adjust", "x": 0, "y": 0, "z": -81, "face": "-y", "mask": "foot-adjust", "role": "socket" }
+      ]
     },
     {
       "id": "236754-ladder-depth-320mm",
       "depth": 320,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2,
+      "holes": [
+        { "label": "foot", "x": 0, "y": 0, "z": -119, "face": "-y", "mask": "foot", "role": "socket" },
+        { "label": "foot-adjust", "x": 0, "y": 0, "z": -81, "face": "-y", "mask": "foot-adjust", "role": "socket" }
+      ]
     },
     {
       "id": "236758-ladder-depth-320mm",
       "depth": 320,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2,
+      "holes": [
+        { "label": "foot", "x": 0, "y": 0, "z": -119, "face": "-y", "mask": "foot", "role": "socket" },
+        { "label": "foot-adjust", "x": 0, "y": 0, "z": -81, "face": "-y", "mask": "foot-adjust", "role": "socket" }
+      ]
     },
     {
       "id": "236762-ladder-depth-320mm",
       "depth": 320,
       "rotateYdeg": 90,
-      "front": "-z"
+      "front": "-z",
+      "wallFixings": 2,
+      "holes": [
+        { "label": "foot", "x": 0, "y": 0, "z": -119, "face": "-y", "mask": "foot", "role": "socket" },
+        { "label": "foot-adjust", "x": 0, "y": 0, "z": -81, "face": "-y", "mask": "foot-adjust", "role": "socket" }
+      ]
     }
   ],
   "_span": [
@@ -630,7 +668,61 @@
           "role": "plug"
         }
       ]
+    },
+    {
+      "id": "237023-adjustable-foot-100mm",
+      "rotateYdeg": 90,
+      "face": "+y",
+      "boltMask": "foot",
+      "holes": [
+        {
+          "label": "foot",
+          "x": 0,
+          "y": 99.8,
+          "z": -19,
+          "role": "plug"
+        },
+        {
+          "label": "foot-adjust",
+          "x": 0,
+          "y": 99.8,
+          "z": 19,
+          "mask": "foot-adjust",
+          "role": "plug",
+          "slotEnds": [
+            { "x": 0, "z": 17.5 },
+            { "x": 0, "z": 20.5 }
+          ]
+        }
+      ]
     }
+  ],
+  "_foot": [
+    "The adjustable foot 237023, and the first part in the range that is FITTED",
+    "AS A CONSEQUENCE rather than chosen. It is not in the palette; it appears",
+    "because the mounting option says the bay stands on feet. See implied.js.",
+    "",
+    "It bolts UP into the frame's underside, which is why it is in the `bolted`",
+    "family on a +y face rather than being a family of its own. The joint is",
+    "vertical, so the solver takes yaw from the product - the same case as the",
+    "carcase laid on its brackets - and rotateYdeg 90 is what puts the foot's",
+    "50mm plate along the frame's DEPTH before that happens.",
+    "",
+    "Its top plate, measured at y = 99.8: a 5.00mm full ring at x +19.00, and a",
+    "3mm SLOT at the other end - two 5.00mm half arcs at x -20.50 and -17.50,",
+    "facing apart, centred on -19.00. So the fixings are 38.00mm apart, which is",
+    "the frame's 38.00mm to the hundredth. A 90 degree turn puts them at z -19",
+    "and z +19, against the frame's z -119 and -81, so the foot lands centred at",
+    "z -100 - the front of the frame, which is where the Bedroom photograph and",
+    "the foot's own sheet both put it.",
+    "",
+    "The 9.00mm ring at x 0 is the levelling nut, and it is not a fixing. The",
+    "sheet gives it +/-10mm of travel; the configurator does not offer that as a",
+    "control, because it is set with a spirit level on a real floor.",
+    "",
+    "Height: the mesh is 99.8mm and the SKU is called 100. The 0.2 is real and",
+    "is left alone - the product sits 99.8 above the floor in the model and the",
+    "quote says 100mm foot, which are both true."
   ],
   "_clampingAngle": [
     "Office solution step 4. The clamping angle stands at the REAR end of the",

@@ -1,8 +1,12 @@
 {
   "confgr": {
-    "widthMm": 50,
+    "widthMm": 20.0,
     "heightMm": 99.8,
-    "depthMm": 20,
+    "depthMm": 50.0,
     "unitScale": "metres"
+  },
+  "confgrRoles": {
+    "md-snap.youk-foot.foot": "plug",
+    "md-snap.youk-foot-adjust.foot-adjust": "plug"
   }
 }

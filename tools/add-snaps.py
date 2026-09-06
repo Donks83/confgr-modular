@@ -754,6 +754,10 @@ def main():
             # the dimensions rather than three blocks further down.
             if part.get("front"):
                 existing["confgr"]["front"] = part["front"]
+            # How many fixings hold it to a wall. A count for the installation
+            # list, not a joint - see implied.js.
+            if part.get("wallFixings"):
+                existing["confgr"]["wallFixings"] = int(part["wallFixings"])
             existing["confgrRoles"] = {s["name"]: s["role"] for s in snaps}
             # Conditions travel the same way, and are REPLACED rather than
             # merged: the spec is the source, so a rule removed from the spec

@@ -1401,3 +1401,96 @@ Before the front rule, the reversed ladder cancelled the first of these and the
 argument was invisible. It is the same conclusion as before, now with the second
 mistake removed from underneath it: **008551 ships as a handed pair and one STEP
 file is standing in for both.** That needs Kesseböhmer.
+
+---
+
+## The adjustable foot 237023, measured — and which frames can take one
+
+The foot was in `_notYet` for four sessions, described from its sheet and never
+authored. It is authored now, and the measurements settle two things the sheet
+only implies.
+
+### The joint, both ends
+
+**The frame's underside** (`find-holes --axis y --face min`), on the 320 mm
+frames:
+
+```
+x     0.00   z  -119.00   dia  3.40 mm     full ring   fit 0.00 mm    86 verts
+x     0.00   z   -81.00   dia  3.40 mm     full ring   fit 0.00 mm    86 verts
+```
+
+M4 tapping size, **38.00 mm apart**, fitted to 0.00 mm. Present on **all four**
+320 mm frames — 236750, 236754, 236758, 236762 — at identical coordinates.
+
+**The foot's top plate**, at y = 99.8 (`--axis y --face max`):
+
+```
+x   -20.50   z     0.00   dia  5.00 mm   180 deg arc      the slot, one end
+x   -17.50   z     0.00   dia  5.00 mm   180 deg arc      the slot, other end
+x     0.00   z    -0.00   dia  9.00 mm     full ring      the levelling nut
+x    19.00   z     0.00   dia  5.00 mm     full ring      the fixed hole
+```
+
+So one Ø5 hole that locates and one 3 mm **slot** that adjusts, centred on
+−19.00 — again **38.00 mm apart**, to the hundredth. The sheet says one fixing
+is slotted; the geometry says which and by how much. The Ø9 ring between them is
+the levelling nut (±10 mm per the sheet) and is not a fixing.
+
+`rotateYdeg 90` turns the plate onto the frame's depth, putting the foot's
+fixings at z ∓19 against the frame's −119 and −81. **The foot therefore lands
+centred at z −100**, at the front of the frame — which is where
+`YouK_-_Bedroom__Home_Images_02.jpg` and `mounting instructions Foot.pdf` both
+put it, and it is now a consequence of two hole positions rather than a number
+read off an oblique photograph. The earlier estimates from the photograph and
+the sheet gave 55–70 mm and the tapped holes gave 60; all three were wrong,
+because they were measuring the plate's width rather than where its centre goes.
+
+Height: the mesh is **99.8 mm** and the SKU is called 100. The 0.2 is real and
+left alone — the product sits 99.8 above the floor in the model and the quote
+says 100 mm foot, and both are true.
+
+### The 200 mm frames cannot take a foot
+
+`236746` and `236748` have **nothing** on their undersides but corner radii:
+
+```
+236746   x  -13.15   z  -98.15   dia 1.64 mm   185 deg arc      corner radius
+236746   x   12.80   z   96.62   dia 3.66 mm    51 deg arc      corner radius
+236748   x  -13.35   z  -98.35   dia 1.95 mm   180 deg arc      corner radius
+236748   x   12.72   z   96.16   dia 4.58 mm    39 deg arc      corner radius
+```
+
+No 3.40 mm rings, on either frame. **The foot only fits a 320 mm ladder.** That
+is a product rule rather than a gap in the CAD — the 200 mm frames are the
+shallow, low ones and a 100 mm foot under one is not something Kesseböhmer draw
+anywhere — so the app refuses the configuration rather than drawing feet that
+screw into nothing.
+
+## The wall fixings: two per frame, at 55 mm from each end
+
+Measured on the +z face of all six frames. Every one gives the same pattern —
+a Ø10 ring 12.50 from the end, and a Ø6.5 fixing 55 from it:
+
+| Frame | Height | Lower fixing | Upper fixing | From the top |
+|---|---|---|---|---|
+| 236746 (d200) | 668 | 55.00 (Ø6.5 ring) | 613.00 | **55.00** |
+| 236748 (d200) | 905 | 55.00 (Ø6.5 ring) | 849.50 | **55.50** |
+| 236750 (d320) | 550 | 55.00 (Ø6.5 slot, 50.75–59.25) | 495.00 (slot) | **55.00** |
+| 236758 (d320) | 1500 | 55.00 (slot) | 1445.00 (slot) | **55.00** |
+| 236762 (d320) | 2210 | 55.00 (slot) | 2155.00 (slot) | **55.00** |
+
+Which is `mounting instructions.pdf` step 2 exactly: *mark the wall 55 mm from
+the top of the frame*. The 320 mm frames get a **slot** where the 200 mm frames
+get a round hole — 8.5 mm of vertical adjustment on the deeper, heavier frame.
+
+**Two fixings per frame, and the Ø10 rings are not two more.** They sit 12.50
+from each end, too far from the Ø6.5 to be part of a keyhole, and they take the
+cover cap step 3 pushes in. That distinction is a reading of the sheet, not
+something the geometry says on its own, which is why the count is declared
+(`wallFixings: 2`) rather than counted by the tool.
+
+Nothing in the model connects to a wall, and §5.1's decision not to have a wall
+entity still stands. What the count buys is the line on the installation list —
+"4 wall fixings, 8 × 50 plugs and a cover cap for each" — printed below the
+total and outside it, because there is no part number on file for a plug.

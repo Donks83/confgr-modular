@@ -36,14 +36,34 @@ function fromPence(pence) {
  * (a packing list, an availability check, a triangle budget) and it is right
  * even when every price is missing.
  */
-export function billOfMaterials(assembly) {
+export function billOfMaterials(assembly, implied = []) {
   const counts = new Map();
   for (const instance of assembly?.instances || []) {
     counts.set(instance.componentId, (counts.get(instance.componentId) || 0) + 1);
   }
-  return [...counts.entries()]
+  // A chosen row carries no `implied` field at all, rather than `implied:
+  // false`. The absence IS the default, every caller that only wanted
+  // componentId and qty still gets exactly that, and the two tests that pin
+  // this shape went on passing - which is the signal that adding derived parts
+  // changed nothing about the ones somebody picked.
+  const chosen = [...counts.entries()]
     .map(([componentId, qty]) => ({ componentId, qty }))
     .sort((a, b) => a.componentId.localeCompare(b.componentId));
+
+  // Parts nobody chose, from implied.js. APPENDED rather than merged into the
+  // counts, because "2 feet, because you chose feet" and "2 feet, because you
+  // clicked twice" are different lines on a quote even when they name the same
+  // part - and nothing in this range is both at once.
+  const derived = (implied || [])
+    .map((row) => ({
+      componentId: row.componentId,
+      qty: row.qty,
+      implied: true,
+      because: row.because || null,
+    }))
+    .sort((a, b) => a.componentId.localeCompare(b.componentId));
+
+  return [...chosen, ...derived];
 }
 
 /**
@@ -79,17 +99,17 @@ export function unitPrice(item, tier) {
  * not be priced, and the totals then describe only the part of the product
  * that could.
  */
-export function quote(assembly, catalogue, { tierId } = {}) {
+export function quote(assembly, catalogue, { tierId, implied = [], notes = [] } = {}) {
   const tiers = catalogue?.tiers || [];
   const tier = tiers.find((t) => t.id === tierId) || tiers[0] || null;
   const items = catalogue?.items || {};
-  const bom = billOfMaterials(assembly);
+  const bom = billOfMaterials(assembly, implied);
 
   let netPence = 0;
   let costPence = 0;
   let costComplete = true;
 
-  const lines = bom.map(({ componentId, qty }) => {
+  const lines = bom.map(({ componentId, qty, implied: derived, because }) => {
     const item = items[componentId];
     const { pence, source } = unitPrice(item, tier);
     const linePence = pence == null ? null : pence * qty;
@@ -107,6 +127,11 @@ export function quote(assembly, catalogue, { tierId } = {}) {
       lineTotal: fromPence(linePence),
       unitCost: fromPence(unitCost),
       priceSource: source,
+      // Included rather than chosen — a foot that follows from the mounting
+      // option. It is priced exactly like everything else; what differs is what
+      // the customer is told about why it is on the list.
+      implied: !!derived,
+      because: because || null,
     };
   });
 
@@ -136,6 +161,12 @@ export function quote(assembly, catalogue, { tierId } = {}) {
     lines,
     partCount: lines.reduce((n, l) => n + l.qty, 0),
     lineCount: lines.length,
+
+    // Quantities with no part number on file — plugs, screws, packers. Carried
+    // through verbatim from implied.js and NEVER folded into a line, because a
+    // line with no price is the thing this module exists to refuse. They belong
+    // on an installation list, not on an invoice.
+    notes: [...notes],
 
     // Totals describe the priced lines only, and `complete` says whether that
     // is all of them.
@@ -179,11 +210,21 @@ export function formatQuote(q) {
 
   const w = Math.max(...q.lines.map((l) => l.description.length), 11);
   out.push(`${'Art.'.padEnd(8)}${'Description'.padEnd(w)}  Qty      Each     Total`);
+  let saidIncluded = false;
   for (const l of q.lines) {
+    // Included lines go under a heading of their own rather than a marker on
+    // each row. A customer reading a quote should be able to see at a glance
+    // which part of it they chose and which part follows from it.
+    if (l.implied && !saidIncluded) {
+      saidIncluded = true;
+      out.push('');
+      out.push('Included — not chosen:');
+    }
     out.push(
       `${(l.article ?? '??').padEnd(8)}${l.description.padEnd(w)}  `
       + `${String(l.qty).padStart(3)}  ${money(l.unitPrice).padStart(8)}  ${money(l.lineTotal).padStart(8)}`,
     );
+    if (l.implied && l.because) out.push(`${' '.repeat(8)}${l.because}`);
   }
 
   out.push('');
@@ -200,6 +241,13 @@ export function formatQuote(q) {
     out.push('');
     out.push(`${q.unpriced.length} line(s) NOT PRICED — this quote is incomplete:`);
     for (const u of q.unpriced) out.push(`  ${u.qty} x ${u.description} (${u.why})`);
+  }
+
+  // Below the total and outside it, which is the whole point of a note.
+  if (q.notes?.length) {
+    out.push('');
+    out.push('To install — no part number on file, not in the total:');
+    for (const n of q.notes) out.push(`  ${n.text}`);
   }
   return out.join('\n');
 }

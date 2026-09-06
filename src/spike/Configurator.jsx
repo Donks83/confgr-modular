@@ -31,6 +31,9 @@ import { quote, formatQuote } from '../engine/quote.js';
 import {
   MOUNTING, FOOT, arReadiness, isGrounded, groundClearanceMm,
 } from '../engine/ar.js';
+import {
+  impliedParts, impliedBom, withImplied, impliedComponentIds, isImplied,
+} from '../engine/implied.js';
 
 let counter = 0;
 const nextId = () => { counter += 1; return `i${counter}`; };
@@ -77,7 +80,16 @@ export default function Configurator() {
   // the answer is unambiguous, which is most of the time.
   const [pendingChoice, setPendingChoice] = useState(null);
 
-  const catalogue = useMemo(() => [...components.keys()], [components]);
+  // Everything loaded, MINUS the parts nobody chooses. The foot is loaded like
+  // any other component - it has to be, or there would be nothing to draw - but
+  // it must never appear in the palette or on a marker, because it arrives as a
+  // consequence of the mounting option rather than as a decision. Filtered on
+  // the engine's own list rather than on a name; see implied.js.
+  const implicit = useMemo(() => new Set(impliedComponentIds()), []);
+  const catalogue = useMemo(
+    () => [...components.keys()].filter((id) => !implicit.has(id)),
+    [components, implicit],
+  );
 
   // ---- the one query everything reads -------------------------------------
   const { transforms, matrix, resolveError } = useMemo(() => {
@@ -91,6 +103,39 @@ export default function Configurator() {
       return { transforms: new Map(), matrix: { placements: [], rejected: [] }, resolveError: err.message };
     }
   }, [assembly, components, catalogue]);
+
+  // ---- what the configuration IMPLIES -------------------------------------
+  //
+  // Derived, never stored: nothing below is written into `assembly`, so a
+  // person cannot delete a foot while the bay is standing on feet, and asking
+  // again after any change gives the right answer because there was never a
+  // second copy of it. The same reason connected parts hold `position: null`.
+  //
+  // Kept OUT of `matrix` on purpose. The implied parts fill real sockets, and
+  // resolving them into the attach matrix would put a marker on the foot's
+  // spare fixing and offer a second foot underneath the first.
+  const implied = useMemo(
+    () => impliedParts(assembly, components, { mounting, footHeightMm }),
+    [assembly, components, mounting, footHeightMm],
+  );
+
+  // The assembly AS DRAWN — the real one plus whatever it implies, resolved
+  // through the same solver and the same joints. Falls back to the real one if
+  // an implied joint cannot be solved, so a bad rule cannot black out the view.
+  const scene = useMemo(() => {
+    if (!components.size || !assembly.instances.length) {
+      return { instances: assembly.instances, transforms };
+    }
+    try {
+      const full = withImplied(assembly, components, { mounting, footHeightMm });
+      return {
+        instances: full.instances,
+        transforms: resolveTransforms(full, components).transforms,
+      };
+    } catch {
+      return { instances: assembly.instances, transforms };
+    }
+  }, [assembly, components, transforms, mounting, footHeightMm]);
 
   // Where the part being dragged could be re-hung. Computed only during a drag,
   // and it is a DIFFERENT question from the add matrix: the part already exists,
@@ -531,8 +576,17 @@ export default function Configurator() {
   }, []);
 
   const priced = useMemo(
-    () => (priceBook ? quote(assembly, priceBook, { tierId }) : null),
-    [assembly, priceBook, tierId],
+    () => (priceBook
+      ? quote(assembly, priceBook, {
+        tierId,
+        // The parts the mounting option implies, priced like any other, and the
+        // fixings and packers that have no part number and stay out of the
+        // total. A quote that omits the feet prices a bay that cannot stand up.
+        implied: impliedBom(assembly, components, { mounting, footHeightMm }),
+        notes: implied.notes,
+      })
+      : null),
+    [assembly, components, priceBook, tierId, mounting, footHeightMm, implied],
   );
 
   const ar = useMemo(
@@ -617,25 +671,36 @@ export default function Configurator() {
     const ctx = three.current;
     if (!ctx || !components.size) return;
 
-    const wanted = new Set(assembly.instances.map((i) => i.instanceId));
+    // The scene is the assembly PLUS what it implies — the feet under the
+    // ladders. Everything else in this file works from `assembly`; only the
+    // drawing works from here, because an implied part is real geometry that
+    // is not a real instance.
+    const wanted = new Set(scene.instances.map((i) => i.instanceId));
     for (const [id, group] of ctx.groups) {
       if (!wanted.has(id)) { ctx.productRoot.remove(group); ctx.groups.delete(id); }
     }
 
-    for (const instance of assembly.instances) {
+    for (const instance of scene.instances) {
       const component = components.get(instance.componentId);
       if (!component) continue;
+
+      // An implied part is not selectable and not removable. Leaving its
+      // instanceId off the group is what does it: the picker walks up looking
+      // for one and finds nothing, so a click passes through to the background
+      // exactly as it would over empty space. Better than a special case in the
+      // picker, which would be a second place to remember this.
+      const derived = isImplied(instance.instanceId);
 
       let group = ctx.groups.get(instance.instanceId);
       if (!group) {
         group = new THREE.Group();
         group.add(component.template.clone(true));
-        group.userData.instanceId = instance.instanceId;
+        if (!derived) group.userData.instanceId = instance.instanceId;
         ctx.productRoot.add(group);
         ctx.groups.set(instance.instanceId, group);
       }
 
-      const t = transforms.get(instance.instanceId);
+      const t = scene.transforms.get(instance.instanceId);
       if (t) { group.position.fromArray(t.translation); group.quaternion.fromArray(t.rotation); }
 
       // The finish for THIS instance. Per-part options are the point: eight
@@ -681,7 +746,11 @@ export default function Configurator() {
     // It is re-assigned on every rebuild, which is what keeps it honest.
     window.__cfgLayout = () => {
       ctx.productRoot.updateMatrixWorld(true);
-      const rows = assembly.instances.map((instance) => {
+      // Implied parts are in here too, prefixed so they read as what they are.
+      // They are the hardest thing in the scene to check by eye - a foot is
+      // 100mm of grey under a 1500mm ladder - and the whole reason for
+      // measuring their holes was so their position could be asserted.
+      const rows = scene.instances.map((instance) => {
         const group = ctx.groups.get(instance.instanceId);
         if (!group) return `${instance.instanceId} ${instance.componentId} NOT IN SCENE`;
         const p = new THREE.Vector3();
@@ -753,7 +822,7 @@ export default function Configurator() {
         ctx.controls.update();
       }
     }
-  }, [assembly, components, transforms, selectedId, showGuides]);
+  }, [assembly, scene, components, transforms, selectedId, showGuides]);
 
   // ------------------------------------------------------- rebuild markers
   useEffect(() => {
@@ -1389,6 +1458,25 @@ export default function Configurator() {
             skirting board.
           </p>
         )}
+        {/* What the choice actually ADDED. Matt's question was whether the foot
+            is an option that can be added or not, and the answer only becomes
+            true if the option produces something you can see and something you
+            can price. Saying how many is the cheapest way to show it did. */}
+        {implied.connections.length > 0 && (
+          <p className="cfg-note cfg-dim">
+            Adds {implied.connections.length} part
+            {implied.connections.length === 1 ? '' : 's'} to the quote.
+          </p>
+        )}
+        {/* A refusal is not a warning. The 200 mm frames have no foot fixing, so
+            this configuration cannot be built at all - said here, next to the
+            control that caused it, rather than discovered at the total. */}
+        {implied.refusals.map((r) => (
+          <p key={r.code} className="cfg-invalid">{r.message}</p>
+        ))}
+        {implied.notes.map((n) => (
+          <p key={n.code} className="cfg-note cfg-dim">{n.text}</p>
+        ))}
         {ar.parts > 0 && (
           <p className="cfg-note cfg-dim">
             {ar.triangles.toLocaleString()} triangles across {ar.parts} part

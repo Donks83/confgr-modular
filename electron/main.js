@@ -184,7 +184,14 @@ function createWindow() {
                             + (b.disabled ? '  [DISABLED: ' + (b.title || 'no reason given') + ']' : ''))
                          .join('\\n')`
                     : kind === 'dump'
-                    ? `[...document.querySelectorAll('.cfg-status, .cfg-panel .cfg-note')]
+                    // .cfg-invalid is in here, and was not. The harness could
+                    // read every note the panel prints and none of its
+                    // REFUSALS - the AR warnings, the missing required parts,
+                    // and now "this ladder has no fixing for a foot". A probe
+                    // that cannot see the app saying no can only ever confirm
+                    // that it said yes.
+                    ? `[...document.querySelectorAll(
+                           '.cfg-status, .cfg-panel .cfg-note, .cfg-panel .cfg-invalid')]
                          .map((n) => n.textContent.replace(/\\s+/g, ' ').trim())
                          .filter(Boolean).join(' | ')`
                     // Select by data-component, not by the button's text. The

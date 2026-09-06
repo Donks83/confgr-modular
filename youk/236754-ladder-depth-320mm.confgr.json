@@ -4,7 +4,8 @@
     "heightMm": 905.0,
     "depthMm": 320.0,
     "unitScale": "metres",
-    "front": "-z"
+    "front": "-z",
+    "wallFixings": 2
   },
   "confgrRoles": {
     "md-snap.youk-d320.rung-1-right": "socket",
@@ -12,6 +13,8 @@
     "md-snap.youk-d320.rung-2-right": "socket",
     "md-snap.youk-d320.rung-2-left": "socket",
     "md-snap.youk-d320.rung-3-right": "socket",
-    "md-snap.youk-d320.rung-3-left": "socket"
+    "md-snap.youk-d320.rung-3-left": "socket",
+    "md-snap.youk-foot.foot": "socket",
+    "md-snap.youk-foot-adjust.foot-adjust": "socket"
   }
 }

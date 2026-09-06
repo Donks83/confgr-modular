@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 8 modules, no UI dependencies, 281 tests across the project.
+`src/engine/` — 9 modules, no UI dependencies, 302 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -228,6 +228,11 @@ using it expects — but there is still no export, no runtime and no AR.
   right pair joining the wrong *way round*. Every bay put its second ladder in
   back to front until this existed (§5.14). Optional, so a symmetric part is
   unaffected.
+- **Implied parts** (`implied.js`) — parts fitted as a consequence rather than
+  chosen: the foot the mounting option adds, the wall fixings every frame needs,
+  the packers the sheets bolt through. Derived on every read, never stored, so
+  they cannot be deleted or fall out of step; placed through their own measured
+  joints by the same solver as everything else (§5.15).
 - **Derived transforms** (`assembly.js`). Connected parts store `position: null`;
   every transform is recomputed by walking the connection graph. Move the anchor
   and everything follows. The graph is a **tree** — first path wins through a
@@ -284,7 +289,7 @@ that generates parts no supplier will ever send.
 
 **Result on the YouK range:** 45/45 convert, none over 40,000 triangles (down
 from a 138,000-triangle worst case), **37 load as components with no blocker**,
-and 40 generated timber parts make **77 components in the palette.**
+and 40 generated timber parts make **77 components in the palette**, plus the adjustable foot, which is loaded but never offered (§5.15).
 
 The spec now has six families: `frames`, `span`, `hang`, `carcase`, `bolted` and
 `wall` — the last for parts that join nothing at all. What is authored per part
@@ -1638,6 +1643,88 @@ second mistake. That is what the rule bought — not a correct office desk, but 
 office desk whose remaining error is visible.
 
 **281 tests** (16 new in `tests/partFront.test.js`), 77 components.
+
+---
+
+### 5.15 Parts nobody chooses — the foot, and the mechanism it needed
+
+Matt: *"I'm confused — is the foot an option that can be added or not?"* The
+answer he picked was **stay an option, but make it real**, and the interesting
+part is what "real" turned out to require. An option that changes a caption is
+not an option; an option that produces geometry you can see and a line you can
+price is. The foot was the first of those, and it is not the only one:
+
+* the **adjustable foot**, one per ladder, when the bay stands on feet
+* the **wall fixings**, two per ladder, always — every YouK frame is wall-fixed
+* the **1.5 mm packers**, one at every joint the instruction sheets bolt through
+
+A configurator showing none of these prices a job that cannot be installed. One
+that makes the customer tick "feet" *and then* "4 × foot" is asking them to do
+arithmetic the model already knows.
+
+**The rule the whole file is built on** is the project's central idea applied one
+level up: **an implied part is derived, never stored.** Nothing is written into
+`assembly.instances`. Ask again after any change and the answer is right, because
+there was never a second copy to fall out of step — and a person cannot delete a
+foot while the bay is standing on feet, which would otherwise be a bug waiting to
+be filed. `src/engine/implied.js`, and the probe reports the parts with an
+`implied:` prefix so a layout dump says which is which.
+
+**The foot is placed by its own measured joint, not by an offset.** This was the
+choice worth making. The easy version types "one foot per ladder at z −100" into
+the module; the honest version authors the joint and lets the solver do it:
+
+| | |
+|---|---|
+| **The frame's underside** | Two **Ø3.40 mm full rings** at x 0.00, z **−119.00** and **−81.00**. Fitted to 0.00 mm. Present on all four 320 mm frames. |
+| **The foot's top plate**, at y 99.8 | A **Ø5.00 full ring** at x **+19.00**, and a 3 mm **slot** at the other end — two Ø5.00 half arcs at −20.50 and −17.50, facing apart, centred on **−19.00**. The Ø9.00 ring between them is the levelling nut, not a fixing. |
+| **Therefore** | **38.00 mm apart on both parts**, to the hundredth. `rotateYdeg 90` turns the foot's plate onto the frame's depth, putting its fixings at z ∓19, and the foot lands centred at **z −100** — the front of the frame, where the Bedroom photograph and the foot's own sheet both put it. |
+
+Two masks rather than one, because a locating bolt and an adjusting bolt are
+different fittings and separate masks stop the foot being fitted 100 mm out by
+matching the wrong pair. **Either connection puts it in the same place, which is
+the check** — and a test asserts exactly that.
+
+**The 200 mm frames have no foot fixing.** Their undersides carry corner radii
+and nothing else, both of them. That is a product rule, not a gap in the CAD: the
+foot only fits a 320 mm ladder, so "on feet" with a 200 mm bay is a configuration
+that cannot be built, and the app now refuses it in a sentence next to the
+control that caused it rather than drawing feet that screw into nothing.
+
+**What has a part number and what does not.** The foot does — 237023 — so it is a
+quote line, priced exactly like everything else and reported unpriced until
+Kesseböhmer's list arrives. The plugs, screws and packers do not, so they are
+**notes**: a quantity and a sentence, printed below the total and outside it.
+They can never become lines, because a line with no price is the one thing
+`quote.js` exists to refuse. The wall-fixing count is declared (`wallFixings: 2`)
+rather than counted off the geometry, because the same faces carry 10 mm rings
+that are *not* fixings and telling them apart is a reading of the sheet.
+
+The packers are counted off the joints instead: one where a rung carries two
+parts bolted together, one at every `carries` joint — and the second population
+is a packer that is already **being drawn**, since `carries_socket` puts the
+1.5 mm into the socket height. Nothing invented.
+
+```
+Included — not chosen:
+237023  YouK adjustable foot 100 mm                  2         —         —
+        One adjustable foot per ladder, at the front — mounting instructions Foot.pdf.
+
+To install — no part number on file, not in the total:
+  4 wall fixings — Kesseböhmer's sheet specifies 8 × 50 plugs and a cover cap for each.
+```
+
+**And one thing the probe could not see until now.** `dump` collected
+`.cfg-status` and `.cfg-note` and *not* `.cfg-invalid` — so the harness could
+read every note the panel prints and none of its **refusals**: the AR warnings,
+the missing required parts, and the new "this ladder has no fixing for a foot".
+Caught because the refusal scenario passed while saying nothing. A probe that
+cannot see the app say no can only ever confirm that it said yes; the same shape
+of blindness as §5.13's fourteen agreeing scenarios, one layer up.
+
+**302 tests** (21 new in `tests/implied.test.js`), **78 components** — the foot
+is loaded like any other and filtered out of the palette on the engine's own
+list, because it is never chosen.
 
 ---
 

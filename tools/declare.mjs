@@ -184,6 +184,13 @@ function measureDeclaration(report, existing = null) {
     // front still loads, still renders and still connects — it just goes back
     // to being placeable backwards, which is the bug this was written to stop.
     if (existing.confgr?.front) declaration.confgr.front = existing.confgr.front;
+
+    // And the wall-fixing count, which is a reading of an instruction sheet
+    // rather than anything the geometry says on its own — so it cannot be
+    // recovered by measuring again, only by looking the sheet up a second time.
+    if (existing.confgr?.wallFixings) {
+      declaration.confgr.wallFixings = existing.confgr.wallFixings;
+    }
   }
 
   return declaration;

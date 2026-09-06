@@ -938,6 +938,17 @@
       ],
       "costEach": null,
       "priceEach": {}
+    },
+    "237023-adjustable-foot-100mm": {
+      "article": "237023",
+      "description": "YouK adjustable foot 100 mm",
+      "sizeMm": [
+        50,
+        99.8,
+        20
+      ],
+      "costEach": null,
+      "priceEach": {}
     }
   }
 }

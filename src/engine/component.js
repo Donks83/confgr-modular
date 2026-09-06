@@ -410,6 +410,25 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
   }
   const front = frontDeclared ? [...FRONT_VECTORS[frontDeclared]] : null;
 
+  // ---- How many fixings hold it to the wall ------------------------------
+  //
+  // A count, not a joint: nothing in the model connects to a wall, and §5.1's
+  // decision not to have a wall entity still stands. What this buys is the line
+  // on the installation list — every YouK frame carries exactly two 6.5 mm
+  // fixings, 55 mm from each end, measured on all six frames at both depths —
+  // and the plugs and caps that go with them.
+  //
+  // Declared rather than counted off the geometry because a hole is not
+  // self-describing: the same faces carry 10 mm rings that are not fixings, and
+  // telling them apart is a reading of the instruction sheet, not a measurement.
+  const wallFixings = Number(declared?.wallFixings) || 0;
+  if (wallFixings < 0 || !Number.isInteger(wallFixings)) {
+    throw new ComponentError(
+      `Declared wallFixings "${declared?.wallFixings}" is not a whole number of fixings.`,
+      { code: 'WALL_FIXINGS_INVALID', detail: { wallFixings: declared?.wallFixings } },
+    );
+  }
+
   const mounting = declared?.mounting ?? null;
   if (mounting !== null && mounting !== 'wall') {
     throw new ComponentError(
@@ -476,6 +495,9 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     // A unit vector in component-local space, or null for a part with no front.
     // See attachMatrix for the rule this feeds.
     front,
+    // How many fixings hold this part to a wall. 0 for anything that does not
+    // touch one. See implied.js.
+    wallFixings,
     snaps,
     grids,
     options,

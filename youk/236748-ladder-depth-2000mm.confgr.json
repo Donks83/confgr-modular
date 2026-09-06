@@ -4,7 +4,8 @@
     "heightMm": 904.5,
     "depthMm": 200.0,
     "unitScale": "metres",
-    "front": "-z"
+    "front": "-z",
+    "wallFixings": 2
   },
   "confgrRoles": {
     "md-snap.youk-d200.rung-1-right": "socket",

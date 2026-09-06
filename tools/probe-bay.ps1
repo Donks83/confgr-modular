@@ -18,7 +18,8 @@
 param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
-               'officeclamptilt', 'officefeet', 'condition', 'timber')]
+               'officeclamptilt', 'officefeet', 'feet', 'feetrefused',
+               'condition', 'timber')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -273,6 +274,33 @@ $clicks = @{
                'part:008551-shelf-supports,marker:1,choose:0,' +
                'part:pws-timber-desktop-900mm-d600mm,marker:0,choose:0,ground,' +
                'mount:feet,ground,layout'
+  # The FEET THEMSELVES, which nobody clicks. A plain bay, then the mounting
+  # option, and the feet appear under both ladders because the frames carry the
+  # fixings for them - two 3.40mm holes at z -119 and -81 on the underside,
+  # measured, and 38.00mm apart to the hundredth on both the frame and the foot's
+  # own top plate.
+  #
+  # Numbers to watch. Each foot sits at its ladder's x, at y -99.8 (the mesh is
+  # 99.8 and the SKU is called 100 - the 0.2 is real and left alone), and at
+  # z -100.0, which is the front of the frame. The instance ids start with
+  # `implied:` because they are DERIVED - nothing was written into the assembly,
+  # so a person cannot delete a foot while the bay is standing on feet.
+  #
+  # `quote` is the second half of the answer to Matt's question. An option that
+  # produces geometry and no line is still not real.
+  feet = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+         'layout,mount:feet,ground,layout,quote'
+  # The same option on a 200mm bay, which CANNOT take it. The 200mm frames'
+  # undersides carry corner radii and no fixings at all - both of them, measured
+  # - so the foot has nothing to screw into. Nothing should be drawn and the
+  # panel should say so.
+  #
+  # NEEDS ITS OWN ANCHOR, because the depth is the whole point:
+  #   npm run youk:bay -- -Scenario feetrefused -Demo 236748-ladder-depth-2000mm
+  # Run without that and it anchors a 320 frame, quietly draws a foot, and reads
+  # as a pass. Same trap as the `condition` scenario below.
+  feetrefused = 'part:pws-timber-shelf-900mm-for-ladder-depth-200mm,marker:0,' +
+                'part:236748,marker:0,choose:0,mount:feet,layout,dump'
   # The `condition` field's first use, on a 1500 frame. The office PLATE may only
   # be fitted at rung 3 and above, so a bare 1500 ladder should offer it FOUR
   # markers (rungs 3 and 4, two faces each) where a shelf gets twelve. If it
