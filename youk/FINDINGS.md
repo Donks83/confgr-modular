@@ -1559,3 +1559,170 @@ And a render confirms it: the block is visibly buried in the board's front edge.
 file we hold is standing in for both.** That still needs Kesseböhmer rather than
 more measuring — but it is no longer an inference from a drawing, it is a
 configuration that cannot be built and can be shown not to be.
+
+---
+
+# The last five STEP files — 6 September 2026
+
+Forty of Kesseböhmer's forty-five STEP files have been converted and authored
+since session 2. These are the other five, converted today for the first time:
+
+```
+008533-clothes-rail-extension-1200mm     643.5 x  75.0 x  55.0 mm   4060 tris
+008534-clothes-rail-900mm                943.5 x  75.0 x  55.0 mm   3378 tris
+008535-clothes-rail-extension-1200mm    1210.5 x  30.0 x  15.0 mm   1744 tris
+008549-divider-for-newspaper-towel-rack   201.0 x  21.5 x  60.0 mm   2616 tris
+008552-top-panel-bracket                   60.0 x  18.0 x  20.0 mm    800 tris
+```
+
+**None of them is authored, and the reason is not that the work is hard.** Three
+of the five have something wrong with the supplier data, and the other two need
+an answer only Kesseböhmer can give. Every number below is measured from the
+converted geometry; nothing here is read off a name.
+
+## The clothes rail family, measured end to end
+
+`Coat rail` (MA 406208, 4 pages) describes two products, and the CAD has one file
+per article regardless:
+
+- **One bay.** One tube, **a bracket at each end** — 008530 / 31 / 32.
+- **Two bays.** A second tube, **one bracket**, and a third, double-sided
+  **middle bracket** the two tubes share at the centre ladder (step 1b: 2× tube,
+  1× left bracket, 1× right bracket, 1× middle bracket, 8× M4×12). Step 2b then
+  hangs the whole assembly with one screw and nut per ladder, three in all.
+
+So the middle bracket is a **fastener that arrives in the extension box**, not an
+article of its own. That is the answer to the "accessory-to-accessory joint"
+question recorded in session 5 as open: **two rails never join to each other.**
+
+Measured lengths, and the pattern is exact:
+
+| Article | Overall length | Section | Brackets |
+|---|---|---|---|
+| 008530 clothes rail 600 | **649.5** | 75 × 55 | both ends (symmetric) |
+| 008531 clothes rail 900 | **949.5** | 75 × 55 | both ends (symmetric) |
+| 008532 clothes rail 1200 | **1249.5** | 75 × 55 | both ends (symmetric) |
+| 008533 extension "1200" | **643.5** | 75 × 55 | **one end** (asymmetric) |
+| 008534 "clothes rail 900" | **943.5** | 75 × 55 | **one end** (asymmetric) |
+| 008535 extension 1200 | **1210.5** | **30 × 15** | **none** |
+
+A base rail is nominal + 49.5. An extension is nominal + 43.5 — **exactly 6.0 mm
+shorter**, in both cases where a comparison is possible, and the 6.0 mm is at the
+plain end, because the bracket end's band pattern is identical to a base rail's.
+The 6.0 mm is what the shared middle bracket occupies.
+
+Asymmetry is how a one-bracket part is recognised without opening it. 008531's
+x bands mirror about zero; 008534's do not — seven bands over 46.5 mm at one end
+and two bands over 8.8 mm at the other.
+
+### Two more errors in Kesseböhmer's own descriptions
+
+§"The commercial layer, and two supplier description errors" already records two.
+These are the third and fourth, and they are the same *kind* of error — the
+filename disagrees with the part:
+
+- **008533** is named `YouK clothes rail extension 1200 mm` in English and
+  `Garderobenstange Verlängerung 600 mm` in German. **It is 643.5 mm long**, so
+  it is the 600 extension. **The German is right and the English is wrong.**
+- **008534** is named `YouK clothes rail 900 mm` in English and
+  `Garderobenstange 900 mm` in German. **Both are wrong**: it has a bracket at
+  one end only and it is 6.0 mm shorter than 008531, which is the definition of
+  an extension in this family. It is the 900 extension, and neither language
+  says so. Ordered from the description alone, it will not do what a buyer
+  expects — the same commercial risk as the two already recorded.
+
+### And 008535's model is incomplete
+
+008535 is 1210.5 × **30 × 15** and its highest point is y = 30. Every bracket in
+this family reaches y = 75. It is the bare tube, with **no bracket in the CAD at
+all**, while the sheet's parts list for the extension box clearly shows one.
+
+This is the first part in the range whose model is *incomplete* rather than
+mislabelled, and it is the reason 008533 and 008534 could be authored and 008535
+could not — there is nothing there to author a joint against.
+
+### Why 008533 and 008534 are still not authored either
+
+They could be given `span` plugs today, and they would be **6.0 mm wrong**. The
+`span` family derives its plugs from the part's own half-width, which assumes the
+part is symmetric about its joints. An extension is not: one end wraps a bracket
+and the other stops short for a bracket that is not in the file.
+
+Authoring it means putting the plain end's plug 6.0 mm *outside* the part's own
+extent — which is a number invented to make the answer come out, not a number
+measured from anything. **The right fix is the middle bracket's geometry**, which
+Kesseböhmer have not sent, because it has no article number.
+
+## Top panel bracket 008552, measured — and a reading the sheet does not settle
+
+Session 5 read the sheet (`Cover shelf holder`, MA 406212, 2 pages) and recorded
+"the ledge is 30 mm across and stands 15 mm proud". The geometry now confirms
+both numbers and shows what the part actually is:
+
+**A cranked strap.** 60.0 long × 18.0 tall × 20.0 across, pressed from 3 mm
+sheet, in its own converted space:
+
+```
+low leg    y  0 .. 3     x -30 .. -21    material, then an obround hole to x -4
+crank      x -4 ..  1    y  0 .. 18      one radius, rising the full height
+high leg   y 15 .. 18    x   1 ..  30    material to x 10, obround hole, x 21 on
+```
+
+- The **crank is 15.0 mm** between the two legs' faces — the sheet's `15`.
+- Each **leg is 29 mm long**, and a ladder stile is **30.0 mm** across (measured
+  on 236758: stiles at x −160..−145 and +145..+160 before the 90° turn, 30 mm in
+  the thickness direction) — the sheet's `30`. The leg caps the stile.
+- The strap is **20 mm** across, against the stile's 15 mm depth, so it
+  overhangs 2.5 mm each side.
+- **One obround hole per leg**, not one and two as recorded in session 5. The
+  low leg's runs x −21..−4 and the high leg's x 10..21.
+
+**What is still not settled, and it is a real ambiguity rather than a gap.** Two
+readings of the same sheet have now produced opposite answers to the same
+question:
+
+1. The **low leg caps the stile** and the high leg is the ledge, so the panel's
+   underside sits **15 mm above** the stile top and its edge is carried clear.
+2. The **high leg caps the stile** and the low leg hooks **down over** the
+   panel, holding a panel that sits directly on the ladders — which is what
+   "holder" suggests and what the page-1 detail can equally be read as.
+
+Both fit the geometry exactly, and they put the panel 15 mm and 0 mm above the
+ladder respectively — a difference nobody would miss in a render. The dimension
+`15` is annotated to the crank in either reading, so it does not decide it.
+
+**So this is a question for Kesseböhmer, not for more measuring**, and it is a
+sharper question than the one it replaces: *does the top panel rest on the
+bracket, or does the bracket hold the panel down?* Until it is answered the part
+stays out, along with the stile-top socket on `frames` it would need — which is
+otherwise a small change, and the only thing in the range that meets a ladder
+anywhere but a rung.
+
+## 008549 divider — the accessory-to-accessory joint, and one hard number
+
+`Fachtrenner`, and the only part in the range that attaches to another
+*accessory* rather than to a frame or a board. Both pieces carry article 008549;
+`Suspended elements` page 1 draws them as one product and never shows the joint,
+which is consistent — a set does not need assembling twice.
+
+Measured:
+
+```
+008549 rack     195.0 x 240.0 x 100.4    hangs from a rung, top slot at y 240
+008549 divider  201.0 x  21.5 x  60.0    symmetric in x and in z
+```
+
+**The divider is 6.0 mm WIDER than the rack it divides** — 201.0 against 195.0.
+That is not a tolerance, it is the joint: the divider goes *over* the rack's two
+side walls with 3.0 mm each side, not inside it. Anything that fitted inside
+would have to be narrower, and it is not.
+
+What is not determined is **where up the rack it sits.** The divider is only
+21.5 mm tall against the rack's 240, so it clips at one height out of many, and
+nothing in the CAD pairs unambiguously with anything in the rack: the divider's
+six 7.5 mm bands at x ±10..17.5, ±40..47.5 and ±67.5..75 do not line up with any
+band the rack has. The sheet does not draw it either.
+
+So this one is closer than the other four but still not authorable, and the
+question it needs is narrow enough to ask in a sentence: **at what height on the
+rack does the divider clip?** The 3.0 mm each side is already known.

@@ -336,6 +336,24 @@ foot, loaded but never offered, because nobody chooses a foot (§5.15).
 That is the whole published range: 40 converted from Kesseböhmer's STEP files
 and 40 timber boards generated from our own measurements.
 
+**Kesseböhmer sent 45 STEP files, not 40.** The other five are converted and
+measured (session 6) and **none of them is authored — three because the supplier
+data is faulty and two because they need an answer only Kesseböhmer can give.**
+Full working in `youk/FINDINGS.md`; in one line each:
+
+| Article | Why it is not in the range |
+|---|---|
+| 008533 clothes rail extension | **English name says 1200 mm; it is 643.5 mm long**, so it is the 600. The German name is right. Third supplier description error. |
+| 008534 "clothes rail 900 mm" | **Named as a rail in both languages; it is the 900 extension** — one bracket, 6.0 mm shorter than 008531. Fourth description error. |
+| 008535 clothes rail extension | **The CAD has no bracket in it.** 1210.5 × 30 × 15, highest point y = 30, where every bracket in the family reaches 75. The first *incomplete* model in the range rather than a mislabelled one. |
+| 008552 top panel bracket | Measured exactly — a 3 mm cranked strap, 29 mm legs, **15.0 mm crank**, capping a **30.0 mm** stile. But the sheet does not settle whether the panel rests **on** the bracket or the bracket hooks **over** the panel, and the two readings differ by 15 mm of height. A question, not a measurement. |
+| 008549 divider | **6.0 mm wider than the rack it divides**, so it clips over the outside, 3.0 mm each side. What height it clips at is in neither the CAD nor the sheet. |
+
+Authoring 008533 and 008534 would need the middle bracket the extension box
+contains — which has no article number, so Kesseböhmer have not sent it — and
+without it the plain end's plug would be a number invented to make the answer
+come out at 6.0 mm rather than measured from anything.
+
 The spec now has six families: `frames`, `span`, `hang`, `carcase`, `bolted` and
 `wall` — the last for parts that join nothing at all. What is authored per part
 stays tiny, which is the point: an id, a depth, and one decision.
@@ -459,7 +477,8 @@ This is the honest half of the document.
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
 | **Required-part rules** | **Built** (§5.17). `snap.required` is finally set by something - the carcase family, on both of its plugs, because a board across two brackets holds itself up in no other way. Satisfied by GEOMETRY rather than by the connection graph, since the graph is a tree and a cabinet across two brackets is not. It found a real 30 mm gap in the `carcase` scenario the moment it went in. |
 | **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
-| **A part on the TOP of a ladder** | **Nothing.** The 008552 top-panel bracket drops over the top of a ladder stile and carries a board across both ladders — the third way a board attaches, and the only part in the range that meets the ladder anywhere but a rung. `frames` authors sockets at rungs only. It is measured (§5.10) and not authored. |
+| **A part on the TOP of a ladder** | **Nothing, and now blocked on a question rather than on work.** The 008552 top-panel bracket is measured exactly — a 3 mm cranked strap, 29 mm legs, a **15.0 mm** crank, capping a **30.0 mm** stile — and the socket it needs on `frames` is a small change. What is not settled is which way up it goes: the sheet reads equally as "the panel rests on the bracket, 15 mm above the stile top" and "the bracket hooks down over a panel sitting on the ladders". 15 mm of height, and nobody would miss it in a render. See `youk/FINDINGS.md`, *The last five STEP files*. |
+| **An accessory on an accessory** | **Nothing.** The 008549 divider clips over the 008549 rack — **6.0 mm wider than it**, so 3.0 mm each side, which is the joint. At what height it clips is in neither the CAD nor the sheet. The only part in the range that attaches to something other than a frame or a board. |
 | **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
@@ -2339,9 +2358,14 @@ Not the same as the phase order, and worth stating separately:
    turns into a file with nothing running.
 7. ~~Collision refusal~~ — **done** (§5.16), and it arrived before a customer
    could build something that cannot exist rather than after.
-8. **Their price list**, still. It is item 2 as well, and it stays on the list
-   twice because it is the only thing here that no amount of work on our side can
-   unblock.
+8. **Five questions for Kesseböhmer, in one email.** Their price list (item 2
+   again, and still the only commercial blocker); the **clothes rail's middle
+   bracket**, which has no article number and is all that stands between us and
+   two-bay clothes rails; **which way up 008552 goes**; **what height the 008549
+   divider clips at**; and **whether the office arm is handed**. Every one is a
+   sentence with a measurement behind it, and together they are the difference
+   between 80 parts and 85. Nothing on our side can unblock any of them, which
+   is exactly why they should be asked now rather than when we are ready.
 9. **Decide static bundle vs hosted AR route** (§4.1). A decision, not work, and
    it changes what the exporter is. **This is now the next thing on the critical
    path**, because everything below it is shaped by the answer and the GLB
@@ -2413,6 +2437,20 @@ started*; §6 is trued up against the code as of today rather than as of the pla
   count of the same thing — which is the general lesson of this session, and
   the reason to keep building the second measurement even when the first one
   looks fine.
+
+**And the last five STEP files, converted for the first time and none of them
+authored.** That is a result rather than a shortfall: three have faulty supplier
+data (two more wrong descriptions, and 008535's CAD is missing its bracket
+entirely) and two need an answer only Kesseböhmer can give. Each is now a
+one-sentence question with a measurement behind it instead of an item on a list:
+*send the clothes rail's middle bracket*; *which way up does 008552 go*; *what
+height does the divider clip at*. §3.2 and `youk/FINDINGS.md` have the working.
+
+Worth noticing what nearly happened. Each of the three could have been authored
+today — a 6.0 mm plug offset here, a coin-flip on which leg caps the stile there
+— and every one would have looked right in a screenshot and been wrong in a
+customer's room. **The rule that stops that is the same rule that caught my own
+two invented numbers below**, which is why it is worth the friction.
 
 **Two of the session's own numbers were wrong before they were checked**, both
 mine, both caught by the project's own rule that nothing gets written down
@@ -2744,13 +2782,22 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
 6. **The static-export vs hosted-AR tension** (§4.1) is undecided — and it is now
    the top item on the critical path (§6), because the GLB export exists and
    every step after it depends on the answer.
-7. **Three of Kesseböhmer's own facts are still unconfirmed by Kesseböhmer.**
-   The handed office arm (§5.10, three independent lines of evidence and no
-   answer), the clothes rail's 1.00 mm bracket engagement, and the two errors in
-   their published data (§5.3). All three are recorded in `youk/FINDINGS.md` with
-   the measurements behind them. The risk is not that we are wrong; it is that a
-   partnership conversation opens with us telling them their data is wrong, and
-   that goes better with their reply in hand than without it.
+7. **The supplier data has four description errors and one incomplete model,
+   and every one of them was found by measuring rather than by reading.**
+   §5.3 recorded two wrong descriptions; session 6 found two more (008533's
+   English name says 1200 mm for a 643.5 mm part; 008534 is called a rail in
+   both languages and is an extension) and the first model that is simply
+   missing a component — 008535's CAD has no bracket in it. Add the handed
+   office arm (§5.10, three independent lines of evidence and no answer) and the
+   clothes rail's 1.00 mm bracket engagement.
+   Two things follow. **Commercially:** a description a buyer cannot order from
+   is the dangerous kind of error, and there are now four. **For us:** the rate
+   is roughly one fault per ten parts, so the next range should be assumed to
+   have them too — the pipeline's habit of measuring everything and trusting no
+   name is not fussiness, it is the thing that keeps finding them.
+   All are in `youk/FINDINGS.md` with the working. The risk is not that we are
+   wrong; it is that a partnership conversation opens with us telling them their
+   data is wrong, and that goes better with their reply in hand than without it.
 
 ### Open questions
 
@@ -2784,6 +2831,21 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   join to each other, they both bolt into a **third bracket** on the middle
   ladder. That is an ordinary coupler component — socket to the ladder, a plug
   each side — so the engine needs no new capability. One fewer open risk.
+  **But that bracket has no article number**, so Kesseböhmer have not sent a
+  model of it, and the extension is exactly **6.0 mm** shorter than the base rail
+  of the same nominal length to make room for it (measured on both sizes where a
+  comparison exists). Until the bracket arrives, authoring the extension means
+  inventing that 6.0 mm rather than measuring it, so it stays out. **Ask for the
+  middle bracket** — it is the whole of what stands between this and two-bay
+  clothes rails.
+- **Which way up does the top panel bracket 008552 go?** Its geometry is now
+  measured to the tenth of a millimetre and the sheet still reads two ways: the
+  panel resting **on** the bracket 15 mm above the stile top, or the bracket
+  hooking **down over** a panel that sits directly on the ladders. 15 mm of
+  height, and it decides what every "flush top" render looks like.
+- **At what height does the 008549 divider clip onto its rack?** It is 6.0 mm
+  wider than the rack, so it goes over the outside with 3.0 mm each side — that
+  much is settled. Nothing in the CAD or the sheet says where up it sits.
 
 **Commercial**
 
