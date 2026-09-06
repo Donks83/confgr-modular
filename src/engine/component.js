@@ -505,6 +505,20 @@ export function extractComponent(desc, { scaleToleranceMm = 1 } = {}) {
     // ---- Rule 9: budget recorded now, enforced later --------------------
     triangleCount: visibleNodes.reduce((sum, n) => sum + (n.triangleCount || 0), 0),
     targetTriangleBudget: null,
+    // A handful of boxes that stand in for the part's shape when its own
+    // bounding box lies about it — an L-section, in this range. Empty for
+    // everything else, and then the body's box IS the shape. See collision.js.
+    //
+    // Local AABBs in metres, translation folded in: a proxy node carries its
+    // position in `translation` and its extents in min/max about its own
+    // origin, and adding them here means nothing downstream has to remember to.
+    collisionBoxes: desc.nodes
+      .filter((n) => n.name.startsWith('col-'))
+      .map((n) => ({
+        name: n.name,
+        min: n.min.map((v, i) => v + (n.translation?.[i] || 0)),
+        max: n.max.map((v, i) => v + (n.translation?.[i] || 0)),
+      })),
     collisionBox: desc.nodes.some((n) => n.name.startsWith('col-')) ? 'present' : null,
     dimensionBox: desc.nodes.some((n) => n.name === 'dim') ? 'present' : null,
   };

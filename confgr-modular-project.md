@@ -212,7 +212,7 @@ using it expects — but there is still no export, no runtime and no AR.
 
 ### 3.1 The attach engine — built and tested
 
-`src/engine/` — 10 modules, no UI dependencies, 325 tests across the project.
+`src/engine/` — 10 modules, no UI dependencies, 329 tests across the project.
 
 - **Snap planes and masks** (`component.js`, `snapMatch.js`). A part carries flat
   4-vertex quads named `md-snap.<mask>.<label>`; local +Z is the facing. Two
@@ -413,7 +413,7 @@ This is the honest half of the document.
 | **Mobile / touch** | Nothing. Desktop Electron, mouse-driven, fixed sidebar. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
-| **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except one L-section false positive. Nothing is blocked, and the next step is authored `col-` proxies — every part still reports `NO_COLLISION_BOX`. |
+| **Collision / overlap refusal** | **Measured, not refused** (§5.16). `collision.js` reports every overlapping pair with an escape depth and a lap-versus-through call, through the probe's `collisions` step; every scenario comes back clean except the two office ones, where it is right — the clamping angle's upstand really is inside the board (§5.13's handedness, found again from geometry). The two L-section parts now carry authored `col-` proxies; the other 76 use their body box. Nothing is blocked. |
 | **Derived BOM lines** | **Built** (§5.15). `implied.js` derives the parts a configuration implies rather than storing them: the foot goes in the scene through its own measured joint and onto the quote under "Included — not chosen", and the wall fixings and packers come out as counted notes below the total, because they have no part number on file. A 200 mm bay on feet is refused, because those frames have no foot fixing. |
 | **Wall mounting** | **Built, as far as this range needs.** Floor / floating / on feet drives the view and the AR flags; a wall-fixed part goes in as a second anchor (§3.4, §5.1, §5.4). **On feet now moves the floor** by the foot's height rather than only flagging it (§5.12). No wall bracket geometry, and no wall *entity* — which turned out not to be needed. |
 | **Timber parts** | **All done** — 8 shelves + 24 cabinets + 8 office desktops, generated rather than converted, unpriced (§5.5, §5.6, §5.7). |
@@ -1772,32 +1772,47 @@ One tolerance, 1 mm, and it exists for a real 0.1 mm: 950.2 against a wanted
 950.1, which is two supplier files agreeing to a tenth of a millimetre. Without
 it the tightest joint in the range reports as a part passing through a frame.
 
-**And then the rule's first finding on the real range was wrong.** `officeclamp`
-reports both clamping angles passing through the desktop by 25 mm — the board's
-whole thickness. They are not. The angle is an **L**: a 4 mm upright at z −10…−6
-and a 3 mm foot lapping forward to z +10, with the board's back edge sitting in
-the corner between them. The board is wholly inside the angle's *bounding box*
-and touches almost none of its metal. Confirmed from the geometry bands and from
-the render.
+**Then the rule's first finding was the clamping angles passing through the
+desktop, and the obvious reading was that the box was lying.** The angle is an
+**L** — a 4 mm upright at z −10…−6 with a 3 mm foot across the top lapping
+forward to z +10 — and a board's edge in the corner between them is inside the
+box while touching none of the metal. So the proxies went in: `col-` boxes, the
+convention the pipeline had reserved and nothing used.
 
-That is the honest limit, demonstrated on a real part rather than argued: **a box
-is the wrong shape for an L.** What fixes it is authored collision proxies — the
-`col-` node convention the pipeline already reserves and nothing in the range
-uses — and that is now a specific, scoped piece of work rather than a line on a
-list.
+**The report did not change.** The angle's upstand really is inside the board.
+It is fitted at the desk's **room** edge rather than its wall edge, because the
+arm is handed and we hold one hand of the pair — §5.13's open question, arrived
+at from geometry alone this time instead of from the clamping slots on a
+drawing. Two independent lines of evidence, and a render afterwards shows the
+block visibly buried in the board's front edge.
+
+Both halves of that were worth having. The proxies cut the arm-to-angle joint
+from 17 mm to 1 mm and stopped the report crying wolf; the finding they left
+behind is real.
+
+**How a proxy is kept honest.** Authored in the spec as boxes in the part's own
+frame, emitted as `col-` nodes, and `add-snaps.py` refuses the part on two
+checks: no box may stick out past the part, and the boxes **together** must
+reach the part's own extremes in all three axes. The second matters more — a box
+that sticks out is noisy, and a part with an uncovered end **passes through
+things silently**, which is worse than having no proxies at all. Read off
+cross-sections of the solid, not off vertex histograms: a flat plate has
+vertices only at its corners, so a histogram draws an L as two thin bands with a
+hole in the middle.
 
 **So it reports, and it reports to the probe rather than to the panel.** A new
 `collisions` step, and a `-Append` switch on the probe so an existing scenario
 can be asked a new question without editing its click string and thereby
-changing what it asserts. Every scenario: **0 through**, except the L-section
-false positive. The desk failure is a test.
+changing what it asserts. Across every scenario: **0 through**, except the two
+office ones, where it is right.
 
 *What this actually bought,* stated plainly: the loop test can now ask the
-question that nothing asked for fifteen sessions. It cannot yet answer it well
-enough to refuse anything, and saying so is better than a refusal that blocks a
-correct desk.
+question that nothing asked for fifteen sessions, and the first time it was
+asked in earnest it found something. It still does not refuse — one real finding
+in one scenario is not a licence to block configurations, and two parts out of
+seventy-eight have proxies.
 
-**325 tests** (23 new in `tests/collision.test.js`).
+**329 tests** (27 new in `tests/collision.test.js`).
 
 ---
 

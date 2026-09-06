@@ -30,21 +30,30 @@
 // scenario, and what it found is written up in describeOverlap: a lap is
 // BOUNDED BY THE THING BEING LAPPED, and anything deeper did not stop.
 //
-// WHY THIS STILL DOES NOT REFUSE, having found a rule that works. Because the
-// first thing the rule flagged on the real range was WRONG. `officeclamp`
-// reports the two clamping angles as passing through the desktop by 25 mm —
-// the board's whole thickness — and they are not. The angle is an L: a 4 mm
-// upright at z -10..-6 and a 3 mm foot lapping forward to z +10, with the
-// board's back edge sitting in the corner between them. The board is wholly
-// inside the angle's BOUNDING BOX and touches almost none of its metal.
+// THE BOX WAS THE WRONG SHAPE, AND THEN IT WAS NOT THE PROBLEM. The first
+// thing the rule flagged on the real range was the two clamping angles passing
+// through the desktop, and the obvious reading was that a box is the wrong
+// shape for an L: the angle is a 4 mm upright with a 3 mm foot across the top,
+// and a board's edge in the corner between them is inside the box while
+// touching none of the metal.
 //
-// That is the honest limit of this file, demonstrated on a real part rather
-// than argued from first principles: a box is the wrong shape for an L. What
-// fixes it is authored collision proxies — the `col-` node convention the
-// pipeline already reserves and nothing in the range yet uses — and until those
-// exist the report belongs in the probe harness, where it is read by somebody
-// who knows what an L-section is, and NOT in the panel, where it would tell a
-// customer their correct desk is broken.
+// So the proxies went in — `col-` boxes, the convention the pipeline had
+// reserved and nothing used — and the report DID NOT CHANGE. The angle's
+// upstand really is inside the board: it is fitted at the desk's ROOM edge
+// rather than its wall edge, because the arm is handed and we hold one hand of
+// the pair (§5.13). Confirmed in a render afterwards; the block is visibly
+// buried in the board's front edge.
+//
+// Two things worth keeping from that. The proxies were still right to build —
+// they cut the arm-to-angle joint from 17 mm to 1 mm and stopped the report
+// crying wolf. And the survey found, from geometry alone, the same fault the
+// clamping-slot argument found from a drawing. Two independent lines of
+// evidence for the same open question.
+//
+// It still does not refuse. One real finding in one scenario is not a licence
+// to block configurations, and the parts that have proxies are two out of
+// seventy-eight. The report belongs in the probe harness, where it is read by
+// somebody who knows what an L-section is, and not yet in the panel.
 
 import { sub, dot, cross, rotateVec, length, normalise } from './vec.js';
 
@@ -86,8 +95,38 @@ export const FLUSH_TOL_M = 0.001;
  * that is not there.
  */
 export function boxFor(component, transform) {
-  const min = component?.body?.min;
-  const max = component?.body?.max;
+  return boxOf(component?.body, transform);
+}
+
+/**
+ * EVERY box a part occupies — its proxies if it has them, else its body.
+ *
+ * A part whose bounding box tells the truth needs one box and gets one. An
+ * L-section needs two or three, because the whole point of an L is the space
+ * inside it that is not part: a desktop's back edge sits in the clamping
+ * angle's corner, wholly inside its box, touching almost none of its metal.
+ * The survey reported exactly that as a part passing through a desk, on a desk
+ * that was correct — which is what these exist to stop.
+ *
+ * The proxies are checked at authoring time, not here: `add-snaps.py` refuses a
+ * box that sticks out past the part and refuses a SET that does not reach the
+ * part's own extremes. The second is the one that matters, because a part with
+ * an uncovered end passes through things silently.
+ */
+export function boxesFor(component, transform) {
+  if (!transform) return [];
+  const proxies = component?.collisionBoxes || [];
+  if (proxies.length) {
+    return proxies.map((p) => boxOf(p, transform)).filter(Boolean);
+  }
+  const body = boxOf(component?.body, transform);
+  return body ? [body] : [];
+}
+
+/** One local AABB, carried into world space as an oriented box. */
+function boxOf(bounds, transform) {
+  const min = bounds?.min;
+  const max = bounds?.max;
   if (!min || !max || !transform) return null;
 
   // The box's centre in the part's own space, carried into the world. NOT the
@@ -260,7 +299,7 @@ export function overlaps(assembly, components, transforms, { minDepthM = CONTACT
 
   const boxes = new Map(instances.map((i) => [
     i.instanceId,
-    boxFor(components.get(i.componentId), transforms.get(i.instanceId)),
+    boxesFor(components.get(i.componentId), transforms.get(i.instanceId)),
   ]));
 
   const joinedPairs = new Set(
@@ -272,7 +311,18 @@ export function overlaps(assembly, components, transforms, { minDepthM = CONTACT
     for (let j = i + 1; j < instances.length; j += 1) {
       const A = instances[i];
       const B = instances[j];
-      const shared = describeOverlap(boxes.get(A.instanceId), boxes.get(B.instanceId));
+      // Every proxy against every proxy, and the DEEPEST contact stands for the
+      // pair. Deepest rather than first, because a part touching another in two
+      // places should be reported by the one that matters — and rather than
+      // "any through", because a sliver of one box crossing a sliver of another
+      // is not a better description of the pair than its main contact is.
+      let shared = null;
+      for (const boxA of boxes.get(A.instanceId)) {
+        for (const boxB of boxes.get(B.instanceId)) {
+          const hit = describeOverlap(boxA, boxB);
+          if (hit && (!shared || hit.depth > shared.depth)) shared = hit;
+        }
+      }
       if (!shared || shared.depth <= minDepthM) continue;
       out.push({
         a: A.instanceId,

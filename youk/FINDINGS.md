@@ -1494,3 +1494,68 @@ Nothing in the model connects to a wall, and §5.1's decision not to have a wall
 entity still stands. What the count buys is the line on the installation list —
 "4 wall fixings, 8 × 50 plugs and a cover cap for each" — printed below the
 total and outside it, because there is no part number on file for a plug.
+
+---
+
+## The office arm is handed — a third line of evidence, from geometry alone
+
+The collision survey (§5.16) was built to measure, with no expectation about
+what it would find. The first thing it found in earnest was this:
+
+```
+2 THROUGH — deeper than the thinner part is thick:
+  25.0 mm into 20.0 mm  i8 008551-clamping-angles-for-office-solution
+                        i10 pws-timber-desktop-900mm-d600mm
+  11.0 mm into  4.0 mm  i9 008551-clamping-angles-for-office-solution
+                        i10 pws-timber-desktop-900mm-d600mm
+```
+
+The obvious reading was that the measurement was wrong — the angle is an
+L-section and a bounding box is the wrong shape for an L, with the board's edge
+sitting in the corner between the upright and the foot, inside the box and
+touching none of the metal. So the angle and the arm were given real collision
+proxies, measured off cross-sections of the solid:
+
+| Part | Proxy | mm |
+|---|---|---|
+| clamping angle | `leg` | x −10…10, y 0…60, **z −10…−6** |
+| | `foot` | x −10…10, **y 57…60**, z −10…10 |
+| office arm | `web` | **x −25…−22**, y 0…50, z −155…155 |
+| | `top` | x −25…25, **y 47…50**, z −155…155 |
+| | `end` | x −25…25, y 0…50, **z −155…−153** |
+
+(The foot's underside is at y **57.0**, not 56 — 56.2 at z −6…−4 is the bend
+radius, and taking it as the plate's underside puts the proxy a millimetre into
+the board. Worth stating, because a proxy that is a millimetre wrong is a
+collision report that is a millimetre wrong and looks like a real fault.)
+
+**The report did not change.** The proxies fixed what they should have — the
+arm-to-angle joint dropped from 17.0 mm to 1.0 mm, which is the bolted lap it
+ought to be — and left the desktop finding exactly where it was.
+
+### Why, and it is the handedness again
+
+The clamping angle bolts to the arm's `clamp` socket, which is at the arm's
+**z −155** end. `carriesBackStop` reads the arm's **z max = +155** as its wall
+end. So the clamping angle sits at the arm's ROOM end, and the desktop — which
+runs z −440 (room) to +160 (wall) — passes straight through the upstand at
+z −149…−153.
+
+`mounting instructions Office solution.pdf` step 4 and step 6 are unambiguous
+that the angle is the upstand **the board's back edge sits against**. The board
+has one back edge and it is at the wall.
+
+So this is the same fault §5.13 identified from the clamping slots, reached
+independently:
+
+1. **From the drawing** — only the arm's z −155 end carries the slots, so a
+   mirrored pair puts one stop at the wall and one at the front.
+2. **From the layout** — `officeclamp` reports the two angles at z ∓143.0.
+3. **From the geometry** — the upstand is inside the board, by 25 mm.
+
+And a render confirms it: the block is visibly buried in the board's front edge.
+
+**Three readings, one conclusion: 008551 ships as a handed PAIR and the one STEP
+file we hold is standing in for both.** That still needs Kesseböhmer rather than
+more measuring — but it is no longer an inference from a drawing, it is a
+configuration that cannot be built and can be shown not to be.

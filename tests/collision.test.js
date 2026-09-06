@@ -13,7 +13,8 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  boxFor, overlapDepth, describeOverlap, overlaps, formatOverlaps, CONTACT_EPS_M,
+  boxFor, boxesFor, overlapDepth, describeOverlap, overlaps, formatOverlaps,
+  CONTACT_EPS_M,
 } from '../src/engine/collision.js';
 
 const IDENTITY = { translation: [0, 0, 0], rotation: [0, 0, 0, 1] };
@@ -199,6 +200,70 @@ describe('lapping versus going through', () => {
 
   it('says nothing at all when the boxes are apart', () => {
     expect(describeOverlap(frame, boxFor(LADDER, at(1, 0, 0)))).toBeNull();
+  });
+});
+
+// The L that made the case for proxies, at its measured size. A 4 mm leg at
+// z -10..-6 running the full height, and a 3 mm foot across the top at
+// y 56..60 lapping forward to z +10. Its bounding box is a solid 20 x 60 x 20.
+const CLAMP = {
+  id: 'clamp',
+  body: { min: [-0.01, 0, -0.01], max: [0.01, 0.06, 0.01] },
+  collisionBoxes: [
+    { name: 'col-leg', min: [-0.01, 0, -0.01], max: [0.01, 0.06, -0.006] },
+    { name: 'col-foot', min: [-0.01, 0.056, -0.01], max: [0.01, 0.06, 0.01] },
+  ],
+  snaps: [],
+  triangleCount: 1,
+};
+
+describe('collision proxies', () => {
+  // The board's back edge in the angle's corner, exactly as the sheet fits it:
+  // 25 mm thick, its top face against the foot's underside at y 56, its back
+  // edge against the leg's front face at z -6, running forward out of the L.
+  // It touches the angle on two faces and shares space with none of its metal.
+  const board = boxFor(part('board', 0.9, 0.025, 0.6), at(0, 0.031, 0.294));
+
+  it('is what the body box gets wrong', () => {
+    // The solid 20 x 60 x 20 box says the two are inside each other, because
+    // the space in the corner of an L is inside the L's box.
+    const solid = boxFor(CLAMP, at(0, 0, 0));
+    expect(describeOverlap(solid, board)).not.toBeNull();
+  });
+
+  it('is what the proxies get right', () => {
+    const boxes = boxesFor(CLAMP, at(0, 0, 0));
+    expect(boxes).toHaveLength(2);
+    // Touching on a face is not sharing space: both come back apart.
+    for (const b of boxes) expect(describeOverlap(b, board)?.depth || 0).toBeLessThan(1e-9);
+  });
+
+  it('falls back to the body for a part that has none', () => {
+    const boxes = boxesFor(LADDER, at(0, 0, 0));
+    expect(boxes).toHaveLength(1);
+    expect(boxes[0].half).toEqual([0.015, 0.75, 0.16]);
+  });
+
+  // The survey has to ask every proxy against every proxy, and let the DEEPEST
+  // contact stand for the pair - otherwise a part touching another in two
+  // places is described by whichever box happened to be first in the list.
+  it('reports the deepest contact of the pair, not the first', () => {
+    const components = new Map([['clamp', CLAMP], ['post', part('post', 0.004, 0.5, 0.004)]]);
+    const assembly = {
+      instances: [
+        { instanceId: 'c1', componentId: 'clamp' },
+        { instanceId: 'p1', componentId: 'post' },
+      ],
+      connections: [],
+    };
+    // A thin post standing up through BOTH the leg and the foot.
+    const rows = overlaps(assembly, components, new Map([
+      ['c1', at(0, 0, 0)], ['p1', at(0, 0, -0.008)],
+    ]));
+    expect(rows).toHaveLength(1);
+    // The leg is 4 mm through and the foot is 4 mm through; the deepest way out
+    // of either is the post's own 4 mm, not the box that came first.
+    expect(rows[0].depthMm).toBeGreaterThan(3.9);
   });
 });
 

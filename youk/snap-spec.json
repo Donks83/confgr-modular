@@ -653,7 +653,12 @@
       ],
       "carries": "desktop",
       "carriesBackStop": true,
-      "depth": 320
+      "depth": 320,
+      "collision": [
+        { "name": "web", "x": [-25, -22], "y": [0, 50], "z": [-155, 155] },
+        { "name": "top", "x": [-25, 25], "y": [47, 50], "z": [-155, 155] },
+        { "name": "end", "x": [-25, 25], "y": [0, 50], "z": [-155, -153] }
+      ]
     },
     {
       "id": "008551-clamping-angles-for-office-solution",
@@ -667,6 +672,10 @@
           "z": -6.99,
           "role": "plug"
         }
+      ],
+      "collision": [
+        { "name": "leg", "x": [-10, 10], "y": [0, 60], "z": [-10, -6] },
+        { "name": "foot", "x": [-10, 10], "y": [57, 60], "z": [-10, 10] }
       ]
     },
     {
@@ -696,6 +705,32 @@
         }
       ]
     }
+  ],
+  "_collision": [
+    "`collision` gives a part a handful of boxes that stand in for its shape,",
+    "because its own bounding box lies. Only two parts need it and both are",
+    "L-sections; everything else in the range is box-shaped enough that its",
+    "bounds ARE its shape.",
+    "",
+    "The clamping angle is 20 x 60 x 20 and its box is solid. The real part is a",
+    "4mm leg at z -10..-6 running the full height, and a 3mm foot across the top",
+    "at y 56..60 lapping forward to z +10. A desktop's back edge sits in the",
+    "corner between them - wholly inside the box, touching almost none of the",
+    "metal - and the collision survey duly reported both angles as passing",
+    "through a desk that was correct.",
+    "",
+    "The office arm is the same story at a bigger size: a 3mm web at x -25..-22",
+    "and a 3mm top plate at y 47..50, both running the full 310mm, plus a real",
+    "end plate at z -155..-153 that the clamping angle bolts through. Read off",
+    "cross-sections of the solid rather than off vertex histograms - a flat",
+    "plate has vertices only at its corners, so a histogram shows an L as two",
+    "thin bands with a hole in the middle and it is easy to draw the wrong",
+    "conclusion.",
+    "",
+    "add-snaps checks two things and refuses the part on either: no box may",
+    "stick out past the part, and the boxes TOGETHER must reach the part's own",
+    "extremes in all three axes. The second matters more - a proxy that sticks",
+    "out is noisy, a part with an uncovered end passes through things silently."
   ],
   "_foot": [
     "The adjustable foot 237023, and the first part in the range that is FITTED",

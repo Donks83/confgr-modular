@@ -62,6 +62,13 @@ SLOT_SEARCH_MM = 25.0
 HOLE_PLANE_TOL_MM = 0.6
 HOLE_FIND_TOL_MM = 3.5
 
+# How far a collision proxy may miss the part it stands in for. Generous by the
+# standards of the hole checks above, and deliberately so: a proxy is an
+# APPROXIMATION and being a millimetre proud of a bend radius is the point of
+# using boxes at all. What it is not allowed to do is stick out into space or
+# leave an end uncovered, which is what this catches.
+COL_TOL_MM = 1.0
+
 # glTF quaternions are [x, y, z, w]. A snap's facing is its local +Z, so these
 # rotate +Z onto each axis.
 ROOT_HALF = math.sqrt(0.5)
@@ -588,6 +595,63 @@ def build(glb, part, spec, kind, out_path):
 
     scene = trimesh.Scene()
     scene.add_geometry(mesh, node_name="body", geom_name="body")
+
+    # COLLISION PROXIES - a handful of boxes that approximate the part better
+    # than its own bounding box does.
+    #
+    # Only worth authoring for a part whose box LIES, which in this range means
+    # an L-section. The clamping angle is 20 x 60 x 20 and its box is solid;
+    # the real part is a 4mm leg with a 3mm foot across the top, and a desktop
+    # sitting in the corner between them is wholly inside the box and touching
+    # almost none of the metal. The collision survey reported exactly that, on a
+    # desk that was correct.
+    #
+    # Checked, not trusted. A proxy that sticks out past the part would report
+    # collisions that are not there, and a proxy SET that does not reach the
+    # part's own extremes has left some of it uncovered - which is worse,
+    # because a missing proxy makes a real collision invisible rather than
+    # noisy. Both are refused here.
+    proxies = part.get("collision") or []
+    if proxies:
+        lo, hi = mesh.bounds * 1000.0
+        union_lo = [float("inf")] * 3
+        union_hi = [float("-inf")] * 3
+        for proxy in proxies:
+            span = [proxy[a] for a in ("x", "y", "z")]
+            for i, (a, b) in enumerate(span):
+                if b <= a:
+                    raise RuntimeError(
+                        f'collision box {proxy["name"]}: {"xyz"[i]} runs {a} to {b}'
+                    )
+                if a < lo[i] - COL_TOL_MM or b > hi[i] + COL_TOL_MM:
+                    raise RuntimeError(
+                        f'collision box {proxy["name"]} sticks out in {"xyz"[i]}: '
+                        f"{a}..{b} against a part that runs "
+                        f"{lo[i]:.1f}..{hi[i]:.1f}mm"
+                    )
+                union_lo[i] = min(union_lo[i], a)
+                union_hi[i] = max(union_hi[i], b)
+
+        for i in range(3):
+            if (union_lo[i] > lo[i] + COL_TOL_MM) or (union_hi[i] < hi[i] - COL_TOL_MM):
+                raise RuntimeError(
+                    f'collision boxes reach {union_lo[i]:.1f}..{union_hi[i]:.1f}mm in '
+                    f'{"xyz"[i]} but the part runs {lo[i]:.1f}..{hi[i]:.1f}mm - '
+                    "something is not covered, and an uncovered part passes "
+                    "through things silently"
+                )
+
+        for proxy in proxies:
+            span = [proxy[a] for a in ("x", "y", "z")]
+            extents = [(b - a) / 1000.0 for a, b in span]
+            centre = [(a + b) / 2000.0 for a, b in span]
+            box = trimesh.creation.box(extents=extents)
+            transform = np.eye(4)
+            transform[:3, 3] = np.array(centre)
+            scene.add_geometry(
+                box, node_name=f'col-{proxy["name"]}',
+                geom_name=f'col-{proxy["name"]}', transform=transform,
+            )
 
     quad = snap_quad()
     for snap in snaps:
