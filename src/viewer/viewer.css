@@ -146,6 +146,63 @@
   color: #f6d5cf;
 }
 
+/* ------------------------------------------------------------------- AR handoff
+ *
+ * The label is `::after` rather than a <span>, and that is a hard requirement
+ * rather than a preference: AR Quick Look only honours `rel="ar"` when the
+ * anchor's single CHILD ELEMENT is an <img> or <picture>. A pseudo-element is
+ * not a child element, so this styles a proper button without breaking the one
+ * rule that makes iOS work at all. See the note on AR_GLYPH in Viewer.jsx.
+ *
+ * The Android variant has no such rule, so it carries real text and opts out of
+ * the pseudo-element with `.cfgv-ar-text`.
+ */
+
+.cfgv-ar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  /* Touch target first. 46px of height is above the 44px both platforms'
+     guidelines ask for, and this is a button that will almost only ever be
+     pressed with a thumb. */
+  min-height: 46px;
+  background: #f0ebe4;
+  color: #1b1815;
+  font: 600 15px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cfgv-ar:active { background: #cbc2b6; }
+
+.cfgv-ar img {
+  width: 20px;
+  height: 20px;
+  display: block;
+  /* The glyph carries its own stroke colour and cannot inherit one: an SVG in
+     an <img> is a separate document, so `currentColor` there would resolve to
+     black regardless of this button. The colour is stated in both places and
+     they have to be kept in step by hand — the alternative is an inline <svg>,
+     and an inline <svg> is a child element that is not an <img>, which is the
+     one thing that stops iOS working. */
+}
+
+.cfgv-ar::after { content: 'View in your room'; }
+.cfgv-ar-text::after { content: none; }
+
+/* Why there is no button, in a sentence. Small, quiet, and never a disabled
+   control: a greyed-out button invites tapping and explains nothing. */
+.cfgv-ar-no {
+  margin: 14px 0 0;
+  color: #8d8175;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 /* ------------------------------------------------------------ wider than a phone
  *
  * One breakpoint, not four. 720px is where a bottom sheet stops being the right

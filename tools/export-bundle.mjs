@@ -13,9 +13,20 @@
 //   index.html         the runtime, no editor in it at all
 //   assets/*.js|css    vite's build, vendored — three.js included
 //   models/*.glb       ONLY the parts this configuration references
+//   ar/product.glb     the whole product as one file, for Scene Viewer
+//   ar/product.usdz    the same product for AR Quick Look, because iOS reads
+//                      nothing else
 //   manifest.json      what the runtime reads to find the rest
 //   catalogue.json     if there is one; its absence is not an error
 //   Start Preview.bat  because a browser will not run ES modules off file://
+//
+// THE AR PAIR IS NOT THE SAME FILES AS models/. `models/` holds the PARTS, as
+// the runtime needs them: separate, with their snap planes stripped but their
+// identities intact, so the viewer can place them itself. `ar/` holds ONE
+// product, merged, floored and de-duplicated (§5.19) — because neither Quick
+// Look nor Scene Viewer will assemble anything, and both take exactly one file.
+// Two representations of the same configuration, and the exporter writing both
+// from the same id is what keeps them the same product.
 //
 // NO NETWORK DEPENDENCY. Not "probably none" — `tests/bundle.test.js` reads
 // every file in the folder and fails on any absolute http(s) URL, and on any
@@ -29,7 +40,8 @@
 // sensitive.
 
 import {
-  writeFileSync, mkdirSync, rmSync, existsSync, readdirSync, copyFileSync, statSync,
+  writeFileSync, readFileSync, mkdirSync, rmSync, existsSync, readdirSync, copyFileSync,
+  statSync,
 } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -38,7 +50,9 @@ import { execFileSync } from 'node:child_process';
 import {
   buildManifest, partsNeededFor, MANIFEST_NAME, MODELS_DIR,
 } from '../src/viewer/manifest.js';
+import { AR_DIR, arBlock } from '../src/viewer/ar-link.js';
 import { configurationDigest } from '../src/engine/configuration.js';
+import { MOUNTING } from '../src/engine/ar.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -83,6 +97,18 @@ export function buildRuntime({ quiet = true } = {}) {
     cwd: ROOT,
     stdio: quiet ? 'ignore' : 'inherit',
     shell: process.platform === 'win32',
+    // FORCED, not inherited. Vite only defaults NODE_ENV to production when
+    // nothing has set it, and two things here do: this machine sets
+    // NODE_ENV=production globally, and the test runner sets it to `test` so
+    // that React ships its development build to @testing-library. Inheriting
+    // the second one silently builds a client deliverable out of development
+    // React — bigger, slower, and carrying the dev build's own URLs, which is
+    // how `tests/bundle.test.js` caught it: the offline check went from clean
+    // to 58 external URLs without a line of the exporter changing.
+    //
+    // A deliverable is a production build by definition, so it says so here
+    // rather than depending on the shell it was started from.
+    env: { ...process.env, NODE_ENV: 'production' },
   });
   const dist = join(ROOT, 'dist-viewer');
   if (!existsSync(join(dist, 'viewer.html'))) {
@@ -103,14 +129,102 @@ function walk(dir, base = dir) {
 }
 
 /**
+ * The two AR files, written into `folder/ar/`.
+ *
+ * Both come out of the same configuration id, through the same two tools the
+ * command line already uses — `exportConfiguration` for the merged, floored,
+ * de-duplicated GLB and `glbToUsdz` for the iOS copy. Nothing here re-decides
+ * what a product is or where its floor goes; if it did, the AR file and the
+ * on-screen product would be free to drift apart, which is the failure this
+ * project has now hit three times.
+ *
+ * THE USDZ IS VERIFIED BEFORE IT SHIPS. `verifyUsdz` checks the zip-level rules
+ * Quick Look enforces by showing nothing at all — every entry STORED rather
+ * than deflated, each entry's data 64-byte aligned, the model file first — and
+ * a bundle is precisely the situation where nobody will be watching when it
+ * fails. An unverifiable USDZ is refused here rather than mailed to a client.
+ *
+ * NORMALS ARE WRITTEN INTO THE USDZ, and only there. The range has none (see
+ * the long note in `export-glb.mjs`): glTF requires a viewer to compute flat
+ * normals when NORMAL is absent, so the GLB is left alone, but three's USD
+ * exporter simply omits them and warns. iOS is therefore the one consumer that
+ * has to be handed what everyone else infers — and the cost is measured, on the
+ * demo bay, not estimated:
+ *
+ *     flatNormals false   1,278,120 bytes
+ *     flatNormals true    4,686,173 bytes
+ *
+ * 3.67x, for 3.4 MB. That is a real price for a file somebody emails, and it is
+ * paid by DEFAULT because a product that renders wrong is worse than a product
+ * that downloads slowly. It is a default rather than a rule because nobody has
+ * yet held an iPhone next to it: if Quick Look turns out to shade an
+ * un-normalled mesh correctly, `arNormals: false` takes 3.4 MB straight back
+ * out, and that question is on the list for the five minutes with a real phone.
+ */
+export async function writeArAssets({
+  configurationId, folder, models: modelsDir, title = null, arNormals = true,
+}) {
+  const { exportConfiguration } = await import('./export-glb.mjs');
+  const { glbToUsdz, verifyUsdz } = await import('./export-usdz.mjs');
+
+  mkdirSync(join(folder, AR_DIR), { recursive: true });
+  const glbPath = join(folder, AR_DIR, 'product.glb');
+  const usdzPath = join(folder, AR_DIR, 'product.usdz');
+
+  const exported = await exportConfiguration(configurationId, modelsDir, glbPath);
+  const vertical = exported.resolved.mounting === MOUNTING.WALL;
+
+  const usdz = await glbToUsdz(readFileSync(glbPath), {
+    vertical,
+    quickLookCompatible: true,
+    flatNormals: arNormals,
+  });
+  const check = verifyUsdz(usdz);
+  if (!check.ok) {
+    throw new Error(
+      `the USDZ this bundle would ship is not one Quick Look will open: ${
+        check.problems.join('; ')}.`,
+    );
+  }
+  writeFileSync(usdzPath, Buffer.from(usdz));
+
+  return {
+    ar: arBlock({
+      glb: 'product.glb',
+      usdz: 'product.usdz',
+      // The number that decides whether AR will be smooth, measured rather
+      // than guessed, and written down so the person who RECEIVES the folder
+      // can answer a question about it without re-exporting anything.
+      triangles: exported.ready.triangles,
+      vertical,
+    }),
+    title,
+    // Reported separately as well as summed, because they are read by
+    // different things: Scene Viewer downloads the GLB and has published
+    // limits about it, Quick Look downloads the USDZ and has published none.
+    glbBytes: statSync(glbPath).size,
+    usdzBytes: statSync(usdzPath).size,
+    bytes: statSync(glbPath).size + statSync(usdzPath).size,
+    ready: exported.ready,
+  };
+}
+
+/**
  * Write the bundle.
  *
  * `dist` is separate from `folder` so a test can build the runtime once and
  * export several configurations from it — a vite build is seconds, and paying
  * it per test would make the offline check something nobody runs.
+ *
+ * `ar` defaults to ON. A configurator whose whole pitch is "see it in your
+ * room" should not need a flag to reach a room. On the demo bay it costs a few
+ * seconds and 5.1 MB, of which 3.4 MB is the USDZ's normals — see
+ * `writeArAssets` for both measurements and `--no-ar-normals` for the trade.
+ * `--no-ar` exists for the case where the recipient only wants the page.
  */
-export function writeBundle({
+export async function writeBundle({
   configurationId, folder, dist, models: modelsDir, title = null, generated = null,
+  ar = true, arNormals = true,
 }) {
   const needed = partsNeededFor(configurationId);
 
@@ -158,17 +272,35 @@ export function writeBundle({
     bytes += statSync(join(folder, 'catalogue.json')).size;
   }
 
+  // The AR pair goes in BEFORE the manifest, because the manifest has to be
+  // able to say honestly whether the files are there. A manifest written first
+  // and patched afterwards would be a manifest that is briefly wrong, and the
+  // runtime reads it as gospel.
+  let arResult = null;
+  if (ar) {
+    arResult = await writeArAssets({
+      configurationId, folder, models: modelsDir, title, arNormals,
+    });
+    bytes += arResult.bytes;
+  }
+
   const manifest = buildManifest({
     configuration: configurationId,
     models: needed.map((id) => `${id}.glb`),
     catalogue: hasCatalogue ? 'catalogue.json' : null,
     title,
     generated,
+    ar: arResult?.ar || null,
   });
   writeFileSync(join(folder, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(join(folder, 'Start Preview.bat'), startPreviewBat());
 
-  return { folder, manifest, models: needed, bytes };
+  return {
+    folder, manifest, models: needed, bytes,
+    ar: arResult?.ar || null,
+    ready: arResult?.ready || null,
+    arBytes: arResult ? { glb: arResult.glbBytes, usdz: arResult.usdzBytes } : null,
+  };
 }
 
 async function main(argv) {
@@ -197,8 +329,12 @@ async function main(argv) {
     console.log('building the runtime…');
     const dist = buildRuntime({ quiet: !argv.includes('--verbose') });
 
-    const r = writeBundle({
-      configurationId: id, folder, dist, models: modelsDir, title: at('--title'),
+    const wantsAr = !argv.includes('--no-ar');
+    if (wantsAr) console.log('exporting the AR pair…');
+
+    const r = await writeBundle({
+      configurationId: id, folder, dist, models: modelsDir, title: at('--title'), ar: wantsAr,
+      arNormals: !argv.includes('--no-ar-normals'),
     });
 
     console.log(`\n  wrote   ${r.folder}  ${(r.bytes / 1024).toFixed(1)} kB`);
@@ -207,7 +343,31 @@ async function main(argv) {
     } available, because that is all this configuration references:`);
     for (const m of r.models) console.log(`            ${m}`);
     console.log(`  prices  ${r.manifest.catalogue ? 'catalogue.json included' : 'none on file'}`);
+    if (r.ar) {
+      console.log(`  AR      ${r.ar.triangles.toLocaleString()} triangles, ${
+        r.ar.vertical ? 'wall' : 'floor'} placement`);
+      // Named per platform rather than summed. A person deciding whether the
+      // folder is too big to email needs to know that almost all of it is one
+      // file, and which one.
+      console.log(`            ar/product.glb   ${
+        (r.arBytes.glb / 1024).toFixed(1)} kB  (Android, Scene Viewer)`);
+      console.log(`            ar/product.usdz  ${
+        (r.arBytes.usdz / 1024).toFixed(1)} kB  (iOS, Quick Look)`);
+      // The budget is REPORTED even when it is exceeded, and the bundle is
+      // still written. `arReadiness` knows the published Scene Viewer limits;
+      // it does not know how much of them this particular phone will tolerate,
+      // and refusing to export would be a guess dressed as a rule. The wall
+      // warning is not a fault at all, which is why every warning prints and
+      // none of them stops the export.
+      for (const w of r.ready.warnings || []) console.log(`            note: ${w.message}`);
+    } else {
+      console.log('  AR      skipped (--no-ar)');
+    }
     console.log('\n  Open "Start Preview.bat", or put the folder on any web server.');
+    if (r.ar) {
+      console.log('  AR needs the folder on a REAL host: a phone cannot open a');
+      console.log('  laptop\'s localhost, and Scene Viewer fetches the model itself.');
+    }
     return 0;
   } catch (err) {
     console.error(`\nrefused: ${err.message}`);

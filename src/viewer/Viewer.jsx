@@ -25,6 +25,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './viewer.css';
 import { createScene, fitBounds, frameProduct } from './scene.js';
 import { syncProduct, setGround, describeLayout } from './product.js';
+import { arAvailability } from './ar-link.js';
+import ArButton from './ArButton.jsx';
 import { resolveConfiguration } from '../engine/configuration.js';
 import { formatQuote } from '../engine/quote.js';
 
@@ -41,6 +43,7 @@ export default function Viewer({
   tierId = null,
   showPrice = true,
   title = null,
+  ar = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -122,6 +125,19 @@ export default function Viewer({
   const parts = resolved?.assembly.instances.length ?? 0;
   const implied = resolved?.implied?.connections?.length ?? 0;
 
+  // Decided from the manifest, the page's own URL and the browser's own
+  // account of itself — never from a feature test, because there is nothing to
+  // test: `rel="ar"` and an intent:// URL are both inert strings in a browser
+  // that does not handle them, and neither reports back.
+  const arLink = useMemo(() => arAvailability({
+    ar,
+    pageHref: typeof window === 'undefined' ? '' : window.location.href,
+    userAgent: typeof navigator === 'undefined' ? '' : navigator.userAgent,
+    maxTouchPoints: typeof navigator === 'undefined' ? 0 : (navigator.maxTouchPoints || 0),
+    mounting: resolved?.mounting || null,
+    title: title || null,
+  }), [ar, resolved, title]);
+
   return (
     <div className="cfgv">
       <div className="cfgv-stage" ref={mountRef} />
@@ -179,6 +195,11 @@ export default function Viewer({
                 {resolved.quote ? formatQuote(resolved.quote) : 'No prices on file.'}
               </pre>
             )}
+
+            {/* Its own component because its DOM shape is a requirement iOS
+                enforces silently, and a component can be rendered in jsdom and
+                have its children counted. See ArButton.jsx. */}
+            <ArButton availability={arLink} hasAr={!!ar} />
           </div>
         </div>
       )}

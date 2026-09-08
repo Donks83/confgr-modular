@@ -7,7 +7,7 @@
 // compiles clean.
 //
 // So this builds a REAL bundle with the real exporter and then reads every
-// file in it. Three claims, each of which has already been false once:
+// file in it. Four claims, three of which have already been false once:
 //
 //   1. NOTHING REACHES OUTSIDE. No absolute http(s) URL anywhere, and every
 //      relative reference resolves to a file that was actually written.
@@ -15,6 +15,9 @@
 //      editor's own status line in the JavaScript, because App.jsx statically
 //      imports Configurator.
 //   3. ONLY WHAT IS REFERENCED SHIPS. A bay needs three models out of eighty.
+//   4. THE AR PAIR IS REALLY THERE AND REALLY VALID. A USDZ that breaks the
+//      zip rules shows NOTHING in Quick Look, with no error, so the only
+//      moment it can be caught is before the folder is sent.
 //
 // It builds from `test-assets`, not `youk`, because the supplier geometry is
 // gitignored and a test may not depend on it being present.
@@ -138,11 +141,12 @@ describe('a real exported bundle', () => {
   let folder;
   let files;
   let configurationId;
+  let result;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     configurationId = encodeConfiguration(assembly(), { mounting: MOUNTING.FLOOR });
     folder = mkdtempSync(join(tmpdir(), 'confgr-bundle-'));
-    writeBundle({
+    result = await writeBundle({
       configurationId,
       folder,
       dist: buildRuntime(),
@@ -150,6 +154,10 @@ describe('a real exported bundle', () => {
       title: 'A test product',
       // Fixed, so the manifest is byte-stable across runs.
       generated: '2026-09-06T00:00:00.000Z',
+      // The default, stated. This is the bundle a client receives, and AR is
+      // in it, so the offline and only-what-is-referenced claims are being
+      // made about the folder that actually goes out.
+      ar: true,
     });
     files = walk(folder);
   }, 180_000);
@@ -294,17 +302,70 @@ describe('a real exported bundle', () => {
     expect(total).toBeLessThan(4 * 1024 * 1024);
   });
 
-  it('refuses to write a bundle whose models are missing, rather than a broken one', () => {
+  it('refuses to write a bundle whose models are missing, rather than a broken one', async () => {
     const id = encodeConfiguration(assembly('a-part-that-does-not-exist'), {
       mounting: MOUNTING.FLOOR,
     });
     const doomed = mkdtempSync(join(tmpdir(), 'confgr-bundle-bad-'));
     try {
-      expect(() => writeBundle({
+      await expect(writeBundle({
         configurationId: id, folder: doomed, dist: join(ROOT, 'dist-viewer'), models: ASSETS,
-      })).toThrow(/a-part-that-does-not-exist/);
+      })).rejects.toThrow(/a-part-that-does-not-exist/);
     } finally {
       rmSync(doomed, { recursive: true, force: true });
     }
   });
+
+  // -------------------------------------------------------------------- the AR pair
+
+  it('ships one merged product for each phone platform', () => {
+    expect(files).toContain('ar/product.glb');
+    expect(files).toContain('ar/product.usdz');
+    // ONE file each, not the parts again. Neither AR viewer will assemble
+    // anything, so a folder of components would be a folder of components.
+    expect(files.filter((f) => f.startsWith('ar/')).length).toBe(2);
+  });
+
+  it('says so in the manifest, with the number that decides whether AR is smooth', () => {
+    const manifest = JSON.parse(readFileSync(join(folder, 'manifest.json'), 'utf8'));
+    expect(manifest.ar).toEqual({
+      glb: 'product.glb',
+      usdz: 'product.usdz',
+      triangles: expect.any(Number),
+      vertical: false,
+    });
+    expect(manifest.ar.triangles).toBeGreaterThan(0);
+    // The manifest's figure is the exporter's own measurement, not a second
+    // count taken somewhere else — which is the mistake the app's AR budget
+    // made for weeks (§5.19), reading 19,010 for a product with 34,106.
+    expect(manifest.ar.triangles).toBe(result.ready.triangles);
+  });
+
+  it('ships a USDZ that Quick Look will actually open', async () => {
+    // The one check that cannot be made by looking. Quick Look enforces the
+    // zip rules by displaying nothing at all, so a broken USDZ and a missing
+    // one are indistinguishable on the phone.
+    const { verifyUsdz } = await import('../tools/export-usdz.mjs');
+    const check = verifyUsdz(new Uint8Array(readFileSync(join(folder, 'ar/product.usdz'))));
+    expect(check.problems).toEqual([]);
+    expect(check.ok).toBe(true);
+    expect(check.entries[0].name).toMatch(/\.usd[ac]?$/);
+  });
+
+  it('leaves the AR pair out when asked, and says nothing untrue in the manifest', async () => {
+    const plain = mkdtempSync(join(tmpdir(), 'confgr-bundle-noar-'));
+    try {
+      const r = await writeBundle({
+        configurationId, folder: plain, dist: join(ROOT, 'dist-viewer'), models: ASSETS, ar: false,
+      });
+      expect(r.ar).toBe(null);
+      expect(walk(plain).some((f) => f.startsWith('ar/'))).toBe(false);
+      // Null rather than absent or an empty object: `arAvailability` reads this
+      // and a bundle without AR must say so, so that the viewer explains
+      // itself instead of offering a link to a file nobody wrote.
+      expect(JSON.parse(readFileSync(join(plain, 'manifest.json'), 'utf8')).ar).toBe(null);
+    } finally {
+      rmSync(plain, { recursive: true, force: true });
+    }
+  }, 120_000);
 });

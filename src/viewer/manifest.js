@@ -69,7 +69,7 @@ export function partsNeededFor(configurationId) {
  * no total, which is what the quote module already does everywhere else.
  */
 export function buildManifest({
-  configuration, models, catalogue = null, title = null, generated = null,
+  configuration, models, catalogue = null, title = null, generated = null, ar = null,
 }) {
   if (!configuration) throw new ManifestError('A bundle needs a configuration id.');
   if (!models?.length) throw new ManifestError('A bundle needs at least one model.');
@@ -82,6 +82,10 @@ export function buildManifest({
     configuration,
     catalogue,
     models: [...models].sort(),
+    // Optional in the same way and for the same reason as the catalogue: a
+    // bundle without it is a bundle that says "no AR here" rather than one that
+    // offers a link to a file nobody wrote. See `ar-link.js`.
+    ar: ar || null,
   };
 }
 
@@ -108,6 +112,11 @@ export function parseManifest(json) {
   }
   if (!Array.isArray(json.models) || !json.models.length) {
     throw new ManifestError('The manifest lists no models.');
+  }
+  // An `ar` block that names neither file is a lie rather than an omission, and
+  // it would produce a button that cannot work. Refused by name, like the rest.
+  if (json.ar && !json.ar.glb && !json.ar.usdz) {
+    throw new ManifestError('The manifest claims AR but names no AR file.');
   }
   return json;
 }

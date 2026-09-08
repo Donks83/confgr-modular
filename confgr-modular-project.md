@@ -68,14 +68,14 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 464 unit tests, ~8 s. Run this before believing anything. |
+| `npm test` | 497 unit tests, ~8 s. Run this before believing anything. |
 | `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
 | `npm run youk:export -- --demo --out demo.glb` | Builds a bay with **no editor at all** and writes it as one GLB, floor-rebased and stripped of snap planes. Add `--id <configuration-id>` to export a real one, `--raw` to skip the size optimisations and compare (§5.19). |
-| `npm run youk:usdz -- --demo --out demo.usdz` | The same bay as a Quick Look-valid USDZ, for iOS. `--vertical` for a wall-fixed product, `--normals` to force flat normals at ~6× the size (§5.20). |
-| `npm run youk:bundle -- --demo --out ./somewhere` | **A folder somebody can send.** The runtime, only the models this configuration uses, a manifest and a `Start Preview.bat`. No network dependency; no editor in it (§5.22). |
+| `npm run youk:usdz -- --demo --out demo.usdz` | The same bay as a Quick Look-valid USDZ, for iOS. `--vertical` for a wall-fixed product, `--normals` to force flat normals at 3.7× the size — 1,278,120 → 4,686,173 bytes on the demo bay (§5.20, §5.23). |
+| `npm run youk:bundle -- --demo --out ./somewhere` | **A folder somebody can send.** The runtime, only the models this configuration uses, the AR pair, a manifest and a `Start Preview.bat`. No network dependency; no editor in it (§5.22). `--no-ar` skips the AR files; `--no-ar-normals` makes the USDZ 3.4 MB smaller and its shading untested (§5.23). |
 
 The probe takes a `-Scenario`, and each one exists because something went wrong
 without it:
@@ -402,7 +402,7 @@ family whose plug is **measured** seats clean, and only `span` with `bearing:
 - A bill-of-materials panel stuck to the bottom of the sidebar, with a tier
   selector, VAT and margin. 24 tests on the pricing module alone.
 
-### 3.4 AR readiness and mounting — the engine half is built, the AR itself is not
+### 3.4 AR readiness and mounting — built, exported, handed off, and never yet seen on a phone
 
 `src/engine/ar.js`, 11 tests. What exists:
 
@@ -423,8 +423,15 @@ family whose plug is **measured** seats clean, and only `span` with `bearing:
   `WALL`** — a floating unit standing on a drawn floor contradicts the one thing
   the view exists to show.
 
-What does **not** exist: any actual AR. No USDZ, no GLB export of a
-configuration, no QR handoff, no landing route. §4.5 is the plan.
+What now exists downstream of it: the GLB export (§5.19), the USDZ (§5.20),
+both files in an exported bundle, and the two platform handoffs in
+`src/viewer/ar-link.js` (§5.23). `placementFor`'s
+`sceneViewerEnableVerticalPlacement` is read by the Android intent builder
+rather than reinterpreted there, which is the point of having named it.
+
+What still does **not** exist: the QR handoff, a hosted landing route, and —
+the one that matters — **any observation of AR on a real handset.** Every branch
+is tested; none has been seen on a phone. §4.5 is the plan.
 
 ### 3.5 The verification harness — built, and load-bearing
 
@@ -473,7 +480,7 @@ This is the honest half of the document.
 | **Save and load a project** | IPC handlers exist; no UI calls them (§3.7). |
 | **A shareable configuration ID** | **Built** (§5.18). Versioned, self-contained, refusing an unknown format rather than guessing, and NAMING a part the catalogue no longer has rather than dropping it. `resolveConfiguration(id, components, {catalogue})` is the headless resolve everything downstream was waiting on — assembly, transforms, implied parts, validity, collisions and quote, with no editor and no three.js. The round trip is a probe scenario, compared on resolved positions. **No short-code service and no `/ar?c=` route yet** — the id is 416 characters, which is a link rather than a text message. |
 | **PDF / tear sheet** | Nothing. |
-| **AR / "view in your room" / QR** | **Both file formats are built** (§5.19, §5.20). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry — and `npm run youk:usdz` converts that to a Quick Look-valid USDZ, anchoring horizontally or vertically according to what the product is. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles, 443,980 bytes of GLB and 1,248,000 of USDZ, within budget. **Still nothing for:** the QR handoff and the `/ar?c=` landing route (decided, §4.1a, not built). And **nothing has been on a phone yet** — two questions now need a device rather than a keyboard. |
+| **AR / "view in your room" / QR** | **Both file formats are built** (§5.19, §5.20). `npm run youk:export` turns a configuration id into one merged GLB with the editor closed — implied parts included, rebased onto the floor and centred in plan, snap planes and collision proxies stripped along with their geometry — and `npm run youk:usdz` converts that to a Quick Look-valid USDZ, anchoring horizontally or vertically according to what the product is. `arReadiness` finally has real bytes to judge: the demo bay is 34,106 triangles, 443,980 bytes of GLB and 1,248,000 of USDZ, within budget. **And the handoff is built** (§5.23): every exported bundle carries `ar/product.glb` and `ar/product.usdz`, and the runtime offers AR Quick Look on iOS, Scene Viewer on Android, and a sentence saying why not on anything else — decided from the manifest and the user agent in `src/viewer/ar-link.js`, with the `<img>`-only-child rule Quick Look enforces silently held in place by a jsdom test that counts children. **Still nothing for:** the QR handoff and the `/ar?c=` landing route (decided, §4.1a, not built). And **nothing has been on a phone yet** — the remaining questions need a device rather than a keyboard. |
 | **Mobile / touch** | **The runtime is built for it; the editor is not** (§5.21). `viewer.css` is phone-first with one breakpoint at 720px, the canvas sets `touch-action: none`, and one-finger orbit / two-finger pan-zoom are stated explicitly. **Never tried on a real phone**, which is the honest caveat. The editor is still desktop Electron, mouse-driven, fixed sidebar — and tap-to-attach belongs to Phase 1 with the rest of the editing affordances. See §4.5. |
 | **Rules and conditions engine** | **Started, and used** (§5.8). A snap may carry a `condition` restricting *where* it is legal, with a closed one-clause vocabulary and an authored reason the app shows. The office-solution assembly is rung-3-and-above only, and a 550 mm ladder therefore cannot take a desk. **Still nothing else:** no "if X then Y", no auto-inserted connector parts, no option-driven rules. |
 | **Options beyond finish** | A `finish` swatch per instance works. No option tree, no dependent options, no per-option pricing. |
@@ -565,10 +572,18 @@ is the one the viewer split (Phase 2 item 2) unlocks anyway.
 
 **What this decides, concretely:**
 
-- The bundle ships **without** AR. A configurator in an offline folder shows the
-  product in 3D and quotes it; the "view in your room" button appears only when
-  the bundle is configured with a hosted endpoint. It degrades honestly, the
-  same way the quote does with no prices on file.
+- ~~The bundle ships **without** AR.~~ **Wrong, and corrected in §5.23.** This
+  assumed AR needs a server because the QR code does. It does not: the *files*
+  can be static. A bundle now carries `ar/product.glb` and `ar/product.usdz`
+  for its own configuration, and the moment that folder sits on any web host —
+  which is the normal way a client deploys one — both handoffs work. Put it on
+  a laptop and iOS still works (WebKit hands Quick Look the file itself) while
+  Android does not (Scene Viewer fetches the URL from another process), and the
+  runtime says which. It degrades honestly, the same way the quote does with no
+  prices on file — but it degrades from *working*, not from absent.
+- **What the hosted route is still needed for** is narrower than this section
+  assumed: a QR code, which cannot point at a folder on somebody's desktop, and
+  an id that was not known at export time. Not AR itself.
 - The configuration id is the seam between them, which is why it was worth
   building first. The bundle produces an id; the hosted route consumes one.
   Neither needs to know anything else about the other.
@@ -718,7 +733,9 @@ Three separate questions that get bundled together. Taking them apart:
 | Size | Practical rather than published | **10 MB recommended, 15 MB hard limit** |
 | Triangles | — | **30–50k ideal, 100k recommended maximum** |
 | Materials / textures | — | 10 materials, 2048×2048 |
-| How it launches | `<a rel="ar">` around an `<img>` | `intent://` or `https://arvr.google.com/scene-viewer/…` |
+| How it launches | `<a rel="ar">` whose **only child element** is an `<img>` or `<picture>` — WebKit looks for the image child, and without one the link downloads the file instead | `intent://arvr.google.com/scene-viewer/1.0?file=<absolute url>`, fetched by Scene Viewer itself, so a relative path or a `file://` page cannot work |
+| How it fails | **silently.** No error, no console message | **silently.** Nothing happens |
+| Built | §5.23 | §5.23 |
 
 **WebXR is not the route.** It is Android-Chrome only; on iOS it does not exist.
 The native viewers are what actually reaches customers, which means **two model
@@ -787,20 +804,26 @@ for it specifically.
 
 #### What AR actually requires, in order
 
-1. **The headless resolve function** — configuration ID → resolved assembly,
-   without the editor. Everything below depends on it. Already the plan's
-   week-one item and already late.
-2. **GLB export of a configuration** — merge the placed parts into one GLB.
-   `arReadiness` already says whether the result will be accepted.
-3. **USDZ conversion** — the open question is whether glTF **material variants
-   survive the conversion at all**. Test it early with one real gloss and one real
-   glazed material, as the plan says. If they do not, finishes need baking per
-   variant and the file count multiplies.
-4. **A hosted landing route** — `/ar?c=<id>` that sniffs the platform and serves
-   the right link with the right placement flag. This is the tension in §4.1:
-   the configurator can stay a static offline bundle, but AR needs one small
-   hosted route. **Decide it before building the exporter, not after.**
-5. **The QR handoff** on desktop, pointing at that route.
+1. ~~**The headless resolve function**~~ — **done** (§5.18). Configuration ID →
+   resolved assembly, without the editor. Everything below depended on it.
+2. ~~**GLB export of a configuration**~~ — **done** (§5.19). The placed parts
+   merged into one GLB, floored and centred, scaffolding stripped.
+   `arReadiness` finally has real bytes to judge.
+3. ~~**USDZ conversion**~~ — **done** (§5.20), zip-validity checked rather than
+   assumed. The open question survives the build: whether glTF **material
+   variants survive the conversion at all**. The range has no variants yet, so
+   the test is to author two finishes on one part and put them through. If they
+   do not survive, finishes need baking per variant and the file count
+   multiplies.
+4. ~~**The platform sniff and the right link with the right placement flag**~~ —
+   **done** (§5.23), and it turned out **not** to need a hosted route. The files
+   can be static, so they ship in the bundle and the sniff runs in the page.
+   `enable_vertical_placement` comes from `placementFor` rather than from a
+   second opinion about which products go on walls.
+5. **A hosted landing route** — `/ar?c=<id>` for an id that was not known at
+   export time. Still not built, and no longer on AR's critical path: it is what
+   the QR code needs, not what AR needs.
+6. **The QR handoff** on desktop, pointing at that route. Not built.
 
 ---
 
@@ -2461,6 +2484,132 @@ their IT.
 
 ---
 
+### 5.23 The handoff to a phone - two URLs, and the rules they break silently
+
+Everything before this was a chain being built one link at a time: measure a
+part, place it, encode the configuration (§5.18), export a GLB (§5.19), convert
+it to USDZ (§5.20), ship both in a folder (§5.22). None of it reaches a room
+until a browser hands a file to ARKit or ARCore.
+
+**And neither of them is a thing you can call.** There is no API, no capability
+to detect, nothing that reports back. There are two URLs:
+
+| Platform | What it takes | What it demands |
+| --- | --- | --- |
+| iOS, AR Quick Look | `<a rel="ar">` to a USDZ | the anchor's **only child element** must be an `<img>` or `<picture>` |
+| Android, Scene Viewer | `intent://` with `file=` | that URL must be **absolute** and fetchable by a different process |
+
+Both fail silently when broken. Quick Look without the image child downloads the
+USDZ as a file — no error, no console message, a valid model that appears not to
+work. Scene Viewer handed a relative path does nothing at all. So the whole of
+the decision has to be made *before* the user taps, and if it is made wrongly the
+only symptom appears on a phone we do not own.
+
+`src/viewer/ar-link.js` is therefore pure — no three.js, no React, no DOM — and
+answers the question from three strings: the manifest's `ar` block, the page's
+own URL, and what the browser says about itself. 20 tests in
+`tests/arLink.test.js`, one per real device or real mistake.
+
+**The iPad that says it is a Mac.** Since iPadOS 13 an iPad reports
+`Macintosh; Intel Mac OS X` deliberately, so that sites stop serving tablets a
+phone layout. A UA sniff alone therefore gives every modern iPad the desktop
+answer and no AR at all — on the device most likely to be handed round a
+meeting. `maxTouchPoints > 1` is the whole of the difference, because a Mac with
+a touchscreen does not exist.
+
+**The asymmetry is real, not an oversight.** Quick Look works from a `file://`
+page; Scene Viewer cannot, because WebKit hands the file to Quick Look itself
+while Scene Viewer is a separate process fetching a URL. So somebody who
+double-clicks `index.html` gets AR on an iPhone and, on Android, a sentence
+saying the folder needs to be on a web server. A reason, never a dead button —
+a greyed-out control invites tapping and explains nothing.
+
+#### The rule that had to become a test
+
+The single-image-child rule is not something anyone will remember six months
+from now while adding a price label next to the button, and **nothing this
+project checks would notice.** The build compiles, the URL is right, the USDZ
+verifies, and the feature is dead.
+
+So the button was split into `src/viewer/ArButton.jsx` — with no three.js
+anywhere in its imports, which is what lets jsdom render it and **count the
+children.** `tests/arButton.test.jsx` is the project's first component test, and
+it was checked the only way worth checking: a `<span>` was added next to the
+`<img>`, and the test failed with *expected 2 to be 1*. A rule that cannot fail
+a test is folklore.
+
+That test needed a DOM, which found something else. This machine has
+`NODE_ENV=production` set globally, and React picks its build from that variable
+at import time — the production build has no `act`, so `@testing-library/react`
+fails outright. Pinned in `vitest.config.js` (`env: { NODE_ENV: 'test' }`), so
+that `npx vitest`, an IDE runner and CI all get the same answer.
+
+And **that** change was caught doing damage by the test written for something
+else. `buildRuntime` shells out to `vite build`, vite only defaults `NODE_ENV`
+to production when nothing has set it, so the test runner's `test` was inherited
+and the client deliverable was quietly being built out of *development* React.
+§5.22's offline check went from clean to **58 external URLs** without a line of
+the exporter changing. `buildRuntime` now forces `NODE_ENV=production` in the
+child environment: a deliverable is a production build by definition, not by
+whichever shell it was started from.
+
+#### What the bundle now carries, measured
+
+`models/` holds the **parts**, as the runtime needs them. `ar/` holds **one
+product**, merged and floored, because neither AR viewer will assemble
+anything. Two representations of the same configuration, both written from the
+same id by the same exporter — which is what keeps them the same product.
+
+On the demo bay:
+
+| File | Bytes | Read by |
+| --- | --- | --- |
+| `ar/product.glb` | 443,980 | Scene Viewer |
+| `ar/product.usdz` | 4,686,175 | Quick Look |
+
+34,106 triangles, floor placement, and the triangle count is written into the
+manifest so whoever *receives* the folder can answer a question about it without
+re-exporting anything.
+
+The USDZ is 10.6x the GLB, and the reason is measured rather than guessed:
+
+```
+flatNormals false   1,278,120 bytes
+flatNormals true    4,686,173 bytes
+```
+
+3.67x, for 3.4 MB. The range has no vertex normals at all (§5.19), glTF requires
+a viewer to compute flat ones when `NORMAL` is absent, and three's USD exporter
+just omits them. So iOS is the one consumer that must be handed what everyone
+else infers. It is paid **by default**, because a product that renders wrong is
+worse than one that downloads slowly — and it is a default rather than a rule
+because nobody has yet held an iPhone next to it. If Quick Look turns out to
+shade an un-normalled mesh correctly, `--no-ar-normals` takes 3.4 MB straight
+back out. That question is now on the list for the five minutes with a real
+phone.
+
+The USDZ is **verified before it ships**: `verifyUsdz` checks the zip rules
+Quick Look enforces by showing nothing, and an unverifiable one is refused here
+rather than mailed to a client.
+
+#### Verified in a real browser
+
+The bundle served off a plain static server: product framed, feet drawn, bill of
+materials in the panel, no console errors, the desktop AR sentence present
+instead of a button, and a network log of **exactly five local requests** —
+`manifest.json`, three `.glb`, `catalogue.json`. The 4.6 MB USDZ is **not** among
+them: it is linked, never downloaded, so AR costs the page nothing until
+somebody asks for it. Both AR files fetch 200 from the exact URLs the runtime
+builds, with `glTF` and `PK\x03\x04` as their first bytes.
+
+**What is still not verified is a phone.** Every branch above is tested and none
+of it has been seen on a handset. That is not an engineering task any more.
+
+**497 tests** (20 in `tests/arLink.test.js`, 9 in `tests/arButton.test.jsx`, 4
+more in `tests/bundle.test.js`).
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
@@ -2631,15 +2780,26 @@ order rather than wish order:
    host with no network dependency, ships only the models the configuration
    references (three of eighty), and does **not** contain the editor — enforced
    by the runtime having its own vite entry, so the module graph cannot carry
-   the authoring tool back in. **Still to do:** a saveExportFolder dialog so it
-   is not a command line, and a real client folder actually sent to somebody.
-6. **AR:** ~~GLB export of a configuration~~ (§5.19) and ~~USDZ conversion~~
-   (§5.20) — **both done** → the hosted `/ar?c=<id>` landing route → the QR
-   handoff (§4.5). **Both formats now come out of one configuration id**, so
-   Android and iOS are fed by the same chain and neither is a special case.
+   the authoring tool back in. Since §5.23 the folder also carries the AR pair,
+   so a bundle put on a client's own host is the hosted AR route for that
+   product without anything further being built. **Still to do:** a
+   saveExportFolder dialog so it is not a command line, and a real client folder
+   actually sent to somebody.
+6. **AR:** ~~GLB export of a configuration~~ (§5.19), ~~USDZ conversion~~
+   (§5.20) and ~~the handoff to the phone's own AR viewer~~ (§5.23) — **all
+   three done** → the hosted `/ar?c=<id>` landing route → the QR handoff
+   (§4.5). **Both formats come out of one configuration id**, so Android and
+   iOS are fed by the same chain and neither is a special case, and every
+   exported bundle now carries both plus a button that offers the right one:
+   `rel="ar"` to Quick Look on iOS, a Scene Viewer intent on Android, and a
+   sentence rather than a dead control on anything else. The two rules that
+   fail silently — Quick Look's single-`<img>`-child anchor and Scene Viewer's
+   need for an absolute URL — are both held by tests, one of which renders the
+   button in jsdom and counts its children.
    What is left needs a phone rather than a keyboard: whether Quick Look wants
-   authored normals (the `--normals` flag, at 3.7x the size) and whether
-   Android's vertical placement is good enough to promise.
+   authored normals (on by default in a bundle, at 3.67x the USDZ's size — 3.4
+   MB on the demo bay) and whether Android's vertical placement is good enough
+   to promise.
    `tools/export-glb.mjs` turns an id into a file with the editor closed. Three
    decisions in it that are not defaults: the export **includes implied parts**
    (a bay on feet exports with its feet, because that is what was priced); it is
@@ -2722,16 +2882,26 @@ Not the same as the phase order, and worth stating separately:
     (§5.22). `npm run youk:bundle` produces a folder that works with the wifi
     off, on any static host, in a subdirectory, containing only the models the
     configuration references and none of the editor.
+13. ~~The handoff to the phone's own AR viewer~~ — **done** (§5.23). The chain
+    that started with a measured part now ends at a button: every bundle
+    carries `ar/product.glb` and `ar/product.usdz`, and the runtime offers
+    Quick Look, Scene Viewer, or a sentence explaining why neither. A bundle on
+    a client's host **is** the hosted AR route for that product, which is why
+    item 9's "hosted later" needed less building than it looked.
 
 **Everything on this list that our own work can move is now done.** What is
 left is not engineering:
 
-13. **Send one.** A real bundle, of a real configuration, to a real person —
+14. **Send one.** A real bundle, of a real configuration, to a real person —
     which is the only test that has never been run. The folder works; nobody
     has received one.
-14. **The five questions** (item 8). Still the difference between 80 parts and
+15. **The five questions** (item 8). Still the difference between 80 parts and
     85, and still nothing on our side can unblock them.
-15. **Five minutes with an iPhone**, which settles both remaining AR questions.
+16. **Five minutes with an iPhone and an Android.** Three questions now, all of
+    them answerable in that five minutes and none of them answerable without a
+    device: does Quick Look need the authored normals it is being sent (3.4 MB
+    of the demo bundle says yes until somebody looks); do the material variants
+    survive; and is Android's vertical placement good enough to promise.
 
 Then Phase 1 — the editor, the snap editor, the asset store — which is where
 the *application* becomes reusable on somebody else's range (§2), and which
@@ -2772,15 +2942,22 @@ capability, which is the right way for a range to end.
 
 **What was built:** implied parts (§5.15), collision measurement (§5.16),
 required-part rules (§5.17), the configuration id and headless resolve (§5.18),
-the GLB export (§5.19), USDZ (§5.20), the viewer split (§5.21) and the bundle
-export (§5.22). Seven of those eight were on the roadmap as *not started*; §6 is
-trued up against the code as of today rather than as of the plan.
+the GLB export (§5.19), USDZ (§5.20), the viewer split (§5.21), the bundle
+export (§5.22) and the AR handoff (§5.23). Eight of those nine were on the
+roadmap as *not started*; §6 is trued up against the code as of today rather
+than as of the plan.
 
 **And the client-facing critical path is now empty of engineering.** Every item
 on it that our own work could move is done. What is left is a bundle actually
 sent to somebody, five questions only Kesseböhmer can answer, and five minutes
-with an iPhone. That is a different kind of list, and worth saying plainly
-rather than finding a fourteenth thing to build.
+with a phone. That is a different kind of list, and worth saying plainly rather
+than finding a fifteenth thing to build.
+
+**The chain is also closed end to end for the first time.** A measured part
+becomes a placed part, becomes a configuration id, becomes a merged GLB,
+becomes a Quick Look-valid USDZ, becomes a folder, becomes a button on a phone.
+Every link is tested; the last one has never been observed working, and that
+distinction is the honest state of the AR path.
 
 **The session's own theme, and it was not planned:** the same fault kept
 appearing in different clothes — **two implementations of one idea, drifting.**
@@ -2790,7 +2967,8 @@ time the viewer split came round, the answer was obvious enough to build the
 other way up: `src/viewer/` owns the drawing and the **editor imports it**, so
 the runtime cannot drift from the editor because there is only one of it.
 
-**Four faults found by tools rather than by looking:**
+**Seven faults found by tools rather than by looking** (it said four when there
+were five, which is its own small example of the same problem):
 
 - **The reversed second ladder** (§5.14). Every bay this project has ever drawn
   put its second frame in back to front, and no screenshot showed it because a
@@ -2817,6 +2995,20 @@ the runtime cannot drift from the editor because there is only one of it.
   one grep for the editor's own status line in the built JavaScript; fixed
   structurally, by giving the runtime its own vite entry so the module graph
   cannot carry `src/spike` back in.
+- **The deliverable was briefly built out of development React** (§5.23). The
+  first component test needed `NODE_ENV=test` so that React would ship the
+  build `@testing-library` can drive — this machine has `NODE_ENV=production`
+  set globally — and vite, which only defaults that variable when nothing has
+  set it, inherited `test` and quietly built the *client bundle* in development
+  mode. §5.22's offline check went from clean to 58 external URLs without a
+  line of the exporter changing. A test written to protect a client's folder
+  from the network caught a fault in how that folder was compiled.
+- **A comment that claimed something CSS cannot do.** The AR glyph was written
+  with `stroke="currentColor"` and a comment saying the icon follows the
+  button's colour. An SVG loaded through an `<img>` is a separate document and
+  inherits nothing, so the icon would have been black whatever the button did.
+  Caught by re-reading the claim rather than the code — the same discipline as
+  the measured numbers, applied to a sentence.
 
 **And the last five STEP files, converted for the first time and none of them
 authored.** That is a result rather than a shortfall: three have faulty supplier
@@ -3254,7 +3446,17 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   `subdivisionScheme = "none"` so USD should compute them too — but "should"
   here means reading two specifications rather than looking at a phone. The
   `--normals` flag settles it either way and costs 1,248 kB → 4,576 kB on the
-  demo bay. **One iPhone, five minutes.**
+  demo bay. **One iPhone, five minutes** — and it is now worth more than it was:
+  since §5.23 an exported bundle writes the normals **by default**, so 3.4 MB of
+  every folder we send is riding on an unanswered question. `--no-ar-normals`
+  takes it straight back out the moment somebody looks.
+- **Is Scene Viewer's vertical placement good enough to promise?** The intent
+  now passes `enable_vertical_placement` for a wall-mounted product (§5.23),
+  which is what the flag is for, but Google's own guidance is that wall
+  placement is less reliable than floor. iOS has supported walls since iOS 13.
+  Until an Android handset has held a floating YouK bay against a real wall,
+  "wall-mounted products work in AR" is a claim about a URL parameter rather
+  than about a phone. **One Android, the same five minutes.**
 - **And the pipeline should write normals at source regardless**, so the
   question stops being per-consumer. `step-to-glb.py` and `make-timber.py` both
   omit them; every synthetic test asset has them.

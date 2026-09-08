@@ -116,6 +116,12 @@ export default function ViewerHost({ configurationId = null }) {
       components={state.components}
       catalogue={state.catalogue}
       title={state.manifest?.title}
+      // Only a bundle has AR files; the desktop app has an exporter instead,
+      // and offering a link to `ar/product.usdz` inside Electron would be a
+      // link to nothing. `partsFromDesktop` returns no manifest, so this is
+      // undefined there, and the viewer says nothing rather than something
+      // untrue.
+      ar={state.manifest?.ar || null}
       onReady={({ describe }) => {
         // ONE harness handle, and it is the whole point of the scenario that
         // uses it: build a bay in the EDITOR, take its configuration id, open
