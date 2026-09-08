@@ -40,6 +40,7 @@ export default function Viewer({
   catalogue = null,
   tierId = null,
   showPrice = true,
+  title = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -153,6 +154,7 @@ export default function Viewer({
           </button>
 
           <div className="cfgv-body">
+            {title && <h1 className="cfgv-title">{title}</h1>}
             {size && (
               <dl className="cfgv-dims">
                 <div><dt>Width</dt><dd>{size.w} mm</dd></div>

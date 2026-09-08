@@ -158,3 +158,25 @@ export async function loadComponentFromPath(filePath) {
   const name = res.name.replace(/\.(glb|gltf)$/i, '');
   return parseComponentFromBytes(new Uint8Array(res.bytes), name);
 }
+
+/**
+ * Read a model over HTTP, then parse it.
+ *
+ * The other end of the same seam. An exported bundle has no main process and no
+ * IPC — it is a folder of files served by whatever the client already runs — so
+ * the parts arrive by `fetch` instead. Everything after the bytes is identical,
+ * which is the point: one parser, one `extractComponent`, one set of rules
+ * about what a component is, whether it came off a disk or off a web server.
+ *
+ * The status check is not ceremony. A server that answers a missing .glb with
+ * an HTML 404 page hands `parse` a buffer that starts with `<`, and three's
+ * error for that is about JSON — which is a genuinely baffling thing to read
+ * when the real problem is a file that was never copied.
+ */
+export async function loadComponentFromUrl(url, name) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const id = name ?? url.split('/').pop().replace(/\.(glb|gltf)$/i, '');
+  return parseComponentFromBytes(bytes, id);
+}

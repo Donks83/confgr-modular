@@ -95,6 +95,13 @@
 
 /* ------------------------------------------------------------------- content */
 
+.cfgv-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #f0ebe4;
+}
+
 .cfgv-dims {
   display: flex;
   gap: 20px;

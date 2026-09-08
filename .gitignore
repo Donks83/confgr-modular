@@ -1,6 +1,11 @@
 node_modules/
 dist/
 dist-electron/
+# The runtime's own build, and the folders it gets exported into. Both
+# regenerate with `npm run youk:bundle`, and a deliverable is a thing you send
+# rather than a thing you version.
+dist-viewer/
+bundle-*/
 .vite/
 *.log
 .DS_Store

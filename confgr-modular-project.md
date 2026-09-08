@@ -68,12 +68,14 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 444 unit tests, ~4 s. Run this before believing anything. |
+| `npm test` | 464 unit tests, ~8 s. Run this before believing anything. |
 | `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
 | `npm run joints` | Re-derives every authored joint from the GLBs, independently of the engine. |
 | `npm run youk:export -- --demo --out demo.glb` | Builds a bay with **no editor at all** and writes it as one GLB, floor-rebased and stripped of snap planes. Add `--id <configuration-id>` to export a real one, `--raw` to skip the size optimisations and compare (§5.19). |
+| `npm run youk:usdz -- --demo --out demo.usdz` | The same bay as a Quick Look-valid USDZ, for iOS. `--vertical` for a wall-fixed product, `--normals` to force flat normals at ~6× the size (§5.20). |
+| `npm run youk:bundle -- --demo --out ./somewhere` | **A folder somebody can send.** The runtime, only the models this configuration uses, a manifest and a `Start Preview.bat`. No network dependency; no editor in it (§5.22). |
 
 The probe takes a `-Scenario`, and each one exists because something went wrong
 without it:
@@ -464,7 +466,7 @@ This is the honest half of the document.
 
 | | Status |
 |---|---|
-| **Export a configurator for a client** | **The runtime exists; the packaging does not** (§5.21). `src/viewer/` is a viewer with no editing affordances, reachable at `?c=<id>`, sharing its scene and drawing code with the editor rather than duplicating them. **Still nothing for:** the folder bundle, the `<confgr-modular>` web component, and the offline-guarantee test that has to come with the bundle. See §4.1. |
+| **Export a configurator for a client** | **Built** (§5.21, §5.22). `npm run youk:bundle` writes a self-contained folder — `index.html`, the runtime, only the models the configuration references, `manifest.json`, a `Start Preview.bat` — that works on any static host with **no network dependency**, asserted by a test that reads every file in it. The editor is not in it, and cannot be: the runtime has its own vite entry so the module graph will not carry `src/spike`. Verified in a real browser off a plain static server. **Still nothing for:** a folder-picker dialog instead of a command line, the `<confgr-modular>` web component, and branding. See §4.1. |
 | **Import a model through the UI** | **Nothing.** CLI only. See §4.2. |
 | **A snap editor** | Nothing. Snaps come from a hand-authored spec file plus a Python script. |
 | **Branding / theming** | Nothing. Studio's `accentColor` / `logo` / `font` are not ported. |
@@ -2365,6 +2367,100 @@ and can be tested honestly in Node with hand-built parts.
 
 ---
 
+### 5.22 A folder you can send — and the editor that was hiding in it
+
+Phase 2 item 5, and the deliverable half of the AR decision (§4.1a). A bundle is
+what gets handed to a client, dropped on their own server, and demonstrated on a
+laptop with the wifi off:
+
+```
+npm run youk:bundle -- --demo --out ./for-kesseboehmer
+
+  wrote   ./for-kesseboehmer  1242.5 kB
+  models  3 of the 80 available, because that is all this configuration references:
+            008563-shelf-900mm-for-ladder-depth-320mm
+            236758-ladder-depth-320mm
+            237023-adjustable-foot-100mm
+  prices  catalogue.json included
+
+  Open "Start Preview.bat", or put the folder on any web server.
+```
+
+What comes out is `index.html`, the runtime's JS and CSS, `models/*.glb`,
+`manifest.json`, `catalogue.json` when there is one, and a `Start Preview.bat` —
+because a browser will not load ES modules from a `file://` URL, so
+double-clicking the HTML shows a blank page and a CORS error, which reads as
+"your deliverable is broken" rather than "this needs a web server".
+
+**Verified in a real browser, off a plain static server**, before any test was
+written: the product framed, the feet under it, the bill of materials in the
+panel, no console errors, and a network log of exactly five requests —
+`manifest.json`, three `.glb` files and `catalogue.json`, all local.
+
+#### The editor was in it
+
+The first bundle contained the authoring tool. `App.jsx` statically imports
+`Configurator`, so vite pulled in the palette, the attach flows, the drag
+handling and the harness globals — and the check that found it was one grep for
+the editor's own status line, `Click a marker to add a part`, in the built
+JavaScript.
+
+Not a disaster, but not something to ship on purpose either: it is dead weight
+in a file measured against an AR budget, and it is a description of how the
+product is built sitting in a customer's browser cache.
+
+The fix is structural rather than careful. The runtime now has **its own entry
+and its own vite config** — `viewer.html` → `src/viewer/main.jsx` →
+`vite.viewer.config.js` → `dist-viewer` — so nothing reachable from it can reach
+`src/spike`. No amount of future editing can quietly put the editor back,
+because the module graph will not carry it. `viewer.html` is renamed to
+`index.html` on the way out, since a folder somebody opens should open at the
+name every web server already knows.
+
+#### Only what is referenced
+
+A bay needs **three models out of eighty.** Shipping the range would make the
+folder twenty times the size, and the parts a customer cannot choose are the
+ones most likely to be commercially sensitive.
+
+`partsNeededFor(id)` decodes the configuration and lists the components it
+names, plus the ones it *implies* — and that second half took a correction.
+`impliedComponentIds()` is every part the engine **may** add; it is what the
+palette filters on. A given configuration implies only some of them, gated on
+the mounting exactly as `impliedParts` gates it. Treating the two as the same
+thing put a foot in every bundle, including ones for a floor-standing product,
+and made an export fail outright wherever the foot's model was absent.
+
+#### The offline guarantee, and why it needed an allowlist
+
+Studio's lesson, copied along with the exporter rather than after it: **the
+exporter is the easy half.** `tests/bundle.test.js` builds a real bundle with
+the real exporter and then reads every file in it — no absolute `http(s)` URL
+anywhere, and every relative reference resolving to a file that was actually
+written.
+
+The first run found fifteen external URLs, and **every one was legitimate**:
+XML namespace identifiers that `createElementNS` compares as strings and never
+requests, React's minified-error explainer concatenated into a thrown `Error`,
+and a paper citation surviving minification inside three.js.
+
+So the test carries an allowlist where **each entry is named individually with
+the reason it is never fetched.** A looser rule — "documentation links are
+fine" — would wave through a genuine CDN reference that happened to look like
+one. And the allowlist is checked in both directions: an entry nothing hits any
+more is a licence sitting there for the next thing that happens to match it, so
+a stale one fails the test too.
+
+Two more claims in the same file, both of which have been false once: the
+bundle does not contain the editor, and it references only files it wrote. The
+second matters because a relative URL resolving to nothing is a 404 on the
+client's server that looks exactly like a network problem and gets blamed on
+their IT.
+
+**464 tests** (20 new in `tests/bundle.test.js`).
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
@@ -2528,9 +2624,15 @@ order rather than wish order:
    phone.
 4. **The web component `<confgr-modular>`** with **all state per instance** so
    more than one sits on a page (§2). True from the first line or not at all.
-5. **The folder bundle export**, copying Studio's `exportProject.js` shape —
-   *and* its offline-guarantee test, which blocks every outbound request and
-   drives the tour. Copy the test, not just the exporter.
+5. ~~**The folder bundle export**, copying Studio's `exportProject.js` shape —
+   *and* its offline-guarantee test~~ — **done** (§5.22), and the test came with
+   it rather than after it, which is the whole reason the exporter is
+   trustworthy. `npm run youk:bundle` writes a folder that works on any static
+   host with no network dependency, ships only the models the configuration
+   references (three of eighty), and does **not** contain the editor — enforced
+   by the runtime having its own vite entry, so the module graph cannot carry
+   the authoring tool back in. **Still to do:** a saveExportFolder dialog so it
+   is not a command line, and a real client folder actually sent to somebody.
 6. **AR:** ~~GLB export of a configuration~~ (§5.19) and ~~USDZ conversion~~
    (§5.20) — **both done** → the hosted `/ar?c=<id>` landing route → the QR
    handoff (§4.5). **Both formats now come out of one configuration id**, so
@@ -2615,13 +2717,25 @@ Not the same as the phase order, and worth stating separately:
 11. ~~A viewer split out of the editor — responsive and touch from the start~~ —
     **done** (§5.21), and smaller than "the project" because it was built by
     *sharing* the editor's drawing code rather than by writing a second
-    renderer. What is left of this item is the **bundle export**, which is now
-    the big one and is what everything client-facing waits on.
-12. **The folder bundle**, with Studio's offline-guarantee test copied along with
-    the exporter. The runtime exists; making it a folder somebody can send does
-    not.
+    renderer.
+12. ~~The folder bundle, with Studio's offline-guarantee test~~ — **done**
+    (§5.22). `npm run youk:bundle` produces a folder that works with the wifi
+    off, on any static host, in a subdirectory, containing only the models the
+    configuration references and none of the editor.
 
-Items 1–11 are days. Item 12 is the project.
+**Everything on this list that our own work can move is now done.** What is
+left is not engineering:
+
+13. **Send one.** A real bundle, of a real configuration, to a real person —
+    which is the only test that has never been run. The folder works; nobody
+    has received one.
+14. **The five questions** (item 8). Still the difference between 80 parts and
+    85, and still nothing on our side can unblock them.
+15. **Five minutes with an iPhone**, which settles both remaining AR questions.
+
+Then Phase 1 — the editor, the snap editor, the asset store — which is where
+the *application* becomes reusable on somebody else's range (§2), and which
+this session has deliberately not touched.
 
 ### And the critical path for the *application*, which is not the same list
 
@@ -2658,9 +2772,15 @@ capability, which is the right way for a range to end.
 
 **What was built:** implied parts (§5.15), collision measurement (§5.16),
 required-part rules (§5.17), the configuration id and headless resolve (§5.18),
-the GLB export (§5.19), USDZ (§5.20) and the viewer split (§5.21). Six of those
-seven were on the roadmap as *not started*; §6 is trued up against the code as
-of today rather than as of the plan.
+the GLB export (§5.19), USDZ (§5.20), the viewer split (§5.21) and the bundle
+export (§5.22). Seven of those eight were on the roadmap as *not started*; §6 is
+trued up against the code as of today rather than as of the plan.
+
+**And the client-facing critical path is now empty of engineering.** Every item
+on it that our own work could move is done. What is left is a bundle actually
+sent to somebody, five questions only Kesseböhmer can answer, and five minutes
+with an iPhone. That is a different kind of list, and worth saying plainly
+rather than finding a fourteenth thing to build.
 
 **The session's own theme, and it was not planned:** the same fault kept
 appearing in different clothes — **two implementations of one idea, drifting.**
@@ -2691,6 +2811,12 @@ the runtime cannot drift from the editor because there is only one of it.
   count of the same thing — which is the general lesson of this session, and
   the reason to keep building the second measurement even when the first one
   looks fine.
+- **The first client bundle contained the authoring tool** (§5.22). `App.jsx`
+  statically imports `Configurator`, so vite shipped the palette, the attach
+  flows and the harness globals into a folder meant for a customer. Found by
+  one grep for the editor's own status line in the built JavaScript; fixed
+  structurally, by giving the runtime its own vite entry so the module graph
+  cannot carry `src/spike` back in.
 
 **And the last five STEP files, converted for the first time and none of them
 authored.** That is a result rather than a shortfall: three have faulty supplier

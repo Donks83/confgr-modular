@@ -34,6 +34,20 @@ function configurationFromUrl() {
 
 const CONFIGURATION = configurationFromUrl();
 
+/**
+ * The editor only exists inside the desktop app, and always has — `Configurator`
+ * has said "Run this inside the desktop app" since the first session, because
+ * it reads models off disk through the main process.
+ *
+ * So OUTSIDE the desktop app there is nothing to fall back to and no decision
+ * to make: an exported bundle served from a folder, or a hosted page, is the
+ * runtime. It reads its own `manifest.json` and shows what that names. This is
+ * also what stops a client's deliverable ever containing an authoring tool with
+ * no way to reach its files.
+ */
+const IN_DESKTOP_APP = typeof window !== 'undefined' && !!window.confgr;
+
 export default function App() {
-  return CONFIGURATION ? <ViewerHost configurationId={CONFIGURATION} /> : <Configurator />;
+  if (CONFIGURATION) return <ViewerHost configurationId={CONFIGURATION} />;
+  return IN_DESKTOP_APP ? <Configurator /> : <ViewerHost />;
 }

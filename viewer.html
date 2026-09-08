@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- viewport-fit=cover so the bottom sheet can sit under an iPhone's home
+       indicator and still clear it with env(safe-area-inset-bottom). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Product viewer</title>
+  <style>
+    /* The runtime fills whatever it is put in, and nothing more. An exported
+       folder is opened as a whole page; an embed is not, and the same CSS has
+       to serve both. */
+    html, body, #root { height: 100%; margin: 0; background: #1b1815; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/viewer/main.jsx"></script>
+</body>
+</html>
