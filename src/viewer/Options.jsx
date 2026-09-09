@@ -57,10 +57,10 @@ function Choice({
  * there.
  */
 function Stepper({
-  label, note, value, min = 0, max = 9, off = false, onChange,
+  label, note, value, min = 0, max = 9, off = false, active = false, onChange,
 }) {
   return (
-    <div className={`cfgo-row${off ? ' cfgo-rowoff' : ''}`}>
+    <div className={`cfgo-row${off ? ' cfgo-rowoff' : ''}${active ? ' cfgo-rowon' : ''}`}>
       <div className="cfgo-rowtext">
         <span className="cfgo-rowlabel">{label}</span>
         {/* The refusal, in the place the person can act on it. A count that
@@ -95,7 +95,22 @@ function Stepper({
 
 export default function Options({
   schema, choices, variant, size, refused = [], availability = {},
-  mountings = [], onChange,
+  mountings = [],
+  /**
+   * WHAT `+` MEANS, and it changed in §5.25.
+   *
+   * When a caller supplies `onPlace`, pressing + does not add a part - it says
+   * "another one of these, and I will show you where". The dots come up in the
+   * scene and the next tap decides the position. Matt: "click a dot add an
+   * accessory to the dot".
+   *
+   * Without it, + still increments and the engine places, which is what the
+   * embed and the tests use. Two behaviours from one control, decided by the
+   * caller rather than by a mode flag inside here.
+   */
+  onPlace = null,
+  placing = null,
+  onChange,
 }) {
   if (!schema || !choices || !variant || !size) return null;
 
@@ -159,11 +174,19 @@ export default function Options({
             <Stepper
               key={a.componentId}
               label={a.label || a.componentId}
-              note={noteFor(a.componentId)}
+              note={placing === a.componentId
+                ? 'tap a dot in the view'
+                : noteFor(a.componentId)}
               off={availability[a.componentId]?.kind === 'never'}
+              active={placing === a.componentId}
               value={choices.adds?.[a.componentId] || 0}
               max={a.perBay ? (a.max ?? 1) * choices.bays : (a.max ?? 4)}
-              onChange={(n) => set({ adds: { ...choices.adds, [a.componentId]: n } })}
+              onChange={(n) => {
+                const now = choices.adds?.[a.componentId] || 0;
+                // Going UP is a question about where; going down is not.
+                if (onPlace && n > now) { onPlace(a.componentId); return; }
+                set({ adds: { ...choices.adds, [a.componentId]: n } });
+              }}
             />
           ))}
         </div>

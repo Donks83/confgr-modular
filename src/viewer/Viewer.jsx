@@ -29,6 +29,10 @@ import {
 import {
   syncProduct, setGround, describeLayout, pickInstance,
 } from './product.js';
+import {
+  createMarkerLayer, drawMarkers, markerAt, hoverMarker,
+  clearGhost, showGhostAt, createGesture, MARKER_MODE,
+} from './interact.js';
 import { arAvailability } from './ar-link.js';
 import ArButton from './ArButton.jsx';
 import { resolveConfiguration } from '../engine/configuration.js';
@@ -68,6 +72,33 @@ export default function Viewer({
   selectable = false,
   selectedId = null,
   onPick = null,
+  /**
+   * The pointer layer, off unless a caller asks for it.
+   *
+   * Matt, after configuring a product with steppers alone: "it needs to be the
+   * drag and drop we had at the start with the snap dots, click a dot add an
+   * accessory to the dot and then you can click and drag to change its
+   * location." That is the editor's interaction, and since §5.25 it lives in
+   * `interact.js` where both programs can have it.
+   *
+   * A plain viewer of one configuration passes nothing and behaves exactly as
+   * before: no dots, no drag, and a tap that only selects. Everything below is
+   * gated on this object existing, so the runtime cannot grow the editor's
+   * behaviour by accident.
+   *
+   * @type {null | {
+   *   points: Array<object>,            the dots to draw, from the engine
+   *   mode: 'add' | 'move',
+   *   pendingKey: string|null,
+   *   targeted: boolean,
+   *   keyOf: (point) => string,
+   *   onPoint: (key, point) => void,    a dot was clicked
+   *   onMoved: (instanceId, key) => void,
+   *   canDrag: (instanceId) => {ok: boolean, reason?: string},
+   *   ghostFor: (instanceId, key) => {component, pose} | null,
+   * }}
+   */
+  interaction = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -79,6 +110,10 @@ export default function Viewer({
   // idiomatic React.
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  // Same trick, same reason: the gesture is built once and must never read a
+  // render-old copy of the caller's callbacks.
+  const actRef = useRef(interaction);
+  actRef.current = interaction;
   // Whether this viewer has ever framed a product. Per instance rather than
   // per configuration id: in a guided flow the id changes on every tap, and
   // "have I shown this person a product yet" is the actual question.
@@ -109,12 +144,31 @@ export default function Viewer({
     if (!mount) return undefined;
     const ctx = createScene(mount);
     ctxRef.current = ctx;
+    // The marker layer is built whether or not it is used, and costs one
+    // sphere geometry and two empty groups. Building it conditionally would
+    // mean the scene effect had to re-run when a caller turned interaction on,
+    // which would tear down and rebuild the whole renderer.
+    const disposeMarkers = createMarkerLayer(ctx);
     ctx.start();
     return () => {
+      disposeMarkers();
       ctx.dispose();
       ctxRef.current = null;
     };
   }, []);
+
+  // ------------------------------------------------------------------- the dots
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    drawMarkers(ctx, interaction?.points || [], {
+      mode: interaction?.mode === 'move' ? MARKER_MODE.MOVE : MARKER_MODE.ADD,
+      pendingKey: interaction?.pendingKey || null,
+      targeted: !!interaction?.targeted,
+      keyOf: interaction?.keyOf,
+    });
+    ctx.render();
+  }, [interaction?.points, interaction?.mode, interaction?.pendingKey, interaction?.targeted]);
 
   // --------------------------------------------------------------- the product
   useEffect(() => {
@@ -173,11 +227,11 @@ export default function Viewer({
   // and a deliberate tap with a little wobble misses.
   const pressRef = useRef(null);
 
-  const onPointerDown = (e) => {
+  const onTapDown = (e) => {
     pressRef.current = { x: e.clientX, y: e.clientY, at: Date.now() };
   };
 
-  const onPointerUp = (e) => {
+  const onTapUp = (e) => {
     const press = pressRef.current;
     pressRef.current = null;
     if (!press || !selectable || !onPick) return;
@@ -190,6 +244,56 @@ export default function Viewer({
     // part down, and it has to clear the selection rather than do nothing.
     onPick(pickInstance(ctx, e.clientX, e.clientY));
   };
+
+  // ---------------------------------------------------------------- the gesture
+  //
+  // With an interaction layer, the shared gesture takes the whole pointer over:
+  // it is the thing that knows a dot beats a part, that a press which travels
+  // is a drag, and that a drag can only end on a dot.
+  //
+  // WHY A DRAG NEEDS THE PART SELECTED FIRST, which the editor does not require.
+  // In the editor, dragging a part is the main verb and the markers are always
+  // up, so a press on a part is unambiguous. A customer's first instinct on a
+  // 3D product is to swipe it round - and on a phone the product fills the
+  // screen, so nearly every orbit starts on a part. Requiring a tap first makes
+  // the intent explicit and costs one tap: `canDrag` refuses with
+  // 'not-selected', the gesture lets go, and OrbitControls - which was never
+  // disabled - carries on turning the camera. Nothing is said, because nothing
+  // went wrong.
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+
+  const gesture = useMemo(() => createGesture({
+    hitMarker: (x, y) => markerAt(ctxRef.current, x, y),
+    hitInstance: (x, y) => pickInstance(ctxRef.current, x, y),
+    canDrag: (id) => (actRef.current?.canDrag?.(id) ?? { ok: false, reason: 'no-interaction' }),
+    hooks: {
+      onPoint: (key, marker) => actRef.current?.onPoint?.(key, marker),
+      onSelect: (id) => onPickRef.current?.(id),
+      onDragStart: () => { ctxRef.current.controls.enabled = false; },
+      onDragOver: (key, mesh, id) => {
+        const ctx = ctxRef.current;
+        if (!hoverMarker(ctx, mesh)) return;
+        const ghost = key ? actRef.current?.ghostFor?.(id, key) : null;
+        if (ghost) showGhostAt(ctx, ghost.component, ghost.pose);
+        else clearGhost(ctx);
+        ctx.render();
+      },
+      onDragEnd: () => {
+        const ctx = ctxRef.current;
+        ctx.controls.enabled = true;
+        hoverMarker(ctx, null);
+        clearGhost(ctx);
+        ctx.render();
+      },
+      onDrop: (id, key) => {
+        if (key) actRef.current?.onMoved?.(id, key);
+      },
+    },
+  }), []);
+
+  // Escape, and unmounting mid-drag, both have to put the camera back.
+  useEffect(() => () => gesture.cancel(), [gesture]);
 
   const parts = resolved?.assembly.instances.length ?? 0;
   const implied = resolved?.implied?.connections?.length ?? 0;
@@ -209,11 +313,16 @@ export default function Viewer({
 
   return (
     <div className="cfgv">
+      {/* One or the other, never both. With an interaction layer the shared
+          gesture owns the pointer; without one, the tap rule is all a plain
+          viewer needs and all it should have. */}
       <div
         className="cfgv-stage"
         ref={mountRef}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
+        onPointerDown={interaction ? gesture.onPointerDown : onTapDown}
+        onPointerMove={interaction ? gesture.onPointerMove : undefined}
+        onPointerUp={interaction ? gesture.onPointerUp : onTapUp}
+        onPointerCancel={interaction ? gesture.cancel : undefined}
       />
 
       {error && (

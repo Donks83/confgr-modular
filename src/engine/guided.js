@@ -34,6 +34,7 @@
 
 import {
   attachMatrix, pointsForComponent, placementsAt, distinctPlacements,
+  livePoints, pointKey,
   attachAt, placeFree, mountHeightMm, whyComponentFitsNowhere,
   canMove, moveTargets, moveTo,
 } from './attach.js';
@@ -237,60 +238,58 @@ export function normaliseChoices(schema, choices = {}) {
 }
 
 /**
- * Where an already-placed accessory could go instead.
+ * Every position an already-placed accessory could legally take.
  *
  * Built on the EDITOR's own move machinery - `canMove`, `moveTargets`,
  * `moveTo` - because re-hanging a part is exactly the operation the editor
- * already performs and a second implementation of it would drift. This adds
- * only the part that is specific to a guided flow: the options are reduced to
- * DISTINCT HEIGHTS, labelled in millimetres, and each is checked by actually
- * making the move on a copy and surveying the result.
+ * already performs and a second implementation of it would drift. What this
+ * adds is the checking: each candidate is tried by actually making the move on
+ * a copy and surveying the result, so an offered position is one that survives
+ * the rebuild.
  *
- * HEIGHTS, not points, and that is a deliberate simplification for a first cut.
- * A 1500 mm frame in a two-bay run offers a dozen legal points for a clothes
- * rail - four rungs, two faces, three frames - and most of those differ only in
- * which bay they land in. The complaint being answered is "all of the addons
- * are just on the bottom rail", which is about height; so the options are the
- * distinct heights, and for each one the position nearest to where the part
- * already is. Moving something to a different BAY is a real thing somebody will
- * want and is not this.
+ * THE SAME RULE PLACEMENT USES. A part the schema calls spanning has to be held
+ * at both ends. Without this the move list offered positions that `buildGuided`
+ * then refused - so the recorded position was dropped and the part sprang back.
+ * Two paths asking different questions about the same thing is exactly how "an
+ * offered option works" stops being true.
  *
- * Structural parts - the frames and the spans - are not movable and say so.
- * They are not slots, and moving one would take the run apart.
+ * Structural parts - the frames and the spans - are not slots and say so.
+ * Moving one would take the run apart.
+ *
+ * EXTRACTED so that `moveOptions` and `movePoints` cannot disagree. They are
+ * two views of one answer: a list of heights for a panel, and a set of dots for
+ * the scene. When the dots arrived (§5.25) the obvious thing was to write a
+ * second filtered query for them, which is the mistake this project has now
+ * made four times.
  */
-export function moveOptions(built, components, instanceId) {
+export function moveCandidates(built, components, instanceId) {
   const slot = built.slots?.[instanceId] || null;
   const instance = built.assembly.instances.find((i) => i.instanceId === instanceId);
-  if (!instance) return { ok: false, reason: 'That part is not on this product.' };
+  if (!instance) return { ok: false, reason: 'That part is not on this product.', candidates: [] };
   if (!slot) {
     return {
       ok: false,
       slot: null,
       structural: true,
       reason: 'That is part of the frame. Change the size or the number of bays instead.',
+      candidates: [],
     };
   }
 
   const { transforms } = resolveTransforms(built.assembly, components);
   const allowed = canMove(built.assembly, instanceId);
-  if (!allowed.ok) return { ok: false, slot, reason: 'That part cannot be moved.' };
+  if (!allowed.ok) {
+    return { ok: false, slot, reason: 'That part cannot be moved.', candidates: [] };
+  }
 
   const { placements } = moveTargets(built.assembly, components, transforms, instanceId, {});
   const mine = placements.filter((p) => p.componentId === instance.componentId);
-  if (!mine.length) return { ok: true, slot, options: [] };
-
   const here = transforms.get(instanceId);
-  const byHeight = new Map();
 
-  // THE SAME RULE PLACEMENT USES. A part the schema calls spanning has to be
-  // held at both ends, and without this the move list offered positions that
-  // `buildGuided` would then refuse - so the recorded position would be
-  // dropped and the part would spring back. An option that is offered has to
-  // be an option that survives the rebuild, and the two paths asking different
-  // questions is exactly how that stops being true.
   const add = (built.size?.adds || []).find((a) => a.componentId === instance.componentId);
   const mustBeHeld = !!add?.spans;
 
+  const candidates = [];
   for (const placement of distinctPlacements(built.assembly, components, mine)) {
     let moved;
     try {
@@ -302,31 +301,111 @@ export function moveOptions(built, components, instanceId) {
     if (!s) continue;
     if (mustBeHeld && s.met < s.total) continue;
 
-    const heightMm = Math.round(s.worldY * 1000);
     const t = s.transforms.get(instanceId);
-    const sideways = here ? Math.abs(t.translation[0] - here.translation[0]) : 0;
-    const existing = byHeight.get(heightMm);
-    // One entry per height, and where several positions share one, the nearest
-    // to where the part already is - so "move it up" does not also slide it
-    // into the next bay.
-    if (!existing || sideways < existing.sideways) {
-      byHeight.set(heightMm, {
-        heightMm,
-        sideways,
-        at: { instanceId: placement.point.instanceId, snapId: placement.point.snapId },
-        current: here ? Math.abs(t.translation[1] - here.translation[1]) < 0.0005 : false,
-        held: s.met,
-        heldOf: s.total,
+    candidates.push({
+      point: placement.point,
+      // The pose the part would take, kept rather than recomputed. The editor
+      // asks the engine again to draw its drag preview; this already knows,
+      // because the candidate was only accepted by making the move and looking
+      // at the result.
+      pose: t,
+      at: { instanceId: placement.point.instanceId, snapId: placement.point.snapId },
+      heightMm: Math.round(s.worldY * 1000),
+      sideways: here ? Math.abs(t.translation[0] - here.translation[0]) : 0,
+      current: here
+        ? Math.abs(t.translation[1] - here.translation[1]) < 0.0005
+          && Math.abs(t.translation[0] - here.translation[0]) < 0.0005
+        : false,
+      held: s.met,
+      heldOf: s.total,
+    });
+  }
+
+  return {
+    ok: true, slot, componentId: instance.componentId, candidates,
+  };
+}
+
+/**
+ * The same answer as a list of DISTINCT HEIGHTS, for a panel.
+ *
+ * Kept because it is still the right control on a phone where a drag across a
+ * 3D view with a thumb is fiddly, and because it is what `MovePanel` renders.
+ * One entry per height, and where several positions share one, the nearest to
+ * where the part already is - so "move it up" does not also slide it into the
+ * next bay.
+ */
+export function moveOptions(built, components, instanceId) {
+  const r = moveCandidates(built, components, instanceId);
+  if (!r.ok) return r;
+
+  const byHeight = new Map();
+  for (const c of r.candidates) {
+    const existing = byHeight.get(c.heightMm);
+    if (!existing || c.sideways < existing.sideways) {
+      byHeight.set(c.heightMm, {
+        heightMm: c.heightMm,
+        sideways: c.sideways,
+        at: c.at,
+        current: c.current,
+        held: c.held,
+        heldOf: c.heldOf,
       });
     }
   }
 
   return {
     ok: true,
-    slot,
-    componentId: instance.componentId,
+    slot: r.slot,
+    componentId: r.componentId,
     options: [...byHeight.values()].sort((a, b) => a.heightMm - b.heightMm),
   };
+}
+
+/**
+ * The same answer as a set of DOTS, for the scene.
+ *
+ * This is what Matt asked for: "you can click and drag to change its
+ * location". Every position, not one per height - a drag is a gesture in three
+ * dimensions and collapsing the targets to heights would put two dots in the
+ * same place and drop the one the person aimed at.
+ *
+ * Each dot carries the point the engine produced, so the drop can be recorded
+ * as `{instanceId, snapId}` against the slot without asking a second question.
+ */
+export function movePoints(built, components, instanceId) {
+  const r = moveCandidates(built, components, instanceId);
+  if (!r.ok) return [];
+  const seen = new Set();
+  const out = [];
+  for (const c of r.candidates) {
+    const key = pointKey(c.point);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c.point);
+  }
+  return out;
+}
+
+/**
+ * Where one MORE of a component could go.
+ *
+ * The add flow's half of the same idea: green dots for "a new one can go here",
+ * amber for "the one in your hand can land here". Asked of `attachMatrix` and
+ * narrowed by `pointsForComponent`, which is what the editor's part-first flow
+ * does - a 3x2 pouch legitimately offers fewer dots than a 1x1 one, and that is
+ * the useful behaviour rather than a special case.
+ */
+export function addPoints(built, components, componentId) {
+  if (!built?.assembly || !components?.size || !componentId) return [];
+  try {
+    const { transforms } = resolveTransforms(built.assembly, components);
+    const matrix = attachMatrix(built.assembly, components, [componentId], transforms);
+    const allowed = new Set(pointsForComponent(matrix, componentId).map((p) => p.pointKey));
+    return livePoints(matrix).filter((p) => allowed.has(pointKey(p)));
+  } catch {
+    return [];
+  }
 }
 
 /**

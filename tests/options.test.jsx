@@ -243,3 +243,50 @@ describe('an option that cannot go on this frame', () => {
     expect(stepper('Clothes rail').note).toBe('not available on 200 mm deep frames');
   });
 });
+
+// What `+` means changed in §5.25. Matt: "click a dot add an accessory to the
+// dot" - so pressing + no longer adds a part, it asks where. The old behaviour
+// is still there for a caller that does not supply `onPlace`, which is what
+// keeps this panel usable in an embed with no scene to point at.
+describe('pressing plus', () => {
+  it('adds a part when nobody is offering to place it', () => {
+    const seen = [];
+    draw({ onChange: (next) => seen.push(next) });
+    stepper('Clothes rail').plus.click();
+    expect(seen).toHaveLength(1);
+    expect(seen[0].adds[RAIL]).toBe(1);
+  });
+
+  it('asks where instead, when a caller can show dots', () => {
+    const placed = [];
+    const changed = [];
+    draw({ onPlace: (id) => placed.push(id), onChange: (n) => changed.push(n) });
+    stepper('Clothes rail').plus.click();
+    expect(placed).toEqual([RAIL]);
+    // And crucially does NOT add it - the part appears when the dot is tapped,
+    // or not at all if the person changes their mind.
+    expect(changed).toEqual([]);
+  });
+
+  // Going DOWN is not a question about where. Routing minus through the same
+  // "which dot?" flow would mean removing a shelf asked you to point at one.
+  it('minus still removes, even when plus asks', () => {
+    const changed = [];
+    draw({ onPlace: () => {}, onChange: (n) => changed.push(n) });
+    stepper('Extra shelf').minus.click();
+    expect(changed).toHaveLength(1);
+    expect(changed[0].adds[SHELF]).toBe(2);
+  });
+
+  it('marks the row that is waiting for a dot, and says so', () => {
+    draw({ onPlace: () => {}, placing: RAIL });
+    const rail = stepper('Clothes rail');
+    expect(rail.row.className).toContain('cfgo-rowon');
+    expect(rail.note).toBe('tap a dot in the view');
+  });
+
+  it('leaves the other rows unmarked', () => {
+    draw({ onPlace: () => {}, placing: RAIL });
+    expect(stepper('Extra shelf').row.className).not.toContain('cfgo-rowon');
+  });
+});
