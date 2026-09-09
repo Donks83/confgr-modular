@@ -28,6 +28,18 @@ import { loadComponentFromPath } from '../three/loadGlb.js';
 // same shape: two implementations of one idea, drifting.
 import { createScene, fitBounds } from '../viewer/scene.js';
 import { syncProduct, setGround, describeLayout } from '../viewer/product.js';
+// AND SO DOES THE POINTER LAYER, as of §5.25. The dots, the ghost and the one
+// gesture that tells select/add/move apart used to be four hundred lines right
+// here. Matt asked for them in the CUSTOMER's runtime - "it needs to be the
+// drag and drop we had at the start with the snap dots" - and copying them
+// across would have been the fifth time this project made two implementations
+// of one idea and watched them drift. So they moved down into src/viewer and
+// the editor imports them, which is the same call §5.21 made for the scene.
+import {
+  createMarkerLayer, drawMarkers, markerAt, pickInstance,
+  clearGhost, showGhostAt, previewMove, dropTargets, hoverMarker,
+  createGesture, MARKER_MODE,
+} from '../viewer/interact.js';
 import { resolveTransforms, validateAssembly } from '../engine/assembly.js';
 import {
   attachMatrix, pointsForComponent, componentsForPoint, livePoints,
@@ -57,10 +69,10 @@ export default function Configurator() {
   const mountRef = useRef(null);
   const three = useRef(null);
   const framedFor = useRef('');
-  // Drag state lives in a ref, not React state: pointermove fires at screen
-  // rate and re-rendering the panel on every one of them would make the drag
-  // feel heavy. Only the START and END of a drag touch React.
-  const drag = useRef(null);
+  // Drag state used to live in a ref here, for the reason `createGesture` now
+  // documents: pointermove fires at screen rate and re-rendering the panel on
+  // every one of them would make the drag feel heavy. The gesture keeps it in a
+  // closure instead, and only its START and END touch React.
   const live = useRef({});
 
   const [components, setComponents] = useState(new Map());
@@ -220,24 +232,11 @@ export default function Configurator() {
 
 
 
-    // THE EDITOR'S OWN FURNITURE, and the whole of what it adds to the scene.
-    // Markers to attach to, a ghost to preview with, a raycaster to pick with.
-    // A customer sees none of these, which is exactly why they live here and
-    // the rest does not.
-    //
-    // The ghost has its own group so the product rebuild, which owns
-    // productRoot's children, never has to know it exists.
-    const markerRoot = new THREE.Group();
-    const ghostRoot = new THREE.Group();
-    scene.add(markerRoot, ghostRoot);
-
-    Object.assign(ctx, {
-      markerRoot,
-      ghostRoot,
-      raycaster: new THREE.Raycaster(),
-      pointer: new THREE.Vector2(),
-      markerGeo: new THREE.SphereGeometry(1, 12, 10),
-    });
+    // THE POINTER LAYER. Dots to attach to, a ghost to preview with, a
+    // raycaster to pick with — no longer built here, because the runtime needs
+    // exactly the same three things and a second copy of them would drift.
+    const disposeMarkers = createMarkerLayer(ctx);
+    const { markerRoot, ghostRoot } = ctx;
     three.current = ctx;
 
     // Force one frame, then read the buffer. Same reason as `settle` below: an
@@ -439,10 +438,9 @@ export default function Configurator() {
     ctx.start();
 
     return () => {
-      // The editor's own furniture is the editor's own to clean up; everything
-      // else is disposed by the scene that made it.
-      ctx.markerGeo.dispose();
-      ghostRoot.traverse((o) => { if (o.isMesh) o.material?.dispose(); });
+      // The pointer layer cleans up after itself; everything else is disposed
+      // by the scene that made it.
+      disposeMarkers();
       ctx.dispose();
     };
   }, []);
@@ -750,46 +748,16 @@ export default function Configurator() {
     const ctx = three.current;
     if (!ctx) return;
 
-    while (ctx.markerRoot.children.length) {
-      const m = ctx.markerRoot.children.pop();
-      m.material.dispose();
-    }
-    // The mesh ctx.hovered pointed at has just been thrown away.
-    ctx.hovered = null;
-    if (!showMarkers) return;
-
-    const isMoving = !!movingId;
-
-    for (const point of markers) {
-      const key = pointKey(point);
-      const isPending = key === pendingPoint;
-      const isTargeted = !!pendingPart;
-
-      const mesh = new THREE.Mesh(ctx.markerGeo, new THREE.MeshBasicMaterial({
-        // Amber during a move. A different question deserves a different colour:
-        // green means "a new part can go here", amber means "the thing in your
-        // hand can go here".
-        color: isMoving ? '#f0a53c' : isPending ? '#e0a03c' : isTargeted ? '#3ddc97' : '#4fc3d9',
-        transparent: true,
-        opacity: isMoving ? 0.95 : isPending ? 1 : isTargeted ? 0.9 : 0.55,
-      }));
-
-      // Grid cells are dense — a MOLLE panel has 84 of them — so their markers
-      // are smaller than an authored point's or the panel disappears under dots.
-      // During a move they are all enlarged: the cursor is already holding
-      // something, so the target has to be easy to hit.
-      const r = (point.isGridCell ? 0.006 : 0.014)
-        * (isPending ? 1.7 : isTargeted ? 1.35 : 1)
-        * (isMoving ? 1.6 : 1);
-      mesh.scale.setScalar(r);
-      mesh.userData.baseRadius = r;
-      mesh.position.fromArray(point.worldPosition);
-      // Lift off the surface so a marker is never buried in the geometry.
-      mesh.position.addScaledVector(new THREE.Vector3().fromArray(point.worldFacing), r * 0.9);
-      mesh.userData.pointKey = key;
-      mesh.renderOrder = 2;
-      ctx.markerRoot.add(mesh);
-    }
+    // One drawing routine, shared with the runtime. The colours, the sizes and
+    // the lift off the surface are decided in `markerStyleFor`, which is pure
+    // and has a test — the thirty lines of ternaries that used to be here did
+    // not.
+    drawMarkers(ctx, showMarkers ? markers : [], {
+      mode: movingId ? MARKER_MODE.MOVE : MARKER_MODE.ADD,
+      pendingKey: pendingPoint,
+      targeted: !!pendingPart,
+      keyOf: pointKey,
+    });
   }, [markers, pendingPoint, pendingPart, showMarkers, movingId]);
 
   // ------------------------------------------------------------- attach flows
@@ -946,247 +914,118 @@ export default function Configurator() {
 
   // ------------------------------------------------------------- picking
   //
-  // One gesture, three outcomes, decided by what happened between pointerdown
-  // and pointerup:
+  // One gesture, three outcomes — and as of §5.25 the gesture itself lives in
+  // `src/viewer/interact.js`, because the customer's runtime needs exactly the
+  // same one. What is left here is only the editor's ANSWERS to it: which
+  // React state each outcome changes, and what the status line says.
   //
-  //   down on a marker            -> choose that point (add flow)
-  //   down on a part, no movement -> select it
-  //   down on a part, then moved  -> pick it up and drop it on another point
-  //
-  // Matt, 3 Sep: "it would be nice for me to be able to click and drag an object
-  // to a different snap point (not to drag it anywhere in 3d space but only to
-  // another snap point". So a drag has exactly as many destinations as there are
-  // markers — it cannot end anywhere else, and that is the whole safety
-  // property. The free-drag spike is not coming back.
+  // The hit tests are passed in, so the shared gesture touches no three.js and
+  // can be driven by fake events in a unit test — which is the first coverage
+  // this logic has ever had. It immediately found that `moveTargetAt` was
+  // called and never defined: the drop preview threw a ReferenceError on every
+  // pointermove and no ghost has ever appeared in this editor.
 
-  const DRAG_THRESHOLD_PX = 5;
-
-  const castAt = (event) => {
-    const ctx = three.current;
-    const rect = ctx.renderer.domElement.getBoundingClientRect();
-    ctx.pointer.set(
-      ((event.clientX - rect.left) / rect.width) * 2 - 1,
-      -((event.clientY - rect.top) / rect.height) * 2 + 1,
-    );
-    ctx.raycaster.setFromCamera(ctx.pointer, ctx.camera);
-    return ctx;
+  // The callbacks a gesture outcome runs. Kept in a ref and rewritten every
+  // render for the same reason `live` is: the gesture is built ONCE, and a
+  // closure over this render's `matrix` would be answering with a product two
+  // edits old.
+  const acts = useRef({});
+  acts.current = {
+    choosePoint,
+    place,
+    applyMove,
+    setPendingChoice,
+    setPendingPart,
+    setPendingPoint,
+    setSelectedId,
+    setMovingId,
+    setStatus,
   };
 
-  const markerUnder = (ctx) => {
-    const hits = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
-    return hits.length ? hits[0].object : null;
-  };
+  const gesture = useMemo(() => createGesture({
+    hitMarker: (x, y) => markerAt(three.current, x, y),
+    hitInstance: (x, y) => pickInstance(three.current, x, y),
+    canDrag: (id) => canMove(live.current.assembly, id),
+    hooks: {
+      onPoint: (key) => acts.current.choosePoint(key),
 
-  const instanceUnder = (ctx) => {
-    const hits = ctx.raycaster.intersectObjects(ctx.productRoot.children, true)
-      .filter((h) => h.object.visible && !h.object.name.startsWith('md-'));
-    if (!hits.length) return null;
-    let node = hits[0].object;
-    while (node && node.userData.instanceId == null) node = node.parent;
-    return node ? node.userData.instanceId : null;
-  };
+      onSelect: (id) => {
+        acts.current.setSelectedId(id);
+        acts.current.setPendingPart(null);
+        acts.current.setPendingPoint(null);
+      },
 
-  // Clear the drop preview.
-  const clearGhost = (ctx) => {
-    while (ctx.ghostRoot.children.length) {
-      const child = ctx.ghostRoot.children.pop();
-      child.traverse((o) => { if (o.isMesh) o.material?.dispose(); });
-    }
-  };
+      // Not movable — the anchor, usually. The orbit is allowed to continue
+      // rather than being interrupted by a message nobody asked for, so only
+      // the one reason worth explaining gets said.
+      onBlocked: (reason) => {
+        if (reason === 'is-anchor') {
+          acts.current.setStatus('That part is the anchor — the rest of the product hangs off it.');
+        }
+      },
 
-  /**
-   * Show where the part would land, as a translucent copy.
-   *
-   * The part being dragged does NOT follow the cursor — it cannot, because the
-   * only legal destinations are the markers, and a part sliding through open
-   * space would be promising something the model refuses to deliver. A ghost at
-   * the candidate point says the same thing honestly.
-   *
-   * The hypothetical transform is obtained by asking the engine: rewire the
-   * connection, resolve, read the answer back. No second solver, so the preview
-   * cannot disagree with the drop.
-   */
-  const showGhost = (ctx, instanceId, placement) => {
-    clearGhost(ctx);
-    const { assembly: current, components: loaded } = live.current;
-    const instance = current.instances.find((i) => i.instanceId === instanceId);
-    const component = instance && loaded.get(instance.componentId);
-    if (!component?.template) return;
+      onDragStart: (id) => {
+        // Take the gesture off OrbitControls. The camera will have orbited by
+        // those few pixels, which is a small price for keeping "drag anywhere
+        // to orbit" working when the product fills the screen.
+        three.current.controls.enabled = false;
+        acts.current.setSelectedId(id);
+        acts.current.setPendingPart(null);
+        acts.current.setPendingPoint(null);
+        acts.current.setMovingId(id);
+        acts.current.setStatus('Drop it on a marker, or release anywhere else to leave it where it was.');
+      },
 
-    let landed;
-    try {
-      const hypothetical = moveTo(current, instanceId, placement);
-      landed = resolveTransforms(hypothetical, loaded).transforms.get(instanceId);
-    } catch {
-      return;
-    }
-    if (!landed) return;
+      // Highlight what the cursor is over and preview where the part would
+      // land. `hoverMarker` returns false when nothing changed, which keeps a
+      // solve off every single pointermove.
+      onDragOver: (key, mesh, id) => {
+        const ctx = three.current;
+        if (!hoverMarker(ctx, mesh)) return;
+        if (!key) { clearGhost(ctx); return; }
+        const { assembly: current, components: loaded, transforms: t } = live.current;
+        const [placement] = dropTargets(current, loaded, t, id, key);
+        if (!placement) { clearGhost(ctx); return; }
+        const instance = current.instances.find((i) => i.instanceId === id);
+        const component = instance && loaded.get(instance.componentId);
+        showGhostAt(ctx, component, previewMove(current, loaded, id, placement));
+      },
 
-    const ghost = component.template.clone(true);
-    ghost.traverse((o) => {
-      if (!o.isMesh) return;
-      if (o.name.startsWith('md-')) { o.visible = false; return; }
-      o.castShadow = false;
-      o.receiveShadow = false;
-      o.material = o.material.clone();
-      o.material.transparent = true;
-      o.material.opacity = 0.4;
-      o.material.depthWrite = false;
-      o.material.emissive = new THREE.Color('#4a3410');
-    });
-    ghost.position.fromArray(landed.translation);
-    ghost.quaternion.fromArray(landed.rotation);
-    ctx.ghostRoot.add(ghost);
-  };
+      onDragEnd: () => {
+        const ctx = three.current;
+        ctx.controls.enabled = true;
+        hoverMarker(ctx, null);
+        clearGhost(ctx);
+        acts.current.setMovingId(null);
+      },
 
-  // Highlight whatever the cursor is over during a drag, by mutating the mesh
-  // rather than by setting state: this runs on every pointermove.
-  const hoverMarker = (ctx, mesh, instanceId) => {
-    const previous = ctx.hovered;
-    if (previous === mesh) return;
-    if (previous?.parent) previous.scale.setScalar(previous.userData.baseRadius);
-    if (mesh) mesh.scale.setScalar(mesh.userData.baseRadius * 1.8);
-    ctx.hovered = mesh || null;
+      onDrop: (id, key) => {
+        if (!key) { acts.current.setStatus('Left where it was.'); return; }
+        const { assembly: current, components: loaded, transforms: t } = live.current;
+        const options = dropTargets(current, loaded, t, id, key);
+        if (!options.length) { acts.current.setStatus('It cannot go there.'); return; }
 
-    if (!mesh || !instanceId) { clearGhost(ctx); return; }
-    const placement = moveTargetAt(instanceId, mesh.userData.pointKey);
-    if (placement) showGhost(ctx, instanceId, placement);
-    else clearGhost(ctx);
-  };
+        if (options.length > 1) {
+          acts.current.setPendingChoice({
+            kind: 'move',
+            instanceId: id,
+            componentId: current.instances.find((i) => i.instanceId === id)?.componentId,
+            placements: options,
+          });
+          acts.current.setStatus(`${options.length} ways it can sit there — pick one.`);
+          return;
+        }
+        // The camera must NOT re-frame: the parts are the same, so the framing
+        // signature is unchanged and this is a no-op by construction. Noted
+        // because it is the kind of thing a later refactor quietly breaks.
+        acts.current.applyMove(id, options[0]);
+      },
+    },
+  }), []);
 
-  /**
-   * The placement for dropping a part on a point, computed FRESH.
-   *
-   * Deliberately not read out of the memoised move matrix: the drag can cross
-   * the threshold and finish inside a single frame, before React has rendered
-   * the state that would have filled that memo in. Asking the engine costs
-   * nothing at this scale and removes the race entirely.
-   */
-  const moveTargetsAt = (instanceId, key) => {
-    const { assembly: current, components: loaded, transforms: t } = live.current;
-    if (!loaded?.size) return [];
-    try {
-      const targets = moveTargets(current, loaded, t, instanceId);
-      // Every way it could sit there, not the first. A shelf dragged to the far
-      // side of a ladder can mate by either end, and letting the engine pick is
-      // what span the part round: the solver satisfies facing by yawing the
-      // child 180 degrees, so the "wrong" end always fits, backwards.
-      const here = targets.placements
-        .filter((pl) => pl.pointKey === key)
-        .sort((a, b) => mountHeightMm(a) - mountHeightMm(b));
-      // Same rule as placing: distinct outcomes, not distinct wirings. The
-      // probe is a fresh instance attached at each candidate, so the part's
-      // existing copy sitting in `current` is irrelevant - only the probe's own
-      // resolved pose is read.
-      return distinctPlacements(current, loaded, here);
-    } catch {
-      return [];
-    }
-  };
-
-  const onPointerDown = (event) => {
-    const ctx = three.current;
-    if (!ctx || event.button !== 0) return;
-
-    const marker = markerUnder(castAt(event));
-    if (marker) {
-      // Markers are small and sit on top of the geometry they belong to, so
-      // testing the product first would make them almost unclickable.
-      drag.current = null;
-      choosePoint(marker.userData.pointKey);
-      return;
-    }
-
-    const instanceId = instanceUnder(ctx);
-    drag.current = instanceId
-      ? { instanceId, x: event.clientX, y: event.clientY, started: false }
-      : null;
-
-    if (!instanceId) {
-      setSelectedId(null);
-      setPendingPart(null);
-      setPendingPoint(null);
-    }
-  };
-
-  const onPointerMove = (event) => {
-    const ctx = three.current;
-    const d = drag.current;
-    if (!ctx) return;
-
-    if (d?.started) { hoverMarker(ctx, markerUnder(castAt(event)), d.instanceId); return; }
-    if (!d) return;
-
-    const moved = Math.hypot(event.clientX - d.x, event.clientY - d.y);
-    if (moved < DRAG_THRESHOLD_PX) return;
-
-    // Past the threshold: take the gesture off OrbitControls. The camera will
-    // have orbited by those few pixels, which is a small price for keeping
-    // "drag anywhere to orbit" working when the product fills the screen.
-    const allowed = canMove(live.current.assembly, d.instanceId);
-    if (!allowed.ok) {
-      // Not movable — the anchor, usually. Let the orbit continue rather than
-      // interrupting it with a message nobody asked for.
-      drag.current = null;
-      if (allowed.reason === 'is-anchor') {
-        setStatus('That part is the anchor — the rest of the product hangs off it.');
-      }
-      return;
-    }
-
-    d.started = true;
-    ctx.controls.enabled = false;
-    setSelectedId(d.instanceId);
-    setPendingPart(null);
-    setPendingPoint(null);
-    setMovingId(d.instanceId);
-    setStatus('Drop it on a marker, or release anywhere else to leave it where it was.');
-  };
-
-  const endDrag = (event) => {
-    const ctx = three.current;
-    const d = drag.current;
-    drag.current = null;
-    if (!ctx) return;
-
-    if (!d?.started) {
-      // A click, not a drag.
-      if (d) { setSelectedId(d.instanceId); setPendingPart(null); setPendingPoint(null); }
-      return;
-    }
-
-    ctx.controls.enabled = true;
-    const marker = event ? markerUnder(castAt(event)) : null;
-    hoverMarker(ctx, null, null);
-    setMovingId(null);
-
-    if (!marker) { setStatus('Left where it was.'); return; }
-
-    const options = moveTargetsAt(d.instanceId, marker.userData.pointKey);
-    if (!options.length) { setStatus('It cannot go there.'); return; }
-
-    if (options.length > 1) {
-      setPendingChoice({
-        kind: 'move',
-        instanceId: d.instanceId,
-        componentId: assembly.instances.find((i) => i.instanceId === d.instanceId)?.componentId,
-        placements: options,
-      });
-      setStatus(`${options.length} ways it can sit there — pick one.`);
-      return;
-    }
-
-    const [placement] = options;
-    try {
-      setAssembly((a) => moveTo(a, d.instanceId, placement));
-      // The camera must NOT re-frame: the parts are the same, so the framing
-      // signature is unchanged and this is a no-op by construction. Noted
-      // because it is the kind of thing a later refactor quietly breaks.
-      setStatus('Moved.');
-    } catch (err) {
-      setStatus(err.message);
-    }
-  };
+  const onPointerDown = gesture.onPointerDown;
+  const onPointerMove = gesture.onPointerMove;
+  const endDrag = gesture.onPointerUp;
 
   useEffect(() => {
     const onKey = (e) => {
@@ -1194,7 +1033,7 @@ export default function Configurator() {
       if (e.key === 'Escape') {
         setPendingPart(null);
         setPendingPoint(null);
-        if (drag.current) { endDrag(null); }
+        gesture.cancel();
       }
     };
     window.addEventListener('keydown', onKey);

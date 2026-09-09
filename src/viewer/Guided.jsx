@@ -27,7 +27,7 @@ import MovePanel from './MovePanel.jsx';
 import './options.css';
 import {
   buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions,
-  slotKeyFor, builderIdOf, GuidedError,
+  slotKeyFor, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
 import { MOUNTING } from '../engine/ar.js';
 
@@ -165,6 +165,16 @@ export default function Guided({
     () => (variant ? sizeOf(variant, choices) : null),
     [variant, choices],
   );
+
+  // Which accessories this frame can take at all, so a row that can never be
+  // used says so instead of refusing when it is pressed. Recomputed with the
+  // product because "no room left" changes as bays are added, while "not
+  // available on 200 mm deep frames" does not - `addAvailability` tells them
+  // apart and this does not need to.
+  const availability = useMemo(() => {
+    if (!built.assembly || !components?.size) return {};
+    try { return addAvailability(built, components); } catch { return {}; }
+  }, [built, components]);
 
   // Which mountings this product can actually take. A schema may say, and if it
   // does not, all three are offered - the engine has handled all three since
@@ -350,6 +360,7 @@ export default function Guided({
           variant={variant}
           size={size}
           refused={built.refused}
+          availability={availability}
           mountings={mountings}
           onChange={change}
         />

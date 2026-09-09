@@ -19,7 +19,7 @@ param(
   [ValidateSet('bay', 'run', 'mount', 'palette', 'stagger', 'shared', 'hooks', 'wallfixed',
                'cabinets', 'carcase', 'office', 'officetilt', 'officeclamp',
                'officeclamptilt', 'officefeet', 'feet', 'feetrefused',
-               'cantilever', 'roundtrip', 'viewer', 'condition', 'timber')]
+               'cantilever', 'roundtrip', 'viewer', 'condition', 'timber', 'move')]
   [string]$Scenario = 'bay',
   # An ad-hoc click string, used INSTEAD of the named scenario. For working out
   # what a marker index actually refers to before writing a scenario around it -
@@ -112,6 +112,20 @@ $clicks = @{
   bay = 'dump,part:008563,marker:0,dump,part:236758,marker:0,choose:0,dump,' +
         'part:008531,marker:4,dump,part:008543,marker:6,dump,' +
         'part:008547,marker:2,dump,part:008537,marker:11,dump,layout'
+  # DRAGGING A PART TO ANOTHER POINT, which nothing has ever probed.
+  #
+  # The `drag:` verb has existed in electron/main.js since the gesture was
+  # written and no named scenario used it, so the drag path was covered by
+  # nothing at all. That is how `moveTargetAt` - a function called on every
+  # pointermove and never defined anywhere - survived from 3 September until
+  # the pointer layer was pulled out into src/viewer and read line by line. The
+  # symptom was invisible: the marker still grew under the cursor and the drop
+  # still worked, so the only thing missing was the ghost preview.
+  #
+  # A layout on each side of the drag is what makes this a test rather than a
+  # demonstration: the side rack starts on rung 1 and the numbers have to move.
+  move = 'part:008563,marker:0,part:236758,marker:0,choose:0,' +
+         'part:008543,marker:6,dump,layout,drag:i4:0,dump,layout'
   # Same reason for the choose:0 steps here: every frame joining a shelf's free
   # end is now a question, and a level run is the lowest rung each time.
   run = 'part:008563,marker:0,part:236758,marker:0,choose:0,dump,' +

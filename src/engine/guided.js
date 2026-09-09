@@ -799,3 +799,90 @@ export function buildGuided(schema, choices, components) {
     }),
   };
 }
+
+/**
+ * Which of this size's accessories can go on the product at all.
+ *
+ * Matt's sweep found eighteen combinations where an option is OFFERED and can
+ * never be placed: the d200 variant's 900 mm sizes list a 900 mm clothes rail
+ * and a full-width hook strip, and neither has a joint that matches a 200 mm
+ * ladder's rungs. Pressing `+` did exactly what it should - refused, with a
+ * reason - and that is still the wrong experience, because the control looked
+ * live right up until it was used. A dead control that says why beats a live
+ * control that refuses.
+ *
+ * ASKED OF THE ENGINE, on the product as it currently stands, so this answer
+ * cannot disagree with what pressing `+` would do. `pointsForComponent` is the
+ * same query `autoAttach` narrows, and `whyComponentFitsNowhere` is the same
+ * explanation the editor puts in front of a person. There is no second table of
+ * what-fits-what, and there must never be one: a hard-coded exclusion list is
+ * how the schema and the parts drift apart.
+ *
+ * It answers TWO different questions with one mechanism, and the distinction is
+ * in `kind` rather than in two functions:
+ *
+ *   'never'  - no joint on this part matches anything this frame offers. True
+ *              for the whole size, and the reason names the frame.
+ *   'full'   - it fits this product, but every point it could take is used.
+ *              True right now, and it comes back the moment a bay is added.
+ *
+ * Both are honest, both are worth saying, and the customer reads the sentence
+ * rather than the kind.
+ *
+ * @param {object} built  the result of buildGuided
+ * @param {Map} components
+ * @returns {Object<string, {ok: boolean, kind: string, reason: string}>}
+ *   keyed by componentId. Only entries that are NOT ok carry a reason.
+ */
+export function addAvailability(built, components) {
+  const out = {};
+  const adds = built?.size?.adds || [];
+  if (!adds.length) return out;
+
+  const catalogue = adds.map((a) => a.componentId);
+  let matrix = null;
+  try {
+    const { transforms } = resolveTransforms(built.assembly, components);
+    matrix = attachMatrix(built.assembly, components, catalogue, transforms);
+  } catch {
+    // No matrix, no opinion. Greying every control because a query threw would
+    // turn one fault into a configurator nobody can use.
+    return out;
+  }
+
+  // A part already on the product proves it fits, whatever the matrix says
+  // about room for ANOTHER one - otherwise adding the last shelf a bay can take
+  // would grey out the control that is holding it.
+  const placed = new Set(built.assembly.instances.map((i) => i.componentId));
+
+  for (const add of adds) {
+    const id = add.componentId;
+    if (pointsForComponent(matrix, id).length > 0) { out[id] = { ok: true }; continue; }
+    if (placed.has(id)) { out[id] = { ok: true }; continue; }
+
+    // A STRING, not an object - the editor puts it straight in front of a
+    // person. Reading it as `why.reason` silently produced undefined, so every
+    // unplaceable part reported "no room left", INCLUDING the two that can
+    // never fit at all. Caught by printing the sentence rather than trusting
+    // the shape.
+    const why = whyComponentFitsNowhere(matrix, id);
+    // A joint mismatch is a fact about the PART and the FRAME, so it holds for
+    // every bay count and is worth phrasing as a property of the size. Anything
+    // else is about how full the product is right now.
+    const never = !why || /joint|fit together|different kinds/i.test(why);
+    out[id] = never
+      ? {
+        ok: false,
+        kind: 'never',
+        reason: built.variant?.label
+          ? `not available on ${built.variant.label} frames`
+          : 'not available on this frame',
+      }
+      : {
+        ok: false,
+        kind: 'full',
+        reason: 'no room left - add a bay',
+      };
+  }
+  return out;
+}

@@ -191,3 +191,55 @@ describe('reporting a change', () => {
     expect(onChange).toHaveBeenCalledWith({ ...choices, variantId: 'd200' });
   });
 });
+
+// An option that can never be placed on the chosen frame. Matt's sweep found
+// eighteen combinations where pressing + refused and left the count where it
+// was, which is a control that looks live until it is used. He chose greying
+// the row with the reason over hiding it: a list whose rows come and go as the
+// depth changes reads as things going missing.
+describe('an option that cannot go on this frame', () => {
+  const dead = { [RAIL]: { ok: false, kind: 'never', reason: 'not available on 200 mm deep frames' } };
+
+  it('greys the row and says why', () => {
+    draw({ availability: dead });
+    const rail = stepper('Clothes rail');
+    expect(rail.row.className).toContain('cfgo-rowoff');
+    expect(rail.note).toBe('not available on 200 mm deep frames');
+  });
+
+  it('disables both ends of the stepper, not just plus', () => {
+    draw({ availability: dead });
+    const rail = stepper('Clothes rail');
+    expect(rail.plus.disabled).toBe(true);
+    expect(rail.minus.disabled).toBe(true);
+  });
+
+  it('leaves every other row alone', () => {
+    draw({ availability: dead });
+    const shelf = stepper('Extra shelf');
+    expect(shelf.row.className).not.toContain('cfgo-rowoff');
+    expect(shelf.plus.disabled).toBe(false);
+  });
+
+  // 'full' is a different claim - it fits, there is just nowhere free right
+  // now - so it carries the sentence without killing the control. Adding a bay
+  // is the action, and a dead + cannot lead anybody to it.
+  it('a full product says so without disabling the control', () => {
+    draw({ availability: { [RAIL]: { ok: false, kind: 'full', reason: 'no room left - add a bay' } } });
+    const rail = stepper('Clothes rail');
+    expect(rail.note).toBe('no room left - add a bay');
+    expect(rail.row.className).not.toContain('cfgo-rowoff');
+    expect(rail.plus.disabled).toBe(false);
+  });
+
+  // Both questions can answer at once, and they explain different things. The
+  // unavailable sentence is the one that says why the control is dead, so
+  // printing "only 2 fit" over the top of it would explain the wrong thing.
+  it('the unavailable reason wins over a shortfall', () => {
+    draw({
+      availability: dead,
+      refused: [{ componentId: RAIL, label: 'Clothes rail', placed: 2, asked: 3 }],
+    });
+    expect(stepper('Clothes rail').note).toBe('not available on 200 mm deep frames');
+  });
+});

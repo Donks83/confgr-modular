@@ -46,12 +46,21 @@ function Choice({
   );
 }
 
-/** Minus, a number, plus. */
+/**
+ * Minus, a number, plus.
+ *
+ * `off` is a row that cannot be used at all - the part has no joint this frame
+ * offers, so there is nowhere for it to go however many bays there are. The row
+ * STAYS, greyed, carrying the reason. Matt chose that over hiding it: a list
+ * whose rows appear and disappear as you change depth reads as things going
+ * missing, and the customer never learns why the thing they wanted is not
+ * there.
+ */
 function Stepper({
-  label, note, value, min = 0, max = 9, onChange,
+  label, note, value, min = 0, max = 9, off = false, onChange,
 }) {
   return (
-    <div className="cfgo-row">
+    <div className={`cfgo-row${off ? ' cfgo-rowoff' : ''}`}>
       <div className="cfgo-rowtext">
         <span className="cfgo-rowlabel">{label}</span>
         {/* The refusal, in the place the person can act on it. A count that
@@ -64,7 +73,7 @@ function Stepper({
           type="button"
           className="cfgo-step"
           aria-label={`One fewer ${label}`}
-          disabled={value <= min}
+          disabled={off || value <= min}
           onClick={() => onChange(Math.max(min, value - 1))}
         >
           −
@@ -74,7 +83,7 @@ function Stepper({
           type="button"
           className="cfgo-step"
           aria-label={`One more ${label}`}
-          disabled={value >= max}
+          disabled={off || value >= max}
           onClick={() => onChange(Math.min(max, value + 1))}
         >
           +
@@ -85,7 +94,8 @@ function Stepper({
 }
 
 export default function Options({
-  schema, choices, variant, size, refused = [], mountings = [], onChange,
+  schema, choices, variant, size, refused = [], availability = {},
+  mountings = [], onChange,
 }) {
   if (!schema || !choices || !variant || !size) return null;
 
@@ -94,7 +104,13 @@ export default function Options({
   // What the engine could not place, by part, so a stepper can say so next to
   // itself rather than in a list somewhere else on the page.
   const shortfall = new Map(refused.map((r) => [r.componentId, r]));
+
+  // Two different sentences from two different questions, and the unavailable
+  // one wins: "not available on 200 mm deep frames" is why the control is dead,
+  // and printing "only 2 fit" over the top of it would explain the wrong thing.
   const noteFor = (componentId) => {
+    const a = availability[componentId];
+    if (a && a.ok === false) return a.reason;
     const r = shortfall.get(componentId);
     if (!r) return null;
     if (r.placed > 0) return `only ${r.placed} fit`;
@@ -144,6 +160,7 @@ export default function Options({
               key={a.componentId}
               label={a.label || a.componentId}
               note={noteFor(a.componentId)}
+              off={availability[a.componentId]?.kind === 'never'}
               value={choices.adds?.[a.componentId] || 0}
               max={a.perBay ? (a.max ?? 1) * choices.bays : (a.max ?? 4)}
               onChange={(n) => set({ adds: { ...choices.adds, [a.componentId]: n } })}
