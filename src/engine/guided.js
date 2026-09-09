@@ -35,6 +35,7 @@
 import {
   attachMatrix, pointsForComponent, placementsAt, distinctPlacements,
   attachAt, placeFree, mountHeightMm, whyComponentFitsNowhere,
+  canMove, moveTargets, moveTo,
 } from './attach.js';
 import { resolveTransforms, snapSupport } from './assembly.js';
 import { overlaps } from './collision.js';
@@ -207,15 +208,180 @@ export function normaliseChoices(schema, choices = {}) {
   const footHeightMm = FOOT.heightsMm.includes(choices.footHeightMm)
     ? choices.footHeightMm : FOOT.heightsMm[0];
 
+  // Remembered positions, kept only for slots that still exist. A count going
+  // from 3 to 1 must not leave a position recorded for the third one: it would
+  // come back if the count went up again, which is a product changing shape
+  // because of something the person did and then undid.
+  const at = {};
+  for (const [key, ref] of Object.entries(choices.at || {})) {
+    if (!ref || typeof ref !== 'object' || !ref.instanceId || !ref.snapId) continue;
+    const hash = key.lastIndexOf('#');
+    if (hash < 0) continue;
+    const componentId = key.slice(0, hash);
+    const index = Number(key.slice(hash + 1));
+    if (!Number.isInteger(index) || index < 0) continue;
+    if (index >= (adds[componentId] || 0)) continue;
+    at[key] = { instanceId: String(ref.instanceId), snapId: String(ref.snapId) };
+  }
+
   return {
     variantId: variant.id,
     sizeId: size.id,
     frameId: frame.componentId,
     bays,
     adds,
+    at,
     mounting,
     footHeightMm,
   };
+}
+
+/**
+ * Where an already-placed accessory could go instead.
+ *
+ * Built on the EDITOR's own move machinery - `canMove`, `moveTargets`,
+ * `moveTo` - because re-hanging a part is exactly the operation the editor
+ * already performs and a second implementation of it would drift. This adds
+ * only the part that is specific to a guided flow: the options are reduced to
+ * DISTINCT HEIGHTS, labelled in millimetres, and each is checked by actually
+ * making the move on a copy and surveying the result.
+ *
+ * HEIGHTS, not points, and that is a deliberate simplification for a first cut.
+ * A 1500 mm frame in a two-bay run offers a dozen legal points for a clothes
+ * rail - four rungs, two faces, three frames - and most of those differ only in
+ * which bay they land in. The complaint being answered is "all of the addons
+ * are just on the bottom rail", which is about height; so the options are the
+ * distinct heights, and for each one the position nearest to where the part
+ * already is. Moving something to a different BAY is a real thing somebody will
+ * want and is not this.
+ *
+ * Structural parts - the frames and the spans - are not movable and say so.
+ * They are not slots, and moving one would take the run apart.
+ */
+export function moveOptions(built, components, instanceId) {
+  const slot = built.slots?.[instanceId] || null;
+  const instance = built.assembly.instances.find((i) => i.instanceId === instanceId);
+  if (!instance) return { ok: false, reason: 'That part is not on this product.' };
+  if (!slot) {
+    return {
+      ok: false,
+      slot: null,
+      structural: true,
+      reason: 'That is part of the frame. Change the size or the number of bays instead.',
+    };
+  }
+
+  const { transforms } = resolveTransforms(built.assembly, components);
+  const allowed = canMove(built.assembly, instanceId);
+  if (!allowed.ok) return { ok: false, slot, reason: 'That part cannot be moved.' };
+
+  const { placements } = moveTargets(built.assembly, components, transforms, instanceId, {});
+  const mine = placements.filter((p) => p.componentId === instance.componentId);
+  if (!mine.length) return { ok: true, slot, options: [] };
+
+  const here = transforms.get(instanceId);
+  const byHeight = new Map();
+
+  // THE SAME RULE PLACEMENT USES. A part the schema calls spanning has to be
+  // held at both ends, and without this the move list offered positions that
+  // `buildGuided` would then refuse - so the recorded position would be
+  // dropped and the part would spring back. An option that is offered has to
+  // be an option that survives the rebuild, and the two paths asking different
+  // questions is exactly how that stops being true.
+  const add = (built.size?.adds || []).find((a) => a.componentId === instance.componentId);
+  const mustBeHeld = !!add?.spans;
+
+  for (const placement of distinctPlacements(built.assembly, components, mine)) {
+    let moved;
+    try {
+      moved = moveTo(built.assembly, instanceId, placement);
+    } catch {
+      continue;
+    }
+    const s = survey(moved, components, instanceId, instance.componentId);
+    if (!s) continue;
+    if (mustBeHeld && s.met < s.total) continue;
+
+    const heightMm = Math.round(s.worldY * 1000);
+    const t = s.transforms.get(instanceId);
+    const sideways = here ? Math.abs(t.translation[0] - here.translation[0]) : 0;
+    const existing = byHeight.get(heightMm);
+    // One entry per height, and where several positions share one, the nearest
+    // to where the part already is - so "move it up" does not also slide it
+    // into the next bay.
+    if (!existing || sideways < existing.sideways) {
+      byHeight.set(heightMm, {
+        heightMm,
+        sideways,
+        at: { instanceId: placement.point.instanceId, snapId: placement.point.snapId },
+        current: here ? Math.abs(t.translation[1] - here.translation[1]) < 0.0005 : false,
+        held: s.met,
+        heldOf: s.total,
+      });
+    }
+  }
+
+  return {
+    ok: true,
+    slot,
+    componentId: instance.componentId,
+    options: [...byHeight.values()].sort((a, b) => a.heightMm - b.heightMm),
+  };
+}
+
+/**
+ * Which of a component's copies this is — "the second clothes rail".
+ *
+ * THE STATE PROBLEM, AND ITS ANSWER. A guided configurator's state is counts:
+ * two shelves, one rail. A count cannot say "the rail is on the fourth rung",
+ * so as soon as anything is movable the counts stop describing the product.
+ *
+ * The fix is a SLOT: the nth copy of a component, in the schema's own order,
+ * which is also the order `buildGuided` places them. `choices.at[slotKey]`
+ * records where that slot was put, and everything else follows:
+ *
+ *   the whole product stays a pure function of the choices, so the URL and the
+ *   configuration id keep round-tripping exactly as they did;
+ *   a move is an edit to one entry rather than a new kind of state;
+ *   changing a count of one accessory cannot disturb another's position.
+ *
+ * The alternative was to let a move edit the assembly directly and keep that
+ * assembly as the state. That works until the next option change regenerates
+ * it, and then every move has to be re-matched onto a product that has moved
+ * on. Recording the intent rather than the outcome avoids the whole class.
+ */
+export const slotKeyFor = (componentId, index) => `${componentId}#${index}`;
+
+/**
+ * The builder's name for a part that was drawn from a configuration id.
+ *
+ * TWO ID SPACES, and they are not the same one. `buildGuided` names its
+ * instances g1, g2, g3...; the runtime draws the product by RESOLVING a
+ * configuration id, and `decodeConfiguration` names what it reads p0, p1,
+ * p2... So a customer tapping a part in the scene produces a `p` id, and asking
+ * the builder about it got "that part is not on this product" - which was true,
+ * and useless.
+ *
+ * The two are aligned by ORDER: the id records instances in the order they were
+ * built and decoding preserves it. That is the invariant this depends on, so it
+ * is asserted in a test of its own rather than left as a thing that happens to
+ * work - if the encoder ever sorted or de-duplicated, every move would silently
+ * address the wrong part.
+ *
+ * Index alignment rather than matching on componentId, because a product with
+ * three identical shelves has three parts that match equally well and only
+ * their positions tell them apart.
+ */
+export function builderIdOf(built, drawnAssembly, drawnInstanceId) {
+  const index = (drawnAssembly?.instances || [])
+    .findIndex((i) => i.instanceId === drawnInstanceId);
+  if (index < 0) return null;
+
+  const mine = built.assembly.instances[index];
+  // A sanity check that costs nothing and catches the alignment breaking: the
+  // two must at least agree about what KIND of part this is.
+  if (!mine || mine.componentId !== drawnAssembly.instances[index].componentId) return null;
+  return mine.instanceId;
 }
 
 /**
@@ -343,7 +509,7 @@ export const PLACE = { EXTEND: 'extend', FILL: 'fill' };
  */
 export function autoAttach(assembly, components, componentId, {
   instanceId, catalogue = null, prefer = null, policy = PLACE.FILL,
-  requireFullyHeld = false, explain = false,
+  requireFullyHeld = false, explain = false, at = null,
 } = {}) {
   const list = catalogue || [componentId];
 
@@ -355,7 +521,7 @@ export function autoAttach(assembly, components, componentId, {
   }
 
   const matrix = attachMatrix(assembly, components, list, transforms);
-  const points = pointsForComponent(matrix, componentId);
+  let points = pointsForComponent(matrix, componentId);
 
   if (!points.length) {
     return {
@@ -363,6 +529,23 @@ export function autoAttach(assembly, components, componentId, {
       reason: whyComponentFitsNowhere(matrix, componentId)
         || 'There is nowhere on this product for that part.',
     };
+  }
+
+  // A REMEMBERED POSITION, from somebody having moved this part. Narrow the
+  // candidates to that one point and let everything below run unchanged, so a
+  // recorded position is still checked for clashes and support rather than
+  // trusted: the product may have changed shape since it was recorded.
+  //
+  // Refused rather than silently auto-placed if the point has gone - reducing
+  // the bays can remove the frame a rail was hung on - because the caller has
+  // to know its record is stale in order to drop it.
+  if (at) {
+    points = points.filter(
+      (p) => p.point.instanceId === at.instanceId && p.point.snapId === at.snapId,
+    );
+    if (!points.length) {
+      return { ok: false, stale: true, reason: 'That position is no longer part of this product.' };
+    }
   }
 
   // LEVEL WITH THE ONES ALREADY THERE - the tie-break that actually matters,
@@ -503,6 +686,14 @@ export function buildGuided(schema, choices, components) {
 
   const catalogue = guidedComponentIds(schema, { includeImplied: false });
   const refused = [];
+  // Overrides that could not be honoured, so the caller can forget them rather
+  // than keep a record of a position that no longer exists.
+  const dropped = [];
+  // instanceId -> slot key, and slot key -> where it actually landed. The first
+  // turns a tap in the scene into a choice; the second lets a UI show where a
+  // part is now without re-deriving it.
+  const slots = {};
+  const slotAt = {};
   let n = 0;
   const nextId = () => `g${(n += 1)}`;
 
@@ -552,10 +743,24 @@ export function buildGuided(schema, choices, components) {
   for (const add of size.adds || []) {
     const wanted = c.adds[add.componentId] || 0;
     for (let i = 0; i < wanted; i += 1) {
-      const r = autoAttach(assembly, components, add.componentId, {
-        instanceId: nextId(), catalogue, policy: PLACE.FILL,
-        requireFullyHeld: !!add.spans,
-      });
+      const key = slotKeyFor(add.componentId, i);
+      const remembered = c.at?.[key] || null;
+      const id = nextId();
+      const opts = {
+        instanceId: id, catalogue, policy: PLACE.FILL, requireFullyHeld: !!add.spans,
+      };
+
+      // A remembered position first; auto-placement if it will no longer take.
+      // Dropping it rather than refusing the part is the kinder failure: the
+      // customer reduced the bays and the rail they had moved has to go
+      // SOMEWHERE, and saying "we put it back" beats losing it.
+      let r = remembered ? autoAttach(assembly, components, add.componentId, { ...opts, at: remembered }) : null;
+      if (r && !r.ok) {
+        dropped.push({ slot: key, componentId: add.componentId, label: add.label, reason: r.reason });
+        r = null;
+      }
+      if (!r) r = autoAttach(assembly, components, add.componentId, opts);
+
       if (!r.ok) {
         refused.push({
           componentId: add.componentId,
@@ -570,6 +775,10 @@ export function buildGuided(schema, choices, components) {
         break;
       }
       assembly = r.assembly;
+      // Which slot this instance IS, so a person tapping the part in the scene
+      // can be turned back into the choice that produced it.
+      slots[id] = key;
+      slotAt[key] = { instanceId: r.point.instanceId, snapId: r.point.snapId };
     }
   }
 
@@ -581,6 +790,9 @@ export function buildGuided(schema, choices, components) {
     mounting: c.mounting,
     footHeightMm: c.footHeightMm,
     refused,
+    dropped,
+    slots,
+    slotAt,
     configurationId: encodeConfiguration(assembly, {
       mounting: c.mounting,
       footHeightMm: c.footHeightMm,

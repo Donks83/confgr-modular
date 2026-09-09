@@ -16,6 +16,52 @@ import { isGrounded, groundClearanceMm } from '../engine/ar.js';
 const SELECTED_EMISSIVE = '#4a2f0d';
 
 /**
+ * Which part is under a point on screen.
+ *
+ * HERE RATHER THAN IN EITHER CALLER, because both need it and the editor had it
+ * first. The runtime needs it now that a customer can tap a part to move it, and
+ * a second raycast written next to the first is precisely the drift this
+ * directory exists to prevent (§5.21).
+ *
+ * Two filters, both learned in the editor:
+ *   * `md-` names are scaffolding - snap planes and collision proxies - and
+ *     they are invisible quads that would otherwise swallow every tap.
+ *   * walk UP to the group carrying an `instanceId`, because the hit lands on a
+ *     mesh and the thing a person means is the part.
+ *
+ * WORLD MATRICES FIRST. three only recomputes `matrixWorld` during a render, and
+ * React sets a group's LOCAL position, so between a state change and the next
+ * frame a part's world matrix still says where it used to be. In the editor that
+ * once made a harness press the origin and report a move that had not happened.
+ */
+export function pickInstance(ctx, clientX, clientY) {
+  const canvas = ctx.renderer?.domElement;
+  if (!canvas) return null;
+
+  ctx.scene.updateMatrixWorld(true);
+
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+
+  const ray = ctx.pickRay || (ctx.pickRay = new THREE.Raycaster());
+  ray.setFromCamera(
+    new THREE.Vector2(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1,
+    ),
+    ctx.camera,
+  );
+
+  const hits = ray.intersectObjects(ctx.productRoot.children, true)
+    .filter((h) => h.object.visible && !h.object.name.startsWith('md-'));
+  if (!hits.length) return null;
+
+  let node = hits[0].object;
+  while (node && node.userData.instanceId == null) node = node.parent;
+  return node ? node.userData.instanceId : null;
+}
+
+/**
  * Is this node the product, or the editor's scaffolding?
  *
  * The same question `tools/export-glb.mjs` asks, and deliberately asked in the

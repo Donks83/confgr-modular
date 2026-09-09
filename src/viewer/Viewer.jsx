@@ -26,7 +26,9 @@ import './viewer.css';
 import {
   createScene, fitBounds, frameProduct, followProduct,
 } from './scene.js';
-import { syncProduct, setGround, describeLayout } from './product.js';
+import {
+  syncProduct, setGround, describeLayout, pickInstance,
+} from './product.js';
 import { arAvailability } from './ar-link.js';
 import ArButton from './ArButton.jsx';
 import { resolveConfiguration } from '../engine/configuration.js';
@@ -54,6 +56,18 @@ export default function Viewer({
    * loud rather than leaving a gap where a button was.
    */
   arWithheld = null,
+  /**
+   * Selection, off by default.
+   *
+   * `selectable: false` was described as "the whole difference" between the
+   * runtime and the editor, and for a viewer it still is. A guided configurator
+   * needs it back, because a customer has to be able to point at the part they
+   * mean - but it stays a decision the caller makes rather than something the
+   * runtime assumes.
+   */
+  selectable = false,
+  selectedId = null,
+  onPick = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -111,8 +125,7 @@ export default function Viewer({
       ctx,
       { instances: resolved.scene.assembly.instances, transforms: resolved.scene.transforms },
       components,
-      // The whole difference, and it is this line.
-      { selectable: false, showGuides: false },
+      { selectable, selectedId, showGuides: false },
     );
     setGround(ctx, resolved.mounting, resolved.footHeightMm);
 
@@ -146,7 +159,37 @@ export default function Viewer({
         resolved.assembly.connections || [],
       ),
     });
-  }, [resolved, components]);
+  }, [resolved, components, selectable, selectedId]);
+
+  // ------------------------------------------------------------------ picking
+  //
+  // A TAP, not a click, and the distinction is the whole of this handler. The
+  // same pointer gestures already orbit the camera, so a press that moved or
+  // lingered belongs to OrbitControls and must not also select something. A
+  // person who drags to look round the product and finds they have picked a
+  // shelf will stop dragging.
+  //
+  // 8 px and 500 ms, on a canvas being touched with a thumb. Tighter than that
+  // and a deliberate tap with a little wobble misses.
+  const pressRef = useRef(null);
+
+  const onPointerDown = (e) => {
+    pressRef.current = { x: e.clientX, y: e.clientY, at: Date.now() };
+  };
+
+  const onPointerUp = (e) => {
+    const press = pressRef.current;
+    pressRef.current = null;
+    if (!press || !selectable || !onPick) return;
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 8) return;
+    if (Date.now() - press.at > 500) return;
+
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    // null is a real answer: tapping the background is how a person puts a
+    // part down, and it has to clear the selection rather than do nothing.
+    onPick(pickInstance(ctx, e.clientX, e.clientY));
+  };
 
   const parts = resolved?.assembly.instances.length ?? 0;
   const implied = resolved?.implied?.connections?.length ?? 0;
@@ -166,7 +209,12 @@ export default function Viewer({
 
   return (
     <div className="cfgv">
-      <div className="cfgv-stage" ref={mountRef} />
+      <div
+        className="cfgv-stage"
+        ref={mountRef}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+      />
 
       {error && (
         <div className="cfgv-error" role="alert">

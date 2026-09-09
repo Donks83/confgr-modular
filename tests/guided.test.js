@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   parseGuided, guidedComponentIds, variantOf, sizeOf, defaultChoices, normaliseChoices,
-  buildGuided, autoAttach, GuidedError, GUIDED_VERSION, PLACE,
+  buildGuided, autoAttach, moveOptions, builderIdOf, GuidedError, GUIDED_VERSION, PLACE,
 } from '../src/engine/guided.js';
 import { resolveTransforms } from '../src/engine/assembly.js';
 import { overlaps } from '../src/engine/collision.js';
@@ -324,6 +324,168 @@ describe('the configuration it produces', () => {
     const resolved = resolveConfiguration(r.configurationId, components);
     expect(resolved.assembly.instances.length).toBe(r.assembly.instances.length);
     expect(resolved.validity.missingRequiredSnaps).toEqual([]);
+  });
+});
+
+describe('moving a part that is already on the product', () => {
+  // The complaint this answers, in Matt's words: "all of the addons are just on
+  // the bottom rail". Auto-placement fills from the bottom, which is right for
+  // repeats and wrong as the only option a person has.
+  const withDrawer = () => buildGuided(
+    schema(), { bays: 2, adds: { [DRAWER]: 1 } }, components,
+  );
+
+  const drawerId = (built) => Object.entries(built.slots)
+    .find(([, key]) => key.startsWith(DRAWER))?.[0];
+
+  it('maps a part drawn from the id back to the builder\'s own name for it', () => {
+    // TWO ID SPACES. The builder names instances g1, g2, g3; the runtime draws
+    // by RESOLVING the configuration id, and decoding names what it reads p0,
+    // p1, p2. A customer tapping a shelf produces a `p` id, and the first
+    // version of the move panel asked the builder about it and was told - truly
+    // and uselessly - "that part is not on this product".
+    //
+    // THIS TEST IS THE INVARIANT, not the mapping: the two are aligned by
+    // order, so if the encoder ever sorted or de-duplicated its instances every
+    // move would silently address the wrong part.
+    const built = withDrawer();
+    const drawn = resolveConfiguration(built.configurationId, components).scene.assembly;
+
+    expect(drawn.instances.map((i) => i.componentId))
+      .toEqual(built.assembly.instances.map((i) => i.componentId));
+
+    for (let i = 0; i < built.assembly.instances.length; i += 1) {
+      expect(builderIdOf(built, drawn, drawn.instances[i].instanceId))
+        .toBe(built.assembly.instances[i].instanceId);
+    }
+  });
+
+  it('does not guess when the drawn part is one it cannot place', () => {
+    // The implied foot is drawn but is not a chosen part, and a tap that
+    // somehow reached one must produce nothing rather than the wrong slot.
+    const built = withDrawer();
+    const drawn = resolveConfiguration(built.configurationId, components).scene.assembly;
+    expect(builderIdOf(built, drawn, 'implied:foot:p0:0')).toBe(null);
+    expect(builderIdOf(built, drawn, 'nonsense')).toBe(null);
+  });
+
+  it('knows which choice each part came from', () => {
+    // The link that makes a tap in the scene actionable. Without it there is no
+    // way back from an instance to the option that produced it.
+    const built = withDrawer();
+    const id = drawerId(built);
+    expect(id).toBeTruthy();
+    expect(built.slots[id]).toBe(`${DRAWER}#0`);
+  });
+
+  it('offers distinct heights, and marks where it already is', () => {
+    const built = withDrawer();
+    const r = moveOptions(built, components, drawerId(built));
+
+    expect(r.ok).toBe(true);
+    expect(r.options.length).toBeGreaterThan(1);
+    // One entry per height, sorted, no duplicates — a dozen legal points on a
+    // multi-bay run collapse to the handful of heights a person is choosing
+    // between.
+    const heights = r.options.map((o) => o.heightMm);
+    expect([...heights].sort((a, b) => a - b)).toEqual(heights);
+    expect(new Set(heights).size).toBe(heights.length);
+    expect(r.options.filter((o) => o.current).length).toBe(1);
+  });
+
+  it('offers only positions that actually work', () => {
+    // Each option is built by performing the move on a copy and surveying it,
+    // so an offered height is a height that holds.
+    const built = withDrawer();
+    const r = moveOptions(built, components, drawerId(built));
+    for (const o of r.options) expect(o.held).toBe(o.heldOf);
+  });
+
+  it('refuses to move the frame, and says what to do instead', () => {
+    // A frame is not a slot. Moving one would take the run apart, and "change
+    // the size or the number of bays" is the actual answer.
+    const built = withDrawer();
+    const r = moveOptions(built, components, built.assembly.instances[0].instanceId);
+    expect(r.ok).toBe(false);
+    expect(r.structural).toBe(true);
+    expect(r.reason).toMatch(/number of bays/);
+  });
+
+  it('puts the part where it was told, and keeps it there', () => {
+    // THE ONE THAT MATTERS, and the reason a position is recorded against a
+    // SLOT rather than an instance: the product is rebuilt from the choices on
+    // every change, so a move has to survive being regenerated.
+    const built = withDrawer();
+    const r = moveOptions(built, components, drawerId(built));
+    const top = r.options[r.options.length - 1];
+
+    const moved = buildGuided(
+      schema(),
+      { ...built.choices, at: { [r.slot]: top.at } },
+      components,
+    );
+    const at = placed(moved).find((p) => p.componentId === DRAWER);
+    expect(at.y).toBe(top.heightMm);
+    expect(moved.dropped).toEqual([]);
+  });
+
+  it('keeps a moved part put when other counts change', () => {
+    const built = withDrawer();
+    const r = moveOptions(built, components, drawerId(built));
+    const top = r.options[r.options.length - 1];
+    const pinned = { ...built.choices, at: { [r.slot]: top.at } };
+
+    // Two more spans arrive. The drawer must not be re-placed.
+    const later = buildGuided(schema(), { ...pinned, adds: { ...pinned.adds, [SPAN]: 2 } }, components);
+    expect(placed(later).find((p) => p.componentId === DRAWER).y).toBe(top.heightMm);
+  });
+
+  it('reports a remembered position it can no longer honour', () => {
+    // Reducing the bays can remove the frame something was hung on. Dropping
+    // the record and auto-placing beats losing the part — but the caller has to
+    // be TOLD, or it keeps a position that will silently come back.
+    const built = buildGuided(schema(), { bays: 3, adds: { [DRAWER]: 1 } }, components);
+    const r = moveOptions(built, components, drawerId(built));
+    const far = r.options.find((o) => o.at.instanceId !== 'g1') || r.options[0];
+
+    const shrunk = buildGuided(
+      schema(),
+      { ...built.choices, bays: 1, at: { [r.slot]: { instanceId: 'g99', snapId: far.at.snapId } } },
+      components,
+    );
+    expect(shrunk.dropped.length).toBe(1);
+    expect(shrunk.dropped[0].slot).toBe(r.slot);
+    // And the part is still on the product.
+    expect(placed(shrunk).some((p) => p.componentId === DRAWER)).toBe(true);
+  });
+
+  it('forgets a position for a slot that no longer exists', () => {
+    // Three drawers down to one must not leave a position recorded for the
+    // third: it would reappear if the count went back up, which is a product
+    // changing because of something done and then undone.
+    const s = schema();
+    const kept = normaliseChoices(s, {
+      adds: { [DRAWER]: 1 },
+      at: {
+        [`${DRAWER}#0`]: { instanceId: 'g1', snapId: 'x' },
+        [`${DRAWER}#2`]: { instanceId: 'g1', snapId: 'y' },
+      },
+    });
+    expect(Object.keys(kept.at)).toEqual([`${DRAWER}#0`]);
+  });
+
+  it('ignores a malformed position rather than crashing on it', () => {
+    // These arrive from a URL.
+    const s = schema();
+    const cleaned = normaliseChoices(s, {
+      adds: { [DRAWER]: 2 },
+      at: {
+        [`${DRAWER}#0`]: { instanceId: 'g1' },
+        [`${DRAWER}#1`]: 'not-an-object',
+        'no-hash-here': { instanceId: 'g1', snapId: 'x' },
+      },
+    });
+    expect(cleaned.at).toEqual({});
   });
 });
 

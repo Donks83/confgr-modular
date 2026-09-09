@@ -18,14 +18,50 @@
 // product. The short-code service that would make that pretty is Phase 2 item 7
 // and is not this.
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback, useEffect, useMemo, useRef, useState,
+} from 'react';
 import Viewer from './Viewer.jsx';
 import Options from './Options.jsx';
+import MovePanel from './MovePanel.jsx';
 import './options.css';
 import {
-  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, GuidedError,
+  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions,
+  slotKeyFor, builderIdOf, GuidedError,
 } from '../engine/guided.js';
 import { MOUNTING } from '../engine/ar.js';
+
+/**
+ * Deleting the nth of something, in slot terms.
+ *
+ * Removing the second of three shelves is not just "count minus one": the third
+ * shelf becomes the second, so any position recorded against #2 now belongs to
+ * what used to be #1's neighbour. Every override above the hole shifts down.
+ *
+ * Without this, removing a shelf silently moved the ones above it to positions
+ * chosen for different parts - the sort of thing that looks like the engine
+ * misbehaving rather than like bookkeeping.
+ */
+export function removeSlot(choices, componentId, index) {
+  const count = choices.adds?.[componentId] || 0;
+  if (index < 0 || index >= count) return choices;
+
+  const at = {};
+  for (const [key, ref] of Object.entries(choices.at || {})) {
+    const hash = key.lastIndexOf('#');
+    const owner = key.slice(0, hash);
+    const i = Number(key.slice(hash + 1));
+    if (owner !== componentId) { at[key] = ref; continue; }
+    if (i === index) continue;
+    at[slotKeyFor(componentId, i > index ? i - 1 : i)] = ref;
+  }
+
+  const adds = { ...choices.adds };
+  if (count - 1 > 0) adds[componentId] = count - 1;
+  else delete adds[componentId];
+
+  return { ...choices, adds, at };
+}
 
 const MOUNTING_LABELS = [
   { id: MOUNTING.FLOOR, label: 'The floor' },
@@ -101,6 +137,13 @@ export default function Guided({
     return normaliseChoices(schema, initialChoices || fromUrl || defaultChoices(schema));
   });
   const [panelOpen, setPanelOpen] = useState(false);
+  // The BUILDER's id of the tapped part, already translated. Storing the
+  // translated one means everything downstream deals in one id space.
+  const [picked, setPicked] = useState(null);
+  // The assembly the runtime drew, captured from onReady. Needed because the
+  // drawn product's instance ids come from decoding the configuration id and
+  // are not the builder's - see builderIdOf.
+  const drawnRef = useRef(null);
 
   const built = useMemo(() => {
     try {
@@ -155,6 +198,57 @@ export default function Guided({
     setChoices(normaliseChoices(schema, next));
   }, [schema]);
 
+  // What the tapped part can do. Computed here rather than held in state so it
+  // is always about the CURRENT product: a stale list of positions is a list of
+  // moves that will fail.
+  const move = useMemo(() => {
+    if (!picked || built.error) return null;
+    const r = moveOptions(built, components, picked);
+    const componentId = built.assembly.instances
+      .find((i) => i.instanceId === picked)?.componentId;
+    // WHAT TO CALL IT, and the span is the awkward case: a bay's shelf and an
+    // "extra shelf" are the same article number, so looking the label up by
+    // component alone titled the frame's own shelf "Extra metal shelf" while
+    // telling the person it was part of the frame. Whether the part is
+    // structural is the thing that decides, and the engine already said.
+    const add = (size?.adds || []).find((a) => a.componentId === componentId);
+    const label = r.structural
+      ? (componentId === built.choices.frameId ? 'Frame' : (size?.span?.label || 'Shelf'))
+      : (add?.label || componentId);
+    return { ...r, componentId, label };
+  }, [picked, built, components, size]);
+
+  // A part the person moved is remembered against its SLOT, so the whole
+  // product stays a function of the choices and the move survives every later
+  // change to a count.
+  const applyMove = useCallback((option) => {
+    if (!move?.slot) return;
+    change({ ...built.choices, at: { ...built.choices.at, [move.slot]: option.at } });
+    setPicked(null);
+  }, [move, built, change]);
+
+  const applyDelete = useCallback(() => {
+    if (!move?.slot) return;
+    const hash = move.slot.lastIndexOf('#');
+    change(removeSlot(
+      built.choices,
+      move.slot.slice(0, hash),
+      Number(move.slot.slice(hash + 1)),
+    ));
+    setPicked(null);
+  }, [move, built, change]);
+
+  // A position that could not be honoured is FORGOTTEN rather than kept, or it
+  // would come back the next time the product happened to have that point
+  // again - a part moving on its own, some changes later, for no reason the
+  // person could see.
+  useEffect(() => {
+    if (!built.dropped?.length) return;
+    const at = { ...built.choices.at };
+    for (const d of built.dropped) delete at[d.slot];
+    change({ ...built.choices, at });
+  }, [built.dropped, built.choices, change]);
+
   if (built.error) {
     return (
       <div className="cfgv">
@@ -182,7 +276,23 @@ export default function Guided({
           ? 'View in your room is ready for the starting product. Reset the '
             + 'options to see it in AR, or ask us for a link to this one.'
           : null}
-        onReady={onReady}
+        // Selection is back in the runtime, but only in the CONFIGURATOR. A
+        // plain viewer of one configuration still has nothing to click.
+        selectable
+        selectedId={picked}
+        onPick={(drawnId) => {
+          const id = drawnId
+            ? builderIdOf(built, drawnRef.current, drawnId)
+            : null;
+          setPicked(id);
+          // Opening the option sheet over a part somebody just tapped hides
+          // the thing they are pointing at.
+          if (id) setPanelOpen(false);
+        }}
+        onReady={(info) => {
+          drawnRef.current = info?.resolved?.scene?.assembly || null;
+          onReady?.(info);
+        }}
       />
 
       {/* Only ever OPENS. Closing is the Done button inside the sheet, next to
@@ -192,11 +302,24 @@ export default function Guided({
         type="button"
         className="cfgg-toggle"
         aria-expanded={panelOpen}
-        hidden={panelOpen}
+        hidden={panelOpen || !!picked}
         onClick={() => setPanelOpen(true)}
       >
         Configure
       </button>
+
+      {move && (
+        <MovePanel
+          label={move.label}
+          options={move.options || []}
+          reason={move.reason}
+          structural={!!move.structural}
+          canDelete={!!move.slot}
+          onMove={applyMove}
+          onDelete={applyDelete}
+          onClose={() => setPicked(null)}
+        />
+      )}
 
       <div className="cfgg-panel" hidden={!panelOpen}>
         {/* A title and, when it matters, the shortfall. NOT the part count:
