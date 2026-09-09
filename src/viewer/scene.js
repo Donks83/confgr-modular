@@ -236,6 +236,67 @@ export function frameProduct(ctx, { padding = 1.35 } = {}) {
   const direction = new THREE.Vector3(0.55, 0.42, 1).normalize();
   ctx.controls.target.copy(sphere.center);
   ctx.camera.position.copy(sphere.center).addScaledVector(direction, distance);
+  // The baseline `followProduct` compares against. Recorded here rather than
+  // there so that the first change after a framing has something to be relative
+  // to, instead of doing nothing and then over-reacting to the second one.
+  ctx.productRadius = sphere.radius;
+  ctx.camera.updateProjectionMatrix();
+  ctx.controls.update();
+  return true;
+}
+
+/**
+ * Keep the camera where the person put it, and give the product the same room
+ * it had before if it grew.
+ *
+ * THE OTHER HALF OF THE RULE ABOVE, and it was missing. The comment on
+ * `frameProduct` has always said the viewer frames "once, on load" - but the
+ * runtime called it on every rebuild, so in a guided configurator every tap on
+ * a stepper threw away the angle and the zoom the person had just set. Matt put
+ * it exactly: "when I change an option the camera resets to the original
+ * position." The intent was written down and not honoured, which is worse than
+ * not having decided.
+ *
+ * So a change preserves the camera's DIRECTION and its TARGET - the two things
+ * the person set by dragging - and the distance changes only in proportion to
+ * how much the product GREW.
+ *
+ * RELATIVE TO THE LAST DRAW, not to what currently fits, and the difference is
+ * the whole design. The first version of this pulled back whenever the product
+ * did not fit the frame, which sounds equivalent and is not: somebody who has
+ * zoomed right in to look at a joint does not fit the product in the frame ON
+ * PURPOSE, so the next tap on a stepper dragged them back out again. Answering
+ * "did it get bigger" instead of "does it fit" leaves a deliberate close-up
+ * deliberate - it just gives it the same proportion of room it had before.
+ *
+ * Growth only. A product getting smaller moves nothing, because somebody who
+ * zoomed out to see a whole run did that on purpose too.
+ *
+ * The target is deliberately NOT re-centred on the new product either.
+ * Re-centring reads better while a run grows sideways - it keeps the thing you
+ * are building in the middle - and it is still the camera moving on its own,
+ * which is the complaint.
+ */
+export function followProduct(ctx) {
+  const bounds = new THREE.Box3().setFromObject(ctx.productRoot);
+  if (bounds.isEmpty()) return false;
+
+  const radius = bounds.getBoundingSphere(new THREE.Sphere()).radius;
+  const before = ctx.productRadius ?? null;
+  ctx.productRadius = radius;
+
+  // Nothing to react to on the first draw - `frameProduct` handles that - and
+  // nothing to react to when the product did not grow. The 0.1% is for
+  // floating-point noise in a rebuild that changed nothing dimensional.
+  if (before === null || radius <= before * 1.001) {
+    ctx.controls.update();
+    return false;
+  }
+
+  const offset = ctx.camera.position.clone().sub(ctx.controls.target);
+  if (offset.lengthSq() === 0) return false;
+  offset.multiplyScalar(radius / before);
+  ctx.camera.position.copy(ctx.controls.target).add(offset);
   ctx.camera.updateProjectionMatrix();
   ctx.controls.update();
   return true;

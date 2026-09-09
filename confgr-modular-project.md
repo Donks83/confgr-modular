@@ -2709,6 +2709,47 @@ greys out and nobody notices. Asking the engine to place one produces a
 sentence. That is the guided flow's first contribution to the *range* rather
 than to the product.
 
+#### The camera, and a comment that had been describing an intention
+
+Matt, second report: *"when I change an option the camera resets to the original
+position."*
+
+`scene.js` has said since it was written that the editor never re-frames — *"a
+camera that jumps every time you add a shelf is unusable"* — and that the viewer
+frames **"once, on load"**. The runtime called `frameProduct` on every rebuild.
+So the comment described a decision nobody had implemented, which is worse than
+not having decided: it reads as settled and behaves as an oversight.
+
+`followProduct` is the other half. A change now keeps the camera's direction and
+its orbit target, and changes the distance **only in proportion to how much the
+product grew**.
+
+**Relative to the last draw, not to what currently fits** — and the first
+version got that wrong too. It pulled back whenever the product did not fit the
+frame, which sounds equivalent and is not: somebody zoomed right in on a joint
+does not fit the product in frame *on purpose*, so the next tap dragged them
+back out. Asking *"did it get bigger"* instead of *"does it fit"* leaves a
+deliberate close-up deliberate — it simply gives it the same share of the view
+it had before. A product getting smaller moves nothing, for the same reason.
+
+The target is deliberately **not** re-centred. Re-centring reads better while a
+run grows sideways, and it is still the camera moving on its own.
+
+10 tests in `tests/camera.test.js`, and they are worth having because this is
+arithmetic over a camera and a bounding box — no WebGL, no canvas, no jsdom, so
+three's own maths runs headless in node. Two of them caught mistakes in
+themselves rather than in the code: a `copy(target).addScaledVector(dir(ctx), d)`
+one-liner that had already moved the camera onto the target before the direction
+was read, so one test failed loudly and another passed asserting *0 ≈ 0 × 3*
+about a camera that had not moved; and an assertion that tripling a bay's width
+triples its bounding sphere, which it does not — on a 1600 mm tall bay the
+height dominates, so 0.95 m to 2.85 m wide is a factor of about 1.74. Both now
+assert against the measured radius ratio rather than against my mental model.
+
+Verified by orbiting to a deliberately odd edge-on angle in a real browser, then
+adding a shelf (camera identical) and going to three bays (pulled back, same
+angle, no reframe).
+
 #### Two things in the URL, and they are not interchangeable
 
 `?c=` is the product — what the quote prices, what an AR file is of, what

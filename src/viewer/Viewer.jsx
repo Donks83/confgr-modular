@@ -23,7 +23,9 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './viewer.css';
-import { createScene, fitBounds, frameProduct } from './scene.js';
+import {
+  createScene, fitBounds, frameProduct, followProduct,
+} from './scene.js';
 import { syncProduct, setGround, describeLayout } from './product.js';
 import { arAvailability } from './ar-link.js';
 import ArButton from './ArButton.jsx';
@@ -63,6 +65,10 @@ export default function Viewer({
   // idiomatic React.
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  // Whether this viewer has ever framed a product. Per instance rather than
+  // per configuration id: in a guided flow the id changes on every tap, and
+  // "have I shown this person a product yet" is the actual question.
+  const framedRef = useRef(false);
   const [size, setSize] = useState(null);
   const [error, setError] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -111,10 +117,22 @@ export default function Viewer({
     setGround(ctx, resolved.mounting, resolved.footHeightMm);
 
     const bounds = fitBounds(ctx);
-    // The runtime frames on load, every time. Someone arriving at a link must
-    // see the whole product; the editor must never do this, because a camera
-    // that jumps every time you add a shelf is unusable.
-    frameProduct(ctx);
+
+    // ONCE, then follow. Someone arriving at a link must see the whole product,
+    // so the first draw frames it. Every draw after that is a CHANGE the person
+    // made, and re-framing throws away the angle and the zoom they just chose -
+    // which in a guided configurator means every tap on a stepper resets the
+    // view. `followProduct` keeps the camera and only pulls back if the product
+    // has outgrown it.
+    //
+    // `scene.js` said the viewer framed "once, on load" from the day it was
+    // written; the code framed on every rebuild. This is the line that makes
+    // the comment true.
+    if (framedRef.current) followProduct(ctx);
+    else {
+      frameProduct(ctx);
+      framedRef.current = true;
+    }
     ctx.render();
     setSize(mmOf(bounds));
 
