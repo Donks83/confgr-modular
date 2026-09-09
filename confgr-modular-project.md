@@ -1,35 +1,36 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 5 September 2026, end of session 5. State verified against the
-code at commit `9832779`, not from memory. Session 5 ran in nine parts: findings
-(§5.1's correction, §5.2a, §5.2b, §5.2c, §5.3's second half), then fixing what
-Matt hit while using it, then twelve more parts of the range, then the timber —
-the first parts in the product that are ours rather than a supplier's — then
-**vertical joints** (§5.6), an engine change the cabinets forced, the office
-desktop (§5.7), which needed the same joint and one new rule, and finally the
-**`condition` field** (§5.8), which had never been read by anything until the
-office assembly produced a rule that masks and roles could not express. Then Matt
-asked whether I had read the desktop sheet — I had, and checking it properly
-found that **the office arm does not hook a rung and I authored it as if it did**
-(§5.7's warning), which turned into the **`bolted` family** (§5.9): a part bolted
-to a named, verified hole in another part's face, with the 9° tilt falling out of
-it for the cost of one declared roll. Then the **clamping angle** (§5.10), a
-20 mm bracket that corrected the family, the tool that measured it and the
-desktop's position — and corrected §5.9's own closing paragraph. And the repo
-went to GitHub.
+**Last updated:** 9 September 2026, end of session 7. State verified against the
+code at commit `2b5ca38`, not from memory. Sessions 6 and 7 changed what this
+project *is* for a customer: session 6 finished the range (80 of 80) and closed
+the chain from a measured part to a button on a phone (§5.15–§5.23); session 7
+was a feedback loop with Matt testing on his own devices, and it began with him
+asking why he could not configure the thing (§5.24). The deliverable is now a
+**configurator** rather than a viewer — authored options, the engine placing
+every part, a URL that restores the product and the controls, a mobile bottom
+sheet, a camera that does not reset, and parts a customer can move or remove.
 
-**Code:** `C:\Claude\confgr-modular` — git, 49 commits, pushed to
+**The state model is the part worth remembering:** a guided configuration is
+*counts*, and a count cannot say which rung a rail is on, so a moved part is
+recorded as intent against a **slot** and re-checked on every rebuild. The
+product stays a pure function of the choices, which is what keeps the URL, the
+configuration id and the quote round-tripping.
+
+**Code:** `C:\Claude\confgr-modular` — git, 78 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
-**Tests:** 265 passing (`npm test`).
-**Components:** 77 — **37 of the 45 YouK parts, plus 40 timber parts generated
-rather than converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office
-desktops. The remaining 8 supplier parts convert cleanly and have no snaps
-authored — see §4.2 for what that costs.
+**Tests:** 578 passing across 28 files (`npm test`).
+**Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
+**45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
+converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
 
-**Still to author:** the office top panel bracket (008552) — **not a bolted part
-after all** (§5.10); it hooks the TOP of a ladder stile, which nothing in the
-range does; clothes-rail extensions (008533/34/35); umbrella stand (008565
-×2); newspaper-rack divider (008549); the adjustable foot (237023).
+**Still not authored, and none of it is ours to fix:** five parts whose supplier
+data is faulty or ambiguous — two wrong descriptions, 008535's CAD missing its
+bracket entirely, which way up 008552 goes, and what height the 008549 divider
+clips at. Each is a one-sentence question with a measurement behind it (§3.2,
+`youk/FINDINGS.md`, and item 8 of the critical path) rather than an item to
+build. The four shoe racks (008553–008556) are authored but are **out of the
+guided option schema**: MA 406213 screws them to a wall, so they attach to
+nothing in the assembly (§5.24).
 
 **All the timber is in.** Shelves, cabinets and the office desktop.
 
@@ -68,7 +69,7 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 547 unit tests, ~8 s. Run this before believing anything. |
+| `npm test` | 578 unit tests across 28 files, ~8 s. Run this before believing anything. |
 | `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
@@ -2795,8 +2796,112 @@ One known cost, measured rather than hidden: all 27 models load up front, about
 4 MB, because any of them may be one tap away. Lazy loading per option is the
 obvious improvement and is not done.
 
-**547 tests** (32 in `tests/guided.test.js`, 13 in `tests/options.test.jsx`, and
-the rest across the bundle and AR-button suites).
+#### Movable parts, and why the state model had to change first
+
+Matt, after configuring one: *"I think we need to allow objects to be movable as
+all of the addons are just on the bottom rail."* Auto-placement fills from the
+bottom, which is right for repeats and wrong as the only option anybody has. He
+chose **make placed parts movable** over a height control per accessory.
+
+Tap a part, get the heights it can go to, press one. Or remove it.
+
+**The state problem is the whole job.** A guided configurator's state is
+*counts* — two shelves, one clothes rail — and a count cannot say "the rail is on
+the fourth rung". So the moment anything is movable, counts stop describing the
+product.
+
+The answer is a **slot**: the *n*th copy of a component in the schema's own
+order, which is also the order `buildGuided` places them.
+
+```js
+export const slotKeyFor = (componentId, index) => `${componentId}#${index}`;
+```
+
+`choices.at[slotKey]` records where that slot was put, and everything follows
+from recording the **intent** rather than the outcome:
+
+- the product stays a pure function of the choices, so `?o=`, the configuration
+  id and the quote keep round-tripping exactly as before;
+- a move is an edit to one entry, not a new kind of state;
+- changing one accessory's count cannot disturb another's position.
+
+The alternative — let a move edit the assembly and keep *that* as the state —
+works until the next option change regenerates it, and then every move has to be
+re-matched onto a product that has moved on.
+
+A recorded position is still **checked rather than trusted**: `autoAttach`
+narrows its candidates to that one point and everything else runs unchanged, so
+a position that no longer holds is refused. Reducing the bays can delete the
+frame a rail was hung on; that part gets auto-placed and **reported** in
+`dropped`, and the runtime then *forgets* the record — otherwise it would
+silently reappear the next time the product happened to have that point again,
+which is a part moving on its own several changes later for no reason the person
+could see.
+
+Built on the **editor's own machinery** — `canMove`, `moveTargets`, `moveTo` —
+because re-hanging a part is exactly what the editor already does. `pickInstance`
+moved out of `Configurator` into `src/viewer/product.js` for the same reason: a
+second raycast written next to the first is the drift that directory exists to
+prevent.
+
+**Heights, not points, deliberately.** A 1500 mm frame in a two-bay run offers a
+dozen legal points for a rail — four rungs, two faces, three frames — and most
+differ only in which bay they land in. The complaint is about height, so
+`moveOptions` offers the *distinct heights*, each the position nearest to where
+the part already is. Moving to a different **bay** is a real want and is not
+this.
+
+#### Two id spaces, which is why the first tap failed
+
+`buildGuided` names instances `g1, g2, g3`; the runtime draws by **resolving a
+configuration id**, and decoding names what it reads `p0, p1, p2`. So the first
+tap produced a `p` id, the panel asked the builder about it, and was told —
+truly and uselessly — *"that part is not on this product"*.
+
+The two are aligned by **order**, so `builderIdOf` maps them. The test asserts
+the **invariant** rather than the mapping: if the encoder ever sorted or
+de-duplicated its instances, every move would silently address the wrong part,
+and nothing else in the system would notice.
+
+The second bug of the same shape: the move list offered positions where a
+spanning part is held at one end, which `buildGuided` then **refuses** — so the
+recorded position would be dropped and the part would spring back. `moveOptions`
+now applies the same `requireFullyHeld` rule as placement. Two paths asking
+different questions about the same thing is how "an offered option works" stops
+being true.
+
+Two smaller ones, both found by using it:
+
+- The bay's own shelf was titled **"Extra metal shelf"**, because a bay's shelf
+  and an extra shelf are one article number and the label was looked up by
+  component. Whether the part is `structural` is what decides, and the engine
+  already said so.
+- `removeSlot` carries an **off-by-one**: removing the second of three shelves
+  makes the third one the second, so every recorded position above the hole
+  shifts down. Without it, deleting a shelf silently moved the ones above it to
+  positions chosen for different parts.
+
+Frames and spans are not slots and say so — *"that is part of the frame, change
+the size or the number of bays instead"* — a direction rather than a refusal, and
+styled as one.
+
+#### Verified in a real browser, again
+
+Tapped the side rack: the panel opened naming it and offering **−59 / 296 / 651 /
+1246 mm** with the current one marked. Pressed 1246 and watched it move from
+y = −58.5 to y = 1246.5. Added a shelf and a second bay; it **stayed** at
+1246.5. Reloaded from the URL and diffed the whole layout — 18 lines, identical,
+same URL.
+
+One thing not fully explained: a transient **1923 mm** width reading taken
+mid-update, where 1870 was expected. It prompted a determinism check —
+change-and-revert returns the identical summary, and the same URL renders the
+identical layout — so there is no determinism bug, and the transient itself is
+unexplained rather than dismissed.
+
+**578 tests** across 28 files (43 in `tests/guided.test.js`, 13 in
+`tests/options.test.jsx`, 11 in `tests/movePanel.test.jsx`, 10 in
+`tests/camera.test.js`, and the rest across the bundle and AR suites).
 
 ---
 
@@ -2974,9 +3079,15 @@ order rather than wish order:
    so a bundle put on a client's own host is the hosted AR route for that
    product without anything further being built. And since §5.24 `--guided`
    makes it a CONFIGURATOR rather than a viewer: an authored option schema,
-   controls in the runtime, and every model the options can reach. **Still to
-   do:** a saveExportFolder dialog so it is not a command line, and a real
-   client folder actually sent to somebody.
+   controls in the runtime, and every model the options can reach. Since the same section it also lets a
+   customer MOVE what the engine placed - tap a part, pick a height — which is
+   recorded as intent against a slot rather than as a moved assembly, so the
+   configuration id keeps round-tripping. **Still to do:** a saveExportFolder
+   dialog so it is not a command line; moving a part to a different **bay**
+   rather than only to a different height; wall-fixed adds (the four shoe racks,
+   which screw to a wall and have no snaps); lazy model loading, since all 27
+   models load up front for about 4 MB; and a real client folder actually sent
+   to somebody.
 6. **AR:** ~~GLB export of a configuration~~ (§5.19), ~~USDZ conversion~~
    (§5.20) and ~~the handoff to the phone's own AR viewer~~ (§5.23) — **all
    three done** → the hosted `/ar?c=<id>` landing route → the QR handoff
@@ -3085,6 +3196,11 @@ Not the same as the phase order, and worth stating separately:
     (§5.24), and it was Matt who noticed the deliverable was a viewer rather
     than a configurator. Guided options, the engine placing every part, and
     a URL that restores the product and the controls.
+    And, after Matt configured one and found every accessory stacked on the
+    bottom rail, **movable parts**: tap a part, pick a height, or remove it.
+    The state model had to change first — a count cannot say which rung —
+    so a position is recorded against a SLOT and re-checked on every rebuild
+    rather than trusted.
 15. **The `/ar?c=` route, back on the critical path** — put there by the
     configurator rather than by AR. A pre-baked AR file is of one product,
     so a customer who configures needs the model generated for what they
@@ -3131,6 +3247,72 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 7 — 9 September 2026
+
+**The whole session was a feedback loop, and Matt was the loop.** Session 6 ended
+saying the client-facing critical path was empty of engineering. It was not — it
+was empty of engineering *I could think of*, which is a different claim, and the
+first thing Matt did was ask where he could test it. Every item below started as
+a sentence from him after using it on his own devices.
+
+- **"Am I not able to configure the YouK unit?"** The deliverable was a
+  **viewer**. It showed one product beautifully and offered no way to change it,
+  and I had shipped it as the client demo without noticing that a configurator
+  which cannot configure is not the thing anybody wanted. That is the largest
+  fault of the project so far and it was invisible from the inside, because
+  every part of it worked. §5.24 is the answer: an authored option schema, a
+  guided engine that *asks the engine* where each part goes rather than knowing
+  any geometry, and a URL that restores the product **and** the controls.
+- **"It's very difficult to configure on mobile as the config menu takes the
+  whole screen."** Fixed as a 46vh bottom sheet — and finding out why the first
+  fix did nothing turned up a **CSS fault already shipped**: a box given `top`,
+  `bottom` and an explicit `height` silently ignores `bottom`, so the desktop
+  bill-of-materials panel had been 300 px off-screen horizontally for the same
+  reason. One report fixed two bugs, one of which nobody had reported.
+- **"When I change an option the camera resets."** The comment in `scene.js` had
+  always said the viewer frames the product *once, on load*; the code framed it
+  on every rebuild. `followProduct` now reacts to the product **growing** and
+  nothing else — the first attempt also pulled back whenever the product did not
+  fit, which fights a deliberate zoom, and that is a different behaviour wearing
+  the same name.
+- **"All of the addons are just on the bottom rail."** Auto-placement fills from
+  the bottom, which is right for repeats and wrong as the only option. Movable
+  parts, and **the state model had to change first**: a count cannot say which
+  rung, so a position is recorded against a *slot* as intent and re-checked on
+  every rebuild rather than trusted. Two id spaces (`g1…` from the builder,
+  `p0…` from decoding a configuration id) is why the very first tap answered
+  *"that part is not on this product"* — truly and uselessly.
+
+**Four wrong products, none of them a bug in the engine.** The guided engine's
+first four outputs were all wrong and every fault was in the *policy* above the
+engine: a default frame chosen by array order rather than by the `default` flag;
+a clash rule that refused every unjoined overlap, when a span laps the frame it
+is not wired to by 29.4 mm; "lowest world height" hanging a second frame 1305 mm
+below the floor; and "held at both ends" measured wrongly **twice** — first by
+counting box laps, which cannot tell support from two shelves lapping each other
+by exactly a stile's width, then by a discount that read *zero everywhere* on
+the synthetic rack. The fix each time was to ask the engine a question it already
+answers (`snapSupport`, reusing §5.17's `supportedByGeometry`) rather than to
+measure geometry a second time in a second place. **That is session 6's theme
+again** — two implementations of one idea, drifting — arriving in new clothes.
+
+**And a discovery that was mine to make and not the engine's fault:** the four
+shoe racks (008553–008556) have no snaps at all, because MA 406213 screws them
+to a wall. `youk/snap-spec.json` had recorded that months ago in
+`_notThisSystem`; I had put them in the option schema anyway. They are out, with
+the reason written down.
+
+**What is still true and worth not softening:** nothing about AR has been seen
+on a real handset, and the configurator has put `/ar?c=` **back** on the
+critical path — a pre-baked AR file is of one product, so a customer who
+configures gets the handoff withheld with a sentence rather than a picture of
+somebody else's shelf. And a transient 1923 mm width reading, where 1870 was
+expected, is **unexplained**. Change-and-revert returns the identical summary
+and the same URL renders an identical 18-line layout, so it is not a determinism
+bug; that is as far as it got, and it is written here rather than dropped.
+
+**578 tests across 28 files**, up from 547. Five commits.
 
 ### Session 6 — 6 September 2026
 
