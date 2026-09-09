@@ -1,0 +1,210 @@
+// The configurator, as opposed to the viewer.
+//
+// `Viewer` draws a configuration id. This owns the CHOICES, turns them into an
+// id, and hands that id to `Viewer` - so what is on screen is always exactly
+// what an id encodes, and the id in the URL is always exactly what is on
+// screen. That round trip is not a formality: it is the thing that makes a
+// quote reconcilable with a drawing, and doing it on every change means a
+// divergence between the two would show up immediately rather than at the point
+// somebody sends a link.
+//
+// It also means this file adds no drawing code at all. The runtime's scene, the
+// bill of materials, the AR handoff and the framing all stay where they are; the
+// only new thing is a panel and a piece of state.
+//
+// THE URL IS THE STATE, up to a point. A configuration id is 400-odd characters,
+// which is a link rather than a text message, so `?c=` is written on change and
+// read on load. Someone who configures a product and sends the URL sends the
+// product. The short-code service that would make that pretty is Phase 2 item 7
+// and is not this.
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Viewer from './Viewer.jsx';
+import Options from './Options.jsx';
+import './options.css';
+import {
+  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, GuidedError,
+} from '../engine/guided.js';
+import { MOUNTING } from '../engine/ar.js';
+
+const MOUNTING_LABELS = [
+  { id: MOUNTING.FLOOR, label: 'The floor' },
+  { id: MOUNTING.FEET, label: 'Feet' },
+  { id: MOUNTING.WALL, label: 'The wall' },
+];
+
+/**
+ * The choices in the URL, alongside the configuration id.
+ *
+ * BOTH are needed and they are not interchangeable, which took a moment to see.
+ * `?c=` is the product - what the quote prices, what an AR file would be of,
+ * what a person means when they send a link. `?o=` is the CHOICES, and a
+ * configuration id cannot be turned back into them: an id records the parts and
+ * the joints, not "two bays with one clothes rail". Resolving one tells you what
+ * to draw and nothing about where the steppers should sit.
+ *
+ * So without `?o=`, reloading a configured product silently reset every control
+ * while the URL still named the product - the page and its own address
+ * disagreeing, which is exactly the class of thing a shared link exists to
+ * avoid.
+ *
+ * base64url of the small JSON, not a second versioned format: these are five
+ * short fields, they are read by the same build that wrote them, and anything
+ * unrecognised is normalised away by `normaliseChoices` on the way in.
+ */
+const encodeChoices = (choices) => {
+  try {
+    return btoa(JSON.stringify(choices))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  } catch {
+    return null;
+  }
+};
+
+const decodeChoices = (text) => {
+  if (!text) return null;
+  try {
+    return JSON.parse(atob(text.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch {
+    // A truncated or hand-edited parameter opens the default product rather
+    // than an error page. The URL is a convenience, not a contract.
+    return null;
+  }
+};
+
+export { encodeChoices, decodeChoices };
+
+export default function Guided({
+  schema,
+  components,
+  catalogue = null,
+  tierId = null,
+  title = null,
+  ar = null,
+  /**
+   * The configuration the bundle's AR files were baked for.
+   *
+   * A pre-baked GLB is of ONE product. The moment a customer adds a shelf, the
+   * file in `ar/` is a picture of something else - so the handoff has to be
+   * withdrawn rather than left pointing at the wrong thing. Showing a customer
+   * their own product in the room, except with a shelf missing, is worse than
+   * showing them nothing.
+   */
+  arConfigurationId = null,
+  initialChoices = null,
+  onReady = null,
+}) {
+  const [choices, setChoices] = useState(() => {
+    const fromUrl = typeof window === 'undefined'
+      ? null
+      : decodeChoices(new URL(window.location.href).searchParams.get('o'));
+    return normaliseChoices(schema, initialChoices || fromUrl || defaultChoices(schema));
+  });
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  const built = useMemo(() => {
+    try {
+      return { ...buildGuided(schema, choices, components), error: null };
+    } catch (err) {
+      // A schema naming parts that are not here is the one failure this cannot
+      // work around, and it is named rather than swallowed: the alternative is
+      // a product with pieces missing and nothing said.
+      return {
+        error: err instanceof GuidedError ? err.message : `Could not build this: ${err.message}`,
+      };
+    }
+  }, [schema, choices, components]);
+
+  const variant = useMemo(() => {
+    try { return variantOf(schema, choices); } catch { return null; }
+  }, [schema, choices]);
+  const size = useMemo(
+    () => (variant ? sizeOf(variant, choices) : null),
+    [variant, choices],
+  );
+
+  // Which mountings this product can actually take. A schema may say, and if it
+  // does not, all three are offered - the engine has handled all three since
+  // §5.12 and the view changes for each.
+  const mountings = useMemo(() => {
+    const allowed = variant?.mountings;
+    return allowed
+      ? MOUNTING_LABELS.filter((m) => allowed.includes(m.id))
+      : MOUNTING_LABELS;
+  }, [variant]);
+
+  // The id goes into the URL so the product can be sent. `replaceState` rather
+  // than `pushState`: every tap on a stepper would otherwise be a history entry
+  // and the back button would walk a customer backwards through their own
+  // fiddling instead of out of the page.
+  useEffect(() => {
+    if (!built.configurationId || typeof window === 'undefined') return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('c', built.configurationId);
+      const o = encodeChoices(built.choices);
+      if (o) url.searchParams.set('o', o);
+      window.history.replaceState(null, '', url);
+    } catch {
+      // A page served from somewhere that will not take a URL rewrite still
+      // configures perfectly well; it just cannot be shared by copying the bar.
+    }
+  }, [built.configurationId]);
+
+  const change = useCallback((next) => {
+    setChoices(normaliseChoices(schema, next));
+  }, [schema]);
+
+  if (built.error) {
+    return (
+      <div className="cfgv">
+        <div className="cfgv-error" role="alert">
+          <strong>This product cannot be configured.</strong>
+          <span>{built.error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // AR only while the product on screen IS the product in the ar/ folder.
+  const arMatches = !!arConfigurationId && arConfigurationId === built.configurationId;
+
+  return (
+    <div className={`cfgg${panelOpen ? ' cfgg-open' : ''}`}>
+      <Viewer
+        configurationId={built.configurationId}
+        components={components}
+        catalogue={catalogue}
+        tierId={tierId}
+        title={title}
+        ar={arMatches ? ar : null}
+        arWithheld={ar && !arMatches
+          ? 'View in your room is ready for the starting product. Reset the '
+            + 'options to see it in AR, or ask us for a link to this one.'
+          : null}
+        onReady={onReady}
+      />
+
+      <button
+        type="button"
+        className="cfgg-toggle"
+        aria-expanded={panelOpen}
+        onClick={() => setPanelOpen((v) => !v)}
+      >
+        {panelOpen ? 'Done' : 'Configure'}
+      </button>
+
+      <div className="cfgg-panel" hidden={!panelOpen}>
+        <Options
+          schema={schema}
+          choices={built.choices}
+          variant={variant}
+          size={size}
+          refused={built.refused}
+          mountings={mountings}
+          onChange={change}
+        />
+      </div>
+    </div>
+  );
+}

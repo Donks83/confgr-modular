@@ -113,3 +113,23 @@ describe('when there is no AR', () => {
     expect(container.textContent).toBe('');
   });
 });
+
+describe('when the caller withholds it', () => {
+  // The guided flow withholds AR the moment the product stops being the one the
+  // bundle's ar/ files were baked for. A button that opens a picture of a
+  // DIFFERENT product is worse than no button, and worse than an error - because
+  // nothing about it looks wrong.
+  it('says why instead of offering a link, even on a phone that could', () => {
+    render(<ArButton
+      availability={QUICK_LOOK}
+      withheld="Ready for the starting product."
+    />);
+    expect(screen.queryByRole('link')).toBeNull();
+    expect(screen.getByText(/starting product/)).toBeTruthy();
+  });
+
+  it('wins over the Android link too', () => {
+    const { container } = render(<ArButton availability={SCENE_VIEWER} withheld="Nope." />);
+    expect(container.querySelector('a')).toBeNull();
+  });
+});

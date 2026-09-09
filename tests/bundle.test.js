@@ -36,6 +36,7 @@ import {
 } from '../src/viewer/manifest.js';
 import { encodeConfiguration } from '../src/engine/configuration.js';
 import { MOUNTING } from '../src/engine/ar.js';
+import { impliedComponentIds } from '../src/engine/implied.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ASSETS = join(ROOT, 'test-assets');
@@ -102,6 +103,46 @@ describe('partsNeededFor', () => {
   });
 });
 
+describe('what a GUIDED bundle needs', () => {
+  // A configurator's folder has to carry every part the OPTIONS can reach, not
+  // the parts of the product it happens to open on. Still
+  // only-what-is-referenced; the reference is the schema rather than one id.
+  const guided = {
+    version: 1,
+    variants: [{
+      id: 'v',
+      frames: [{ componentId: 'unit-900' }],
+      sizes: [{
+        id: 's',
+        span: { componentId: 'rack-shelf-900' },
+        adds: [{ componentId: 'rack-drawer-900' }],
+      }],
+    }],
+  };
+
+  it('lists everything the options can reach, not just the opening product', () => {
+    const id = encodeConfiguration(assembly(), { mounting: MOUNTING.FLOOR });
+    const plain = partsNeededFor(id);
+    const all = partsNeededFor(id, { guided });
+
+    expect(plain).toEqual(['unit-900']);
+    expect(all).toContain('rack-shelf-900');
+    expect(all).toContain('rack-drawer-900');
+    expect(all).toContain('unit-900');
+  });
+
+  it('carries the implied parts whatever the opening product stands on', () => {
+    // Mounting is a CONTROL in a guided bundle. The opening product standing on
+    // the floor tells you nothing about whether somebody will choose feet, so
+    // the foot has to be in the folder either way — the opposite of the rule
+    // for a single-configuration bundle, and for the same reason.
+    const onFloor = encodeConfiguration(assembly(), { mounting: MOUNTING.FLOOR });
+    const all = partsNeededFor(onFloor, { guided });
+    for (const id of impliedComponentIds()) expect(all).toContain(id);
+    expect(partsNeededFor(onFloor)).not.toContain(impliedComponentIds()[0]);
+  });
+});
+
 describe('the manifest refuses what it cannot honestly read', () => {
   it('round-trips a manifest it wrote', () => {
     const m = buildManifest({ configuration: 'abc', models: ['a.glb'] });
@@ -130,6 +171,18 @@ describe('the manifest refuses what it cannot honestly read', () => {
   it('will not build a manifest with nothing in it', () => {
     expect(() => buildManifest({ configuration: 'x', models: [] })).toThrow(ManifestError);
     expect(() => buildManifest({ configuration: '', models: ['a.glb'] })).toThrow(ManifestError);
+  });
+
+  it('carries an option schema when there is one, and null when there is not', () => {
+    const manifest = buildManifest({ configuration: 'x', models: ['a.glb'] });
+    // Null rather than absent: the runtime switches on this field to decide
+    // whether the folder configures or only shows, so "no schema" has to be a
+    // statement rather than a gap.
+    expect(manifest.guided).toBe(null);
+
+    const guided = { version: 1, variants: [] };
+    expect(buildManifest({ configuration: 'x', models: ['a.glb'], guided }).guided)
+      .toEqual(guided);
   });
 
   it('builds a model url that works from a subdirectory', () => {

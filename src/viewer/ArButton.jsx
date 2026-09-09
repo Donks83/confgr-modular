@@ -37,7 +37,13 @@ export const AR_GLYPH = 'data:image/svg+xml;utf8,'
     + '</svg>',
   );
 
-export default function ArButton({ availability, hasAr = true }) {
+export default function ArButton({ availability, hasAr = true, withheld = null }) {
+  // A caller can know something this component cannot: the guided flow
+  // withholds AR once the product stops being the one the bundle's files were
+  // baked for. It wins over everything below, because a button that would open
+  // a picture of a DIFFERENT product is worse than no button - and worse than
+  // an error, since nothing about it looks wrong.
+  if (withheld) return <p className="cfgv-ar-no">{withheld}</p>;
   if (!availability) return null;
 
   // iOS. ONE child, and it is the <img>. The label is a CSS `::after`, which is

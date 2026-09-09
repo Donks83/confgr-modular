@@ -68,7 +68,7 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 497 unit tests, ~8 s. Run this before believing anything. |
+| `npm test` | 547 unit tests, ~8 s. Run this before believing anything. |
 | `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
@@ -76,6 +76,7 @@ run `npm run youk:bay`, which kills a stale one for you.
 | `npm run youk:export -- --demo --out demo.glb` | Builds a bay with **no editor at all** and writes it as one GLB, floor-rebased and stripped of snap planes. Add `--id <configuration-id>` to export a real one, `--raw` to skip the size optimisations and compare (§5.19). |
 | `npm run youk:usdz -- --demo --out demo.usdz` | The same bay as a Quick Look-valid USDZ, for iOS. `--vertical` for a wall-fixed product, `--normals` to force flat normals at 3.7× the size — 1,278,120 → 4,686,173 bytes on the demo bay (§5.20, §5.23). |
 | `npm run youk:bundle -- --demo --out ./somewhere` | **A folder somebody can send.** The runtime, only the models this configuration uses, the AR pair, a manifest and a `Start Preview.bat`. No network dependency; no editor in it (§5.22). `--no-ar` skips the AR files; `--no-ar-normals` makes the USDZ 3.4 MB smaller and its shading untested (§5.23). |
+| `npm run youk:bundle -- --guided --out ./somewhere` | **A configurator somebody can send**, rather than one configuration: the folder carries `youk/guided.json` and every model the options can reach, and the runtime shows controls (§5.24). AR is baked for the product it opens on and withheld once the customer changes anything. |
 
 The probe takes a `-Scenario`, and each one exists because something went wrong
 without it:
@@ -473,7 +474,7 @@ This is the honest half of the document.
 
 | | Status |
 |---|---|
-| **Export a configurator for a client** | **Built** (§5.21, §5.22). `npm run youk:bundle` writes a self-contained folder — `index.html`, the runtime, only the models the configuration references, `manifest.json`, a `Start Preview.bat` — that works on any static host with **no network dependency**, asserted by a test that reads every file in it. The editor is not in it, and cannot be: the runtime has its own vite entry so the module graph will not carry `src/spike`. Verified in a real browser off a plain static server. **Still nothing for:** a folder-picker dialog instead of a command line, the `<confgr-modular>` web component, and branding. See §4.1. |
+| **Export a configurator for a client** | **Built, and now actually a configurator** (§5.21, §5.22, §5.24). `--guided` ships an authored option schema and the runtime draws controls: depth, width, height, bays and accessory counts, with the engine placing every part and reporting what would not fit. Verified in a browser; a reload restores the product and every control from the URL. `npm run youk:bundle` writes a self-contained folder — `index.html`, the runtime, only the models the configuration references, `manifest.json`, a `Start Preview.bat` — that works on any static host with **no network dependency**, asserted by a test that reads every file in it. The editor is not in it, and cannot be: the runtime has its own vite entry so the module graph will not carry `src/spike`. Verified in a real browser off a plain static server. **Still nothing for:** a folder-picker dialog instead of a command line, the `<confgr-modular>` web component, and branding. See §4.1. |
 | **Import a model through the UI** | **Nothing.** CLI only. See §4.2. |
 | **A snap editor** | Nothing. Snaps come from a hand-authored spec file plus a Python script. |
 | **Branding / theming** | Nothing. Studio's `accentColor` / `logo` / `font` are not ported. |
@@ -2610,6 +2611,154 @@ more in `tests/bundle.test.js`).
 
 ---
 
+### 5.24 A configurator rather than a viewer - and four products nobody asked for
+
+Matt opened the exported folder and asked, reasonably, *"am I not able to
+configure the youk unit?"* No — and that gap was ours rather than his.
+
+§2 goal 2 asks for **"a self-contained configurator the client hosts
+themselves"**, and the "more than one on a page" bar is explicitly about
+clicking a shelf in one and nothing happening in the other. Both describe
+something interactive. What §5.22 shipped was a **viewer**: one configuration,
+`selectable: false`, nothing to click. A real step, and the AR path needed it,
+but calling the folder "a configurator you can send" was generous. It was a
+configuration you can send.
+
+**Matt's call on how to close it: guided now, direct later — and the audience is
+a demo to win the partnership.** So the customer picks from named options and
+the engine does the placing; marker-clicking in 3D stays the editor's
+interaction, and may return later as an advanced mode.
+
+#### The engine adds no geometry at all
+
+`src/engine/guided.js` is a POLICY over the engine's own answers and must never
+become a second attach engine. Every candidate position comes from
+`attachMatrix`, every choice between candidates from `distinctPlacements`, every
+rejection from `overlaps`, every judgement about support from `snapSupport`. The
+file contains no snap names and no idea what a rung is. The difference between
+it and the editor is one sentence: the editor asks a person which candidate,
+this picks one and says which it picked.
+
+The options themselves are **authored**, in `youk/guided.json`, and that is a
+decision rather than laziness. A taxonomy inferred from the supplier's filenames
+would be wrong about roughly one part in ten (§5.3) — so the schema is data,
+verified against what actually loaded, exactly like the snap spec. Two
+dimensions, because the range has two: **depth** picks the frames and the
+depth-matched accessories, **width** picks the span and the width-matched ones.
+The 200 mm range's span is a *timber* shelf, because Kesseböhmer make no metal
+shelf at that depth anywhere in the 80 parts. No derived rule would have found
+that.
+
+#### Four wrong products, none of them a bug
+
+Not one of these was a crash, a refusal or a collision. All four compiled,
+resolved, priced, and would have looked plausible in a screenshot:
+
+| What came out | Why |
+| --- | --- |
+| the second frame **1305 mm below the floor**, hanging by its top rung | a frame at a span's free end fits by *any* of its own rungs, and "lowest world height" picks the one that dangles |
+| the second bay **355 mm up in the air**, level with nothing | ranked on `mountHeightMm`, which is identical for every rung and so is no tie-break at all |
+| the run **folding back into bay 1** instead of getting longer | a "well-supported" rule prefers dropping the next span inside the bay it just built |
+| "four more shelves" putting **two of them out in the air** beside the product | a cantilevered shelf scored as well as a spanning one |
+
+Hence four ranking keys, each earned: `preferred` (grow from the end the caller
+named), `held` (extend into free space, or fill between two frames),
+`levelDelta` (level with its own kind), `worldY` (lowest of what is left, so
+repeats stack upward). Two policies — `EXTEND` and `FILL` — which read the same
+number and disagree only about its sign.
+
+#### "Held at both ends" was measured wrongly twice
+
+First by counting unjoined box overlaps. That made a cantilevered shelf score as
+well as a spanning one, because **two shelves at the same height either side of
+one frame meet inside it and lap each other by exactly its width** — 30.0 mm,
+indistinguishable from a shelf lapping the frame that carries it.
+
+Then by discounting laps against more of the same part. That fixed YouK and
+**silently read zero everywhere on the synthetic test rack**, whose spans butt
+flush instead of lapping. A 900 mm YouK shelf is 950.2 mm wide across a 920.1 mm
+gap; that 15 mm a side is a fact about *this range's tolerances*, not about what
+holds a shelf up.
+
+`snapSupport` in `assembly.js` now answers it properly, from the part's own
+mounting points: how many landed on something compatible, by the graph or by
+geometry. A span between two frames is 2 of 2; the same span off the end of a run
+is 1 of 2. It reuses `supportedByGeometry`, which §5.17 wrote for exactly this
+reason — the graph is a tree and the product is not — and the guided flow was
+re-deriving it badly rather than asking.
+
+**The general lesson, and it is the session's second: a measurement that happens
+to work on one range is not a rule.** Both wrong versions were calibrated
+against YouK's own tolerances without anyone noticing that was what they were.
+
+#### Found: four parts that cannot be placed at all
+
+008553–008556, the shoe racks, load as components and carry **no snaps**. The
+guided builder asked for one and was told *"there is nowhere on this product for
+that part"* — which is the truth, and was already written down.
+`youk/snap-spec.json`'s `_notThisSystem` records that MA 406213 screws them
+straight to a wall with plugs and screws, and no ladder appears in the sheet.
+
+So the engine was right and my schema was wrong. They are out of it with the
+reason recorded, and they belong in a guided flow as **wall-fixed items** placed
+as a second anchor — which `placeFree` already supports (§5.1) and this does not
+use yet.
+
+**Clicking would never have surfaced it.** In the editor a part with no snaps
+greys out and nobody notices. Asking the engine to place one produces a
+sentence. That is the guided flow's first contribution to the *range* rather
+than to the product.
+
+#### Two things in the URL, and they are not interchangeable
+
+`?c=` is the product — what the quote prices, what an AR file is of, what
+somebody means when they send a link. `?o=` is the **choices**, and a
+configuration id cannot be turned back into them: an id records parts and
+joints, not "two bays with one clothes rail". Without `?o=`, reloading a
+configured product reset every control while the URL still named the product —
+the page and its own address disagreeing, which is the exact failure a shared
+link exists to prevent.
+
+#### And the thing this re-opens
+
+**A pre-baked AR file is of one product.** §4.1a was corrected yesterday to say
+the bundle carries AR and the hosted route is narrower than assumed. That is
+true of a *viewer*. The moment a customer adds a shelf, `ar/product.glb` is a
+picture of something else — so the handoff is **withheld**, with a sentence,
+rather than left pointing at the wrong thing. Showing somebody their own product
+in their room *except with a shelf missing* is worse than showing them nothing.
+
+Two real routes out, neither taken yet:
+
+- **Client-side export.** three ships `GLTFExporter` and `USDZExporter` and the
+  runtime already has the scene, so the current product could be written to a
+  Blob on demand. Quick Look may accept a `blob:` URL; Scene Viewer certainly
+  cannot, since it fetches in another process. Unverified, and shipping an
+  unverified path as the primary AR route is the guess this project avoids.
+- **The hosted route** (§4.5 item 5), which is exactly what it was always for.
+
+So the honest state is: AR works for the product the bundle opens on, and the
+`/ar?c=` route is back on the critical path — put there by the configurator
+rather than by AR.
+
+#### Verified in a real browser
+
+Served from a plain static server: all six option groups drawn, tapping **Bays**
+took the product from 3 parts / 950 mm to 7 parts / 1870 mm, the bill of
+materials rebuilt itself to 3 shelves + 3 ladders + 1 clothes rail across 10
+parts, and a **reload restored the exact product and every control** from the
+URL. No console errors, and **61 requests, every one local** — 27 models,
+`manifest.json`, `catalogue.json` and the runtime.
+
+One known cost, measured rather than hidden: all 27 models load up front, about
+4 MB, because any of them may be one tap away. Lazy loading per option is the
+obvious improvement and is not done.
+
+**547 tests** (32 in `tests/guided.test.js`, 13 in `tests/options.test.jsx`, and
+the rest across the bundle and AR-button suites).
+
+---
+
 ## 6. Roadmap
 
 The plan's phases, corrected against what actually happened. We are **past
@@ -2782,9 +2931,11 @@ order rather than wish order:
    by the runtime having its own vite entry, so the module graph cannot carry
    the authoring tool back in. Since §5.23 the folder also carries the AR pair,
    so a bundle put on a client's own host is the hosted AR route for that
-   product without anything further being built. **Still to do:** a
-   saveExportFolder dialog so it is not a command line, and a real client folder
-   actually sent to somebody.
+   product without anything further being built. And since §5.24 `--guided`
+   makes it a CONFIGURATOR rather than a viewer: an authored option schema,
+   controls in the runtime, and every model the options can reach. **Still to
+   do:** a saveExportFolder dialog so it is not a command line, and a real
+   client folder actually sent to somebody.
 6. **AR:** ~~GLB export of a configuration~~ (§5.19), ~~USDZ conversion~~
    (§5.20) and ~~the handoff to the phone's own AR viewer~~ (§5.23) — **all
    three done** → the hosted `/ar?c=<id>` landing route → the QR handoff
@@ -2889,15 +3040,27 @@ Not the same as the phase order, and worth stating separately:
     a client's host **is** the hosted AR route for that product, which is why
     item 9's "hosted later" needed less building than it looked.
 
-**Everything on this list that our own work can move is now done.** What is
+14. ~~The exported folder should CONFIGURE, not just show~~ — **done**
+    (§5.24), and it was Matt who noticed the deliverable was a viewer rather
+    than a configurator. Guided options, the engine placing every part, and
+    a URL that restores the product and the controls.
+15. **The `/ar?c=` route, back on the critical path** — put there by the
+    configurator rather than by AR. A pre-baked AR file is of one product,
+    so a customer who configures needs the model generated for what they
+    chose: either client-side with three's own exporters (unverified on a
+    device) or from a hosted endpoint (§4.5 item 5). Until then AR is offered
+    for the product the bundle opens on and withheld, with a sentence, after
+    that.
+
+**Everything else on this list that our own work can move is done.** What is
 left is not engineering:
 
-14. **Send one.** A real bundle, of a real configuration, to a real person —
+16. **Send one.** A real bundle, of a real configuration, to a real person —
     which is the only test that has never been run. The folder works; nobody
     has received one.
-15. **The five questions** (item 8). Still the difference between 80 parts and
+17. **The five questions** (item 8). Still the difference between 80 parts and
     85, and still nothing on our side can unblock them.
-16. **Five minutes with an iPhone and an Android.** Three questions now, all of
+18. **Five minutes with an iPhone and an Android.** Three questions now, all of
     them answerable in that five minutes and none of them answerable without a
     device: does Quick Look need the authored normals it is being sent (3.4 MB
     of the demo bundle says yes until somebody looks); do the material variants

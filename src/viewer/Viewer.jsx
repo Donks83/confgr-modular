@@ -44,6 +44,14 @@ export default function Viewer({
   showPrice = true,
   title = null,
   ar = null,
+  /**
+   * Why there is no AR button, when the caller knows better than this file.
+   *
+   * The guided flow withholds AR the moment the product stops being the one the
+   * bundle's `ar/` files were baked for, and the reason is worth saying out
+   * loud rather than leaving a gap where a button was.
+   */
+  arWithheld = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -199,7 +207,7 @@ export default function Viewer({
             {/* Its own component because its DOM shape is a requirement iOS
                 enforces silently, and a component can be rendered in jsdom and
                 have its children counted. See ArButton.jsx. */}
-            <ArButton availability={arLink} hasAr={!!ar} />
+            <ArButton availability={arLink} hasAr={!!ar} withheld={arWithheld} />
           </div>
         </div>
       )}

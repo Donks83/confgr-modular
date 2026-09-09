@@ -18,8 +18,10 @@
 
 import React, { useEffect, useState } from 'react';
 import Viewer from './Viewer.jsx';
+import Guided from './Guided.jsx';
 import { loadComponentFromPath, loadComponentFromUrl } from '../three/loadGlb.js';
 import { MANIFEST_NAME, parseManifest, modelUrl } from './manifest.js';
+import { parseGuided } from '../engine/guided.js';
 
 /** In the desktop app: everything in the models folder, because we can. */
 async function partsFromDesktop() {
@@ -109,6 +111,27 @@ export default function ViewerHost({ configurationId = null }) {
   // The URL wins over the manifest, so one bundle can still be pointed at a
   // different configuration by hand — useful for a client comparing two.
   const id = configurationId || state.configuration;
+
+  // A schema in the manifest is the whole difference between a folder that
+  // shows a product and one that configures it (§5.24). Switched on the
+  // presence of the data rather than on a flag, because a flag can be set
+  // wrongly and a schema either parses or does not.
+  if (state.manifest?.guided) {
+    return (
+      <Guided
+        schema={parseGuided(state.manifest.guided)}
+        components={state.components}
+        catalogue={state.catalogue}
+        title={state.manifest.title}
+        ar={state.manifest.ar || null}
+        // What the AR pair was baked FOR, which is not necessarily what is on
+        // screen a moment later. `Guided` withholds the handoff rather than
+        // pointing it at a picture of a different product.
+        arConfigurationId={state.manifest.configuration}
+        onReady={({ describe }) => { window.__viewerLayout = describe; }}
+      />
+    );
+  }
 
   return (
     <Viewer

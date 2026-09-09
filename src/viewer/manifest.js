@@ -19,6 +19,7 @@
 
 import { decodeConfiguration } from '../engine/configuration.js';
 import { impliedComponentIds } from '../engine/implied.js';
+import { guidedComponentIds } from '../engine/guided.js';
 import { MOUNTING } from '../engine/ar.js';
 
 export const MANIFEST_NAME = 'manifest.json';
@@ -44,7 +45,22 @@ export class ManifestError extends Error {
  * Sorted, so two exports of the same configuration produce byte-identical
  * manifests. A diff that is noise is a diff nobody reads.
  */
-export function partsNeededFor(configurationId) {
+export function partsNeededFor(configurationId, { guided = null } = {}) {
+  // A GUIDED bundle needs every part its option space can reach, not the parts
+  // of the configuration it happens to open on. That inverts the rule below and
+  // it has to: a customer who has not yet chosen a clothes rail will choose one
+  // in a moment, and a folder that only carries what the opening product uses
+  // would 404 on the first tap. Still only-what-is-referenced - the reference is
+  // just the schema rather than one id.
+  if (guided) {
+    const ids = new Set(guidedComponentIds(guided, { includeImplied: false }));
+    // Mounting is a control in a guided bundle, so the parts that any mounting
+    // implies have to be there - the opening product standing on the floor does
+    // not tell you whether somebody will pick feet.
+    for (const id of impliedComponentIds()) ids.add(id);
+    return [...ids].sort();
+  }
+
   const { assembly, mounting } = decodeConfiguration(configurationId);
   const ids = new Set(assembly.instances.map((i) => i.componentId));
 
@@ -70,6 +86,7 @@ export function partsNeededFor(configurationId) {
  */
 export function buildManifest({
   configuration, models, catalogue = null, title = null, generated = null, ar = null,
+  guided = null,
 }) {
   if (!configuration) throw new ManifestError('A bundle needs a configuration id.');
   if (!models?.length) throw new ManifestError('A bundle needs at least one model.');
@@ -86,6 +103,14 @@ export function buildManifest({
     // bundle without it is a bundle that says "no AR here" rather than one that
     // offers a link to a file nobody wrote. See `ar-link.js`.
     ar: ar || null,
+    // The option schema, INLINE rather than as a second file to fetch. It is a
+    // few kilobytes, the runtime cannot draw anything without it, and one
+    // request that either works or does not beats two that can disagree.
+    //
+    // Its presence is the whole difference between a bundle that shows a
+    // product and one that configures it, which is why the runtime switches on
+    // this field rather than on a flag somebody could set wrongly.
+    guided: guided || null,
   };
 }
 

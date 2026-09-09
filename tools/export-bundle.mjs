@@ -224,9 +224,9 @@ export async function writeArAssets({
  */
 export async function writeBundle({
   configurationId, folder, dist, models: modelsDir, title = null, generated = null,
-  ar = true, arNormals = true,
+  ar = true, arNormals = true, guided = null,
 }) {
-  const needed = partsNeededFor(configurationId);
+  const needed = partsNeededFor(configurationId, { guided });
 
   const missing = needed.filter((id) => !existsSync(join(modelsDir, `${id}.glb`)));
   if (missing.length) {
@@ -291,6 +291,7 @@ export async function writeBundle({
     title,
     generated,
     ar: arResult?.ar || null,
+    guided,
   });
   writeFileSync(join(folder, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(join(folder, 'Start Preview.bat'), startPreviewBat());
@@ -306,11 +307,35 @@ export async function writeBundle({
 async function main(argv) {
   const at = (flag) => {
     const i = argv.indexOf(flag);
-    return i >= 0 ? argv[i + 1] : null;
+    if (i < 0) return null;
+    const next = argv[i + 1];
+    // A flag followed by another flag has no value. Without this, `--guided
+    // --out somewhere` read "--out" as the path to the schema and reported a
+    // missing file that nobody had named.
+    return next && !next.startsWith('-') ? next : null;
   };
 
   const modelsDir = at('--models') || 'youk';
   let id = at('--id');
+
+  // A GUIDED bundle: the folder carries an option schema and the runtime shows
+  // controls rather than one product. The id it opens on is the schema's own
+  // default, computed here rather than asked for - a configurator that has to
+  // be told which product to start from has the wrong shape.
+  let guided = null;
+  const guidedPath = at('--guided')
+    || (argv.includes('--guided') ? join(modelsDir, 'guided.json') : null);
+  if (guidedPath) {
+    const { parseGuided, defaultChoices, buildGuided } = await import('../src/engine/guided.js');
+    const { loadFolder } = await import('./export-glb.mjs');
+    guided = parseGuided(JSON.parse(readFileSync(guidedPath, 'utf8')));
+    const { components } = loadFolder(modelsDir);
+    const built = buildGuided(guided, defaultChoices(guided), components);
+    id = built.configurationId;
+    console.log(`guided: ${guided.variants.length} variant`
+      + `${guided.variants.length === 1 ? '' : 's'}, opening on `
+      + `${built.assembly.instances.length} parts`);
+  }
 
   if (!id && argv.includes('--demo')) {
     const { loadFolder, demoConfiguration } = await import('./export-glb.mjs');
@@ -335,12 +360,14 @@ async function main(argv) {
     const r = await writeBundle({
       configurationId: id, folder, dist, models: modelsDir, title: at('--title'), ar: wantsAr,
       arNormals: !argv.includes('--no-ar-normals'),
+      guided,
     });
 
     console.log(`\n  wrote   ${r.folder}  ${(r.bytes / 1024).toFixed(1)} kB`);
     console.log(`  models  ${r.models.length} of the ${
       readdirSync(modelsDir).filter((f) => f.endsWith('.glb') && !f.endsWith('.converted.glb')).length
-    } available, because that is all this configuration references:`);
+    } available, because that is all ${
+      guided ? 'the options can reach' : 'this configuration references'}:`);
     for (const m of r.models) console.log(`            ${m}`);
     console.log(`  prices  ${r.manifest.catalogue ? 'catalogue.json included' : 'none on file'}`);
     if (r.ar) {
