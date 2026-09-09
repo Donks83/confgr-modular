@@ -185,16 +185,42 @@ export default function Guided({
         onReady={onReady}
       />
 
+      {/* Only ever OPENS. Closing is the Done button inside the sheet, next to
+          the thumb that has been tapping steppers - a control that opens a
+          panel and then hides behind it is a control you have to remember. */}
       <button
         type="button"
         className="cfgg-toggle"
         aria-expanded={panelOpen}
-        onClick={() => setPanelOpen((v) => !v)}
+        hidden={panelOpen}
+        onClick={() => setPanelOpen(true)}
       >
-        {panelOpen ? 'Done' : 'Configure'}
+        Configure
       </button>
 
       <div className="cfgg-panel" hidden={!panelOpen}>
+        {/* A title and, when it matters, the shortfall. NOT the part count:
+            on a phone the bill-of-materials strip sits directly above this
+            sheet and already reads "5 parts · 3 included · 1870 × 1600 × 320
+            mm", so a count here was the same number twice, 50 pixels apart. */}
+        <div className="cfgg-head">
+          <span className="cfgg-count">
+            {built.refused.length > 0 ? (
+              <span className="cfgg-short">
+                {built.refused.length} option
+                {built.refused.length === 1 ? '' : 's'} would not fit
+              </span>
+            ) : 'Configure'}
+          </span>
+          <button
+            type="button"
+            className="cfgg-done"
+            onClick={() => setPanelOpen(false)}
+          >
+            Done
+          </button>
+        </div>
+
         <Options
           schema={schema}
           choices={built.choices}
