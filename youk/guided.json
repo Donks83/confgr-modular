@@ -1,0 +1,330 @@
+{
+  "_": [
+    "The option schema for the YouK range: what a customer is offered, and which",
+    "part is behind each option. Read by src/engine/guided.js, which contains no",
+    "part numbers of its own - this file is the whole of what makes that engine",
+    "know about YouK, and the next range gets its own copy.",
+    "",
+    "AUTHORED, NOT DERIVED, and that is a decision rather than laziness. A",
+    "taxonomy inferred from the supplier's filenames would be wrong about roughly",
+    "one part in ten: 008533 is described as a 1200 mm part and measures 643.5 mm,",
+    "008534 is called a rail in both languages and is the 900 mm extension, and",
+    "008535's CAD is missing its bracket entirely. See youk/FINDINGS.md.",
+    "",
+    "TWO DIMENSIONS. Depth is the variant - it decides which frames exist and",
+    "which depth-matched accessories do. Width is the size within it - it decides",
+    "the span and the width-matched accessories. Both are real incompatibilities:",
+    "a 320 mm frame will not take a 200 mm hook strip, and a 900 mm bay will not",
+    "take a 1200 mm shoe rack.",
+    "",
+    "The 200 mm range's span is a TIMBER shelf. That is not a preference: there",
+    "is no metal shelf for 200 mm depth anywhere in the 80 parts. Nothing derived",
+    "from the names would have found that.",
+    "",
+    "Every componentId here is verified against what actually loaded, and a",
+    "missing one refuses the build BY NAME rather than quietly shrinking the",
+    "product - the same rule resolveConfiguration follows.",
+    "",
+    "`perBay: true` means the max is per bay rather than per product: one shoe",
+    "rack per bay is a sensible ceiling, one per product is not, and the",
+    "difference only shows up when somebody asks for three bays.",
+    "",
+    "NO SHOE RACKS (008553-008556), and that is not an omission. They carry no",
+    "snaps at all, because youk/snap-spec.json _notThisSystem already records",
+    "what MA 406213 says: they screw straight to a wall with plugs and screws,",
+    "and no ladder appears in the sheet. Offering them here as bay accessories",
+    "was an authoring mistake, and the engine caught it by answering \"there is",
+    "nowhere on this product for that part\" - which was the truth. They belong",
+    "in a guided flow as WALL-FIXED items, placed as a second anchor the way",
+    "attach.js placeFree already handles, and that is not built yet.",
+    "",
+    "`spans: true` means the part bridges two frames and must be held at both",
+    "ends. Without it a fourth shelf asked for in a bay with three free rungs",
+    "was cantilevered off the outside of the run rather than refused."
+  ],
+  "version": 1,
+  "title": "YouK shelving",
+  "subtitle": "Kesseböhmer YouK — configure a bay",
+  "variants": [
+    {
+      "id": "d320",
+      "label": "320 mm deep",
+      "help": "The full range. Takes shelves, cabinets, desks and every accessory.",
+      "defaultBays": 1,
+      "maxBays": 3,
+      "defaultMounting": "feet",
+      "frames": [
+        {
+          "componentId": "236750-ladder-depth-320mm",
+          "label": "550 mm tall",
+          "heightMm": 550
+        },
+        {
+          "componentId": "236754-ladder-depth-320mm",
+          "label": "905 mm tall",
+          "heightMm": 905
+        },
+        {
+          "componentId": "236758-ladder-depth-320mm",
+          "label": "1500 mm tall",
+          "heightMm": 1500,
+          "default": true
+        },
+        {
+          "componentId": "236762-ladder-depth-320mm",
+          "label": "2210 mm tall",
+          "heightMm": 2210
+        }
+      ],
+      "sizes": [
+        {
+          "id": "w450",
+          "label": "450 mm wide",
+          "span": {
+            "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+            "label": "YouK shelf 450 mm"
+          },
+          "adds": [
+            {
+              "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+              "label": "Extra metal shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+              "label": "Timber shelf, 25 mm",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008543-rack-for-ladder-depth-320mm",
+              "label": "Side rack",
+              "max": 2
+            },
+            {
+              "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+              "label": "Hook strip",
+              "max": 2
+            }
+          ]
+        },
+        {
+          "id": "w600",
+          "label": "600 mm wide",
+          "span": {
+            "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+            "label": "YouK shelf 600 mm"
+          },
+          "adds": [
+            {
+              "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+              "label": "Extra metal shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "pws-timber-shelf-600mm-for-ladder-depth-320mm",
+              "label": "Timber shelf, 25 mm",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008530-clothes-rail-600mm",
+              "label": "Clothes rail",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008543-rack-for-ladder-depth-320mm",
+              "label": "Side rack",
+              "max": 2
+            },
+            {
+              "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+              "label": "Hook strip",
+              "max": 2
+            }
+          ]
+        },
+        {
+          "id": "w900",
+          "label": "900 mm wide",
+          "default": true,
+          "span": {
+            "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+            "label": "YouK shelf 900 mm"
+          },
+          "adds": [
+            {
+              "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+              "label": "Extra metal shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
+              "label": "Timber shelf, 25 mm",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008531-clothes-rail-900mm",
+              "label": "Clothes rail",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008547-youboxx-set-4",
+              "label": "YouboXx Set 4",
+              "max": 2
+            },
+            {
+              "componentId": "008540-hook-strip-for-ladder-width-900mm",
+              "label": "Hook strip, full width",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008543-rack-for-ladder-depth-320mm",
+              "label": "Side rack",
+              "max": 2
+            },
+            {
+              "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+              "label": "Hook strip",
+              "max": 2
+            }
+          ]
+        },
+        {
+          "id": "w1200",
+          "label": "1200 mm wide",
+          "span": {
+            "componentId": "008564-shelf-1200mm-for-ladder-depth-320mm",
+            "label": "YouK shelf 1200 mm"
+          },
+          "adds": [
+            {
+              "componentId": "008564-shelf-1200mm-for-ladder-depth-320mm",
+              "label": "Extra metal shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "pws-timber-shelf-1200mm-for-ladder-depth-320mm",
+              "label": "Timber shelf, 25 mm",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008532-clothes-rail-1200mm",
+              "label": "Clothes rail",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008541-hook-strip-for-ladder-width-1200mm",
+              "label": "Hook strip, full width",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008543-rack-for-ladder-depth-320mm",
+              "label": "Side rack",
+              "max": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d200",
+      "label": "200 mm deep",
+      "help": "The shallow range, for a hallway. Timber shelves only — Kesseböhmer make no metal shelf at this depth.",
+      "defaultBays": 1,
+      "maxBays": 3,
+      "defaultMounting": "feet",
+      "frames": [
+        {
+          "componentId": "236746-leiterregal-ladder-depth-200mm",
+          "label": "668 mm tall",
+          "heightMm": 668
+        },
+        {
+          "componentId": "236748-ladder-depth-2000mm",
+          "label": "905 mm tall",
+          "heightMm": 904.5,
+          "default": true
+        }
+      ],
+      "sizes": [
+        {
+          "id": "w450",
+          "label": "450 mm wide",
+          "span": {
+            "componentId": "pws-timber-shelf-450mm-for-ladder-depth-200mm",
+            "label": "Timber shelf 450 mm"
+          },
+          "adds": [
+            {
+              "componentId": "pws-timber-shelf-450mm-for-ladder-depth-200mm",
+              "label": "Extra timber shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008542-rack-for-ladder-depth-200mm",
+              "label": "Side rack",
+              "max": 2
+            },
+            {
+              "componentId": "008536-hook-strip-for-ladder-depth-200mm",
+              "label": "Hook strip",
+              "max": 2
+            }
+          ]
+        },
+        {
+          "id": "w900",
+          "label": "900 mm wide",
+          "default": true,
+          "span": {
+            "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+            "label": "Timber shelf 900 mm"
+          },
+          "adds": [
+            {
+              "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+              "label": "Extra timber shelf",
+              "max": 4,
+              "spans": true
+            },
+            {
+              "componentId": "008531-clothes-rail-900mm",
+              "label": "Clothes rail",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008540-hook-strip-for-ladder-width-900mm",
+              "label": "Hook strip, full width",
+              "max": 1,
+              "spans": true
+            },
+            {
+              "componentId": "008542-rack-for-ladder-depth-200mm",
+              "label": "Side rack",
+              "max": 2
+            },
+            {
+              "componentId": "008536-hook-strip-for-ladder-depth-200mm",
+              "label": "Hook strip",
+              "max": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

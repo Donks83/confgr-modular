@@ -570,6 +570,38 @@ function supportedByGeometry(snap, allSnaps) {
 }
 
 /**
+ * How many of one part's own mounting points actually landed on something.
+ *
+ * `validateAssembly` asks this question of the whole product and only about
+ * snaps marked `required`. This asks it of ONE PART and about all of them, which
+ * is a different and equally useful question: is this thing held at both ends,
+ * or is one end in the air?
+ *
+ * Both `occupied` and `supportedByGeometry` count, and the second is the point:
+ * the graph is a tree and the product is not, so a span's far end sits in a
+ * socket that no connection records. A shelf between two frames comes back 2 of
+ * 2; the same shelf cantilevered off the end of a run comes back 1 of 2.
+ *
+ * WHY THIS EXISTS AS AN ENGINE FUNCTION rather than as a rule of thumb in the
+ * guided flow. That flow first measured "held at both ends" by counting box
+ * overlaps, which works on YouK only because a 900 mm shelf is authored 950.2
+ * mm wide across a 920.1 mm gap and therefore laps each frame by exactly its
+ * width. On a range whose spans butt flush - the synthetic test rack, and
+ * plenty of real ones - there is no overlap at all and the measure silently
+ * read zero everywhere. Asking the snaps is the question that was always meant;
+ * asking the boxes was a coincidence of this range's tolerances.
+ */
+export function snapSupport(assembly, components, transforms, instanceId) {
+  const snaps = worldSnaps(assembly, components, transforms);
+  const mine = snaps.filter((s) => s.instanceId === instanceId && !s.isGridCell);
+  let met = 0;
+  for (const s of mine) {
+    if (s.occupied || supportedByGeometry(s, snaps)) met += 1;
+  }
+  return { total: mine.length, met };
+}
+
+/**
  * Is the assembly complete?
  *
  * Mimeeq gates checkout on this, and it is the right place for it: an
