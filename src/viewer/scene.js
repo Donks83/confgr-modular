@@ -240,6 +240,9 @@ export function frameProduct(ctx, { padding = 1.35 } = {}) {
   // there so that the first change after a framing has something to be relative
   // to, instead of doing nothing and then over-reacting to the second one.
   ctx.productRadius = sphere.radius;
+  // And where its middle was, for the same reason: `followProduct` compares
+  // against the last place the camera answered, not against the last draw.
+  ctx.productCentre = sphere.center.clone();
   ctx.camera.updateProjectionMatrix();
   ctx.controls.update();
   return true;
@@ -254,6 +257,32 @@ export function frameProduct(ctx, { padding = 1.35 } = {}) {
  * puts the product in a corner of the frame.
  */
 export const SHRINK_ENOUGH = 0.75;
+
+/**
+ * How much BIGGER counts as a change worth moving the camera for.
+ *
+ * A tenth. This used to be 1.001 - any growth at all - which was harmless while
+ * the only response was a proportional nudge to the distance, and stopped being
+ * harmless the moment re-centring was added: one extra shelf grows the bounding
+ * sphere by a fraction of a percent, tripped the threshold, and the view jumped
+ * to a new centre. Matt, on Android: "the view resets every time I click an
+ * option."
+ *
+ * Adding a BAY changes the radius by far more than a tenth, so a run still
+ * follows itself; adding a shelf inside the run it already has does nothing at
+ * all, which is what somebody tapping a stepper expects.
+ */
+export const GROW_ENOUGH = 1.1;
+
+/**
+ * How far the middle of the product may drift before the camera follows it.
+ *
+ * A fifth of the radius. Re-centring and re-zooming are two different questions
+ * and were wrongly answered by one test: a run growing sideways moves its
+ * centre a long way while a taller frame barely moves it at all, so the camera
+ * should chase the first and ignore the second.
+ */
+export const DRIFT_ENOUGH = 0.2;
 
 /**
  * Keep the camera where the person put it, and give the product the same room
@@ -313,28 +342,43 @@ export function followProduct(ctx) {
   const sphere = bounds.getBoundingSphere(new THREE.Sphere());
   const radius = sphere.radius;
   const before = ctx.productRadius ?? null;
-  ctx.productRadius = radius;
 
-  // Nothing to react to on the first draw - `frameProduct` handles that. The
-  // 0.1% is for floating-point noise in a rebuild that changed nothing
-  // dimensional; SHRINK_ENOUGH is the "that is a different product" line.
+  // Nothing to react to on the first draw - `frameProduct` handles that.
   if (before === null) {
+    ctx.productRadius = radius;
+    ctx.productCentre = sphere.center.clone();
     ctx.controls.update();
     return false;
   }
-  const grew = radius > before * 1.001;
-  const shrankALot = radius < before * SHRINK_ENOUGH;
-  if (!grew && !shrankALot) {
+
+  // TWO QUESTIONS, ANSWERED SEPARATELY, and conflating them is what made the
+  // view jump on every tap. "Is it a different size" decides the distance;
+  // "has its middle moved" decides the target. A shelf added inside an existing
+  // run changes neither enough to matter; a bay changes both.
+  const resize = radius > before * GROW_ENOUGH || radius < before * SHRINK_ENOUGH;
+  const drift = ctx.productCentre
+    ? sphere.center.distanceTo(ctx.productCentre) > radius * DRIFT_ENOUGH
+    : false;
+
+  // THE BASELINES ONLY MOVE WHEN THE CAMERA DOES, which is what makes a
+  // threshold work rather than leak. If they tracked every draw, twenty small
+  // additions of 1% each would never once cross 10% and the view would drift
+  // out of the frame a shelf at a time. Held against the last size and place
+  // the camera actually answered, creeping growth adds up and reacts once.
+  if (resize) ctx.productRadius = radius;
+  if (drift) ctx.productCentre = sphere.center.clone();
+
+  if (!resize && !drift) {
     ctx.controls.update();
     return false;
   }
 
   const offset = ctx.camera.position.clone().sub(ctx.controls.target);
   if (offset.lengthSq() === 0) return false;
-  offset.multiplyScalar(radius / before);
+  if (resize) offset.multiplyScalar(radius / before);
   // The new middle of the product, so a run that grew sideways is still in
   // front of the person who grew it.
-  ctx.controls.target.copy(sphere.center);
+  if (drift) ctx.controls.target.copy(sphere.center);
   ctx.camera.position.copy(ctx.controls.target).add(offset);
   ctx.camera.updateProjectionMatrix();
   ctx.controls.update();

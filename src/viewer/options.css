@@ -95,6 +95,27 @@
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* DONE HAS TO ACTUALLY CLOSE IT.
+ *
+ * Matt, on Android: "the configure menu is still always visible on mobile
+ * (even when I click done)". React toggles the `hidden` ATTRIBUTE, and `hidden`
+ * works only because the browser's own stylesheet says `[hidden] {
+ * display: none }` - which is the weakest rule there is. The `display: flex`
+ * three lines up beat it, so the attribute was set, correct, and inert.
+ *
+ * The tell was already in the code: the wide-screen rule below forces
+ * `display: flex !important` "so the attribute has to be overridden rather than
+ * respected". Somebody hit this from the other direction and papered over that
+ * side only. I also saw the panel open with hidden=true in a mobile check
+ * earlier today, wrote down that it was open, and did not ask why.
+ *
+ * `[hidden]` on the element itself, not `!important`: this must stay beatable
+ * by the wide-screen rule, where the panel is a permanent rail and there is
+ * nothing to dismiss. */
+.cfgg-panel[hidden] {
+  display: none;
+}
+
 /* The header does not scroll: the part count and Done have to stay reachable
    while the options themselves move under them. */
 .cfgg-head {

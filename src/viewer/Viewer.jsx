@@ -32,6 +32,7 @@ import {
 import {
   createMarkerLayer, drawMarkers, markerAt, hoverMarker,
   clearGhost, showGhostAt, createGesture, MARKER_MODE,
+  isCoarsePointer, DRAG_THRESHOLD_PX,
 } from './interact.js';
 import { arAvailability, AR_MODE } from './ar-link.js';
 import ArButton from './ArButton.jsx';
@@ -264,6 +265,11 @@ export default function Viewer({
   onPickRef.current = onPick;
 
   const gesture = useMemo(() => createGesture({
+    // A THUMB WOBBLES. Five pixels is right for a mouse and wrong for a finger:
+    // a deliberate tap on a shelf travels more than that, so on a touch screen
+    // half the taps became drags and the part was never selected. Same root as
+    // the dots being hard to hit.
+    threshold: isCoarsePointer() ? 12 : DRAG_THRESHOLD_PX,
     hitMarker: (x, y) => markerAt(ctxRef.current, x, y),
     hitInstance: (x, y) => pickInstance(ctxRef.current, x, y),
     canDrag: (id) => (actRef.current?.canDrag?.(id) ?? { ok: false, reason: 'no-interaction' }),

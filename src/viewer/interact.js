@@ -63,15 +63,59 @@ export const MARKER_MODE = { ADD: 'add', MOVE: 'move' };
  * because the cursor is already carrying something and the target has to be
  * easy to hit.
  */
-export function markerStyleFor(point, { mode = MARKER_MODE.ADD, pending = false, targeted = false } = {}) {
+export function markerStyleFor(point, {
+  mode = MARKER_MODE.ADD, pending = false, targeted = false, touch = false,
+} = {}) {
   const moving = mode === MARKER_MODE.MOVE;
   return {
     color: moving ? '#f0a53c' : pending ? '#e0a03c' : targeted ? '#3ddc97' : '#4fc3d9',
     opacity: moving ? 0.95 : pending ? 1 : targeted ? 0.9 : 0.55,
     radius: (point?.isGridCell ? 0.006 : 0.014)
       * (pending ? 1.7 : targeted ? 1.35 : 1)
-      * (moving ? 1.6 : 1),
+      * (moving ? 1.6 : 1)
+      // A THUMB IS NOT A MOUSE. 14 mm of product is a couple of pixels on a
+      // phone held at arm's length, and Matt found the dots "very difficult to
+      // click" on Android - which is the same complaint as the panel covering
+      // them, one layer down. Half again as big, and the invisible hit sphere
+      // below does the rest.
+      * (touch ? 1.5 : 1),
   };
+}
+
+/**
+ * How much bigger a dot is to HIT than to look at.
+ *
+ * Four times, as an invisible sphere, and the number comes from arithmetic
+ * rather than from taste. On a 375 px phone a 950 mm product frames to roughly
+ * 225 px, so about 0.24 px per mm. A touch dot is 21 mm across, which draws as
+ * ten pixels - visible, and nobody's thumb is that accurate. At four times, the
+ * hit sphere is 168 mm across and lands at about 40 px, which is close to the
+ * 44 px both platforms ask for.
+ *
+ * It has to stay clear of its neighbours: YouK rungs are 236.5 mm apart, so
+ * anything under a 118 mm hit RADIUS cannot reach the next rung's dot. Four
+ * times gives 84 mm. Overlap would not be a disaster - the raycaster returns
+ * the nearest hit, so the dot whose centre the ray passes closest to wins - but
+ * not overlapping at all is better than relying on that.
+ *
+ * Growing the visible dot instead would have to reach bauble size before it was
+ * reliably tappable, and on a dense grid the dots would start to merge into
+ * each other.
+ */
+export const HIT_SCALE = 4;
+
+/**
+ * Is this a touch screen?
+ *
+ * Asked of the browser rather than of the user agent: `pointer: coarse` is the
+ * question "is the pointing device imprecise", which is exactly the question
+ * that decides how big a target has to be. A phone answers yes, a laptop
+ * trackpad answers no, and a touchscreen laptop answers yes while a mouse is
+ * plugged into it - which is the right answer for a target size.
+ */
+export function isCoarsePointer() {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(pointer: coarse)').matches;
 }
 
 /**
@@ -91,6 +135,10 @@ export function createMarkerLayer(ctx) {
     raycaster: ctx.raycaster || new THREE.Raycaster(),
     pointer: ctx.pointer || new THREE.Vector2(),
     markerGeo: new THREE.SphereGeometry(1, 12, 10),
+    // One material for every hit box, because they are never drawn and so have
+    // nothing to differ about. Shared rather than cloned per dot, and disposed
+    // once with the layer.
+    hitMaterial: new THREE.MeshBasicMaterial({ visible: false }),
     hovered: null,
   });
 
@@ -98,6 +146,7 @@ export function createMarkerLayer(ctx) {
     clearMarkers(ctx);
     clearGhost(ctx);
     ctx.markerGeo?.dispose();
+    ctx.hitMaterial?.dispose();
     ctx.scene.remove(markerRoot, ghostRoot);
     ctx.markerRoot = null;
     ctx.ghostRoot = null;
@@ -130,10 +179,11 @@ export function drawMarkers(ctx, points, {
   if (!points?.length) return 0;
 
   const lift = new THREE.Vector3();
+  const touch = isCoarsePointer();
   for (const point of points) {
     const key = keyOf ? keyOf(point) : null;
     const style = markerStyleFor(point, {
-      mode, pending: key != null && key === pendingKey, targeted,
+      mode, pending: key != null && key === pendingKey, targeted, touch,
     });
 
     const mesh = new THREE.Mesh(ctx.markerGeo, new THREE.MeshBasicMaterial({
@@ -150,6 +200,19 @@ export function drawMarkers(ctx, points, {
     lift.fromArray(point.worldFacing);
     mesh.position.addScaledVector(lift, style.radius * 0.9);
     mesh.renderOrder = 2;
+
+    // THE HIT BOX, a child of the dot so it inherits its position and is
+    // thrown away with it. `visible: false` keeps it out of the picture and out
+    // of the raycast, so `markerAt` asks for it explicitly and nothing else
+    // ever sees it - including `fitBounds`, which would otherwise measure the
+    // product as 2.5 dots wider than it is.
+    const hit = new THREE.Mesh(ctx.markerGeo, ctx.hitMaterial);
+    hit.visible = false;
+    hit.scale.setScalar(HIT_SCALE);
+    hit.userData.pointKey = key;
+    hit.userData.isHitBox = true;
+    mesh.add(hit);
+
     ctx.markerRoot.add(mesh);
   }
   return ctx.markerRoot.children.length;
@@ -175,8 +238,24 @@ export function markerAt(ctx, clientX, clientY) {
     -((clientY - rect.top) / rect.height) * 2 + 1,
   );
   ctx.raycaster.setFromCamera(ctx.pointer, ctx.camera);
-  const hits = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
-  return hits.length ? hits[0].object : null;
+
+  // The dot itself first, so an accurate press on a small dot beats a sloppy
+  // one on a big neighbour's hit box.
+  const direct = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
+  if (direct.length) return direct[0].object;
+
+  // Then the hit boxes, which are invisible and therefore skipped by a normal
+  // raycast - `recursive: true` alone would not find them, because three's
+  // raycaster ignores anything with `visible: false`. Asked for by name, and
+  // the DOT is returned rather than the box, so every caller downstream still
+  // deals in the thing it can see.
+  const boxes = [];
+  for (const dot of ctx.markerRoot.children) {
+    for (const child of dot.children) if (child.userData.isHitBox) boxes.push(child);
+  }
+  if (!boxes.length) return null;
+  const near = ctx.raycaster.intersectObjects(boxes, false);
+  return near.length ? near[0].object.parent : null;
 }
 
 /** Clear the drop preview. */

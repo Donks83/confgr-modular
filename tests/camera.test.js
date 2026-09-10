@@ -252,20 +252,44 @@ describe('following a product that changed', () => {
     expect(ctx.controls.target.x).toBeGreaterThan(target.x);
   });
 
-  // And it must NOT re-centre when nothing dimensional changed, or every tap on
-  // a stepper would drag the view around - which is the original complaint.
-  it('does not re-centre when the product only shifted a little', () => {
+  // And it must NOT move when nothing much changed, or every tap on a stepper
+  // drags the view around - which is the original complaint, and exactly what
+  // re-centring on ANY growth caused. Matt, on Android: "the view resets every
+  // time I click an option."
+  //
+  // A shelf added inside a run it already has: the bounding sphere grows by a
+  // fraction of a percent and its middle barely moves.
+  it('does not move at all for a part added inside the run', () => {
     const ctx = ctxWith([2.85, 1.6, 0.32]);
     frameProduct(ctx);
     const target = ctx.controls.target.clone();
+    const camera = ctx.camera.position.clone();
 
-    ctx.productRoot.clear();
-    const nearlySame = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 0.32));
-    nearlySame.position.set(0.4, 0.8, 0);
-    ctx.productRoot.add(nearlySame);
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.03, 0.32));
+    shelf.position.set(0, 0.9, 0);
+    ctx.productRoot.add(shelf);
 
     expect(followProduct(ctx)).toBe(false);
     expect(ctx.controls.target.distanceTo(target)).toBeCloseTo(0, 6);
+    expect(ctx.camera.position.distanceTo(camera)).toBeCloseTo(0, 6);
+  });
+
+  // THE BASELINE MUST NOT TRACK EVERY DRAW, or a threshold leaks: twelve 3%
+  // additions never cross 10% individually, and if each draw reset the baseline
+  // the product would walk out of frame a shelf at a time. Held against the
+  // last size the camera answered, they add up and it reacts.
+  it('adds up small growth until it is worth reacting to', () => {
+    const ctx = ctxWith([0.95, 1.6, 0.32]);
+    frameProduct(ctx);
+    let moved = 0;
+    for (let i = 1; i <= 12; i += 1) {
+      ctx.productRoot.clear();
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.95 * (1.03 ** i), 1.6, 0.32));
+      box.position.set(0, 0.8, 0);
+      ctx.productRoot.add(box);
+      if (followProduct(ctx)) moved += 1;
+    }
+    expect(moved).toBeGreaterThan(0);
   });
 
   it('has a baseline from the moment it was framed', () => {
