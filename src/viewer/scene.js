@@ -246,6 +246,16 @@ export function frameProduct(ctx, { padding = 1.35 } = {}) {
 }
 
 /**
+ * How much smaller counts as a different product rather than an edit.
+ *
+ * A quarter. Removing one shelf from a three-bay run barely moves the bounding
+ * sphere, so the view is left alone; changing the depth, the width or the frame
+ * height changes it by far more than this, and leaving the camera where it was
+ * puts the product in a corner of the frame.
+ */
+export const SHRINK_ENOUGH = 0.75;
+
+/**
  * Keep the camera where the person put it, and give the product the same room
  * it had before if it grew.
  *
@@ -269,8 +279,17 @@ export function frameProduct(ctx, { padding = 1.35 } = {}) {
  * "did it get bigger" instead of "does it fit" leaves a deliberate close-up
  * deliberate - it just gives it the same proportion of room it had before.
  *
- * Growth only. A product getting smaller moves nothing, because somebody who
- * zoomed out to see a whole run did that on purpose too.
+ * SHRINKING COUNTS TOO, but only a lot of it - and that is a correction, not
+ * the original design. This started as growth-only, on the reasoning that
+ * somebody who zoomed out to see a whole run did that on purpose. True, and it
+ * left a hole: switching the 320 mm range for the 200 mm one halves the product
+ * in every direction, and the run Matt then had on screen was a quarter of the
+ * frame with empty grid all round it. That is not a zoom anybody chose.
+ *
+ * So the threshold is asymmetric on purpose. Any growth reacts, because adding
+ * a bay must not push the product out of view. Only a big shrink reacts - a
+ * quarter of the radius or more - because removing one shelf should leave the
+ * view exactly alone, while changing the whole range should not.
  *
  * The target is deliberately NOT re-centred on the new product either.
  * Re-centring reads better while a run grows sideways - it keeps the thing you
@@ -285,10 +304,16 @@ export function followProduct(ctx) {
   const before = ctx.productRadius ?? null;
   ctx.productRadius = radius;
 
-  // Nothing to react to on the first draw - `frameProduct` handles that - and
-  // nothing to react to when the product did not grow. The 0.1% is for
-  // floating-point noise in a rebuild that changed nothing dimensional.
-  if (before === null || radius <= before * 1.001) {
+  // Nothing to react to on the first draw - `frameProduct` handles that. The
+  // 0.1% is for floating-point noise in a rebuild that changed nothing
+  // dimensional; SHRINK_ENOUGH is the "that is a different product" line.
+  if (before === null) {
+    ctx.controls.update();
+    return false;
+  }
+  const grew = radius > before * 1.001;
+  const shrankALot = radius < before * SHRINK_ENOUGH;
+  if (!grew && !shrankALot) {
     ctx.controls.update();
     return false;
   }

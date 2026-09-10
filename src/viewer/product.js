@@ -99,6 +99,7 @@ export function syncProduct(ctx, scene, components, {
   for (const [id, group] of ctx.groups) {
     if (!wanted.has(id)) {
       ctx.productRoot.remove(group);
+      disposeGroup(group);
       ctx.groups.delete(id);
     }
   }
@@ -111,9 +112,43 @@ export function syncProduct(ctx, scene, components, {
     const derived = isImplied(instance.instanceId);
 
     let group = ctx.groups.get(instance.instanceId);
+
+    // AN ID IS NOT A PART, and this cost Matt two rounds of "it's still
+    // broken".
+    //
+    // The editor creates an instanceId once and it names the same component for
+    // the rest of that part's life, so caching a group by id alone was safe
+    // there for fifteen sessions. The RUNTIME does not work like that: it draws
+    // by resolving a configuration id, which names the instances it decodes
+    // p0, p1, p2 BY POSITION. Change the depth from 320 to 200 and `p0` stops
+    // being a 1500 mm ladder and becomes a 668 mm one - same id, different
+    // part - so this cache handed back the old geometry and the scene kept
+    // drawing the previous product.
+    //
+    // What that looked like: four frames at two different heights in one
+    // picture, a metal shelf on a range that has no metal shelf, and a size
+    // strip reading 1890 x 1500 x 320 mm while the controls said 200 mm deep -
+    // because `fitBounds` measures the SCENE and the scene was stale, while the
+    // bill of materials came from the resolved data and was right. Two sources
+    // of truth, disagreeing; the fourth time this project has been bitten by
+    // that shape.
+    //
+    // It also explains the transient 1923 mm width recorded as UNEXPLAINED in
+    // §5.24. It was this: a part left over from the previous product, still in
+    // the scene, inflating the bounds.
+    if (group && group.userData.componentId !== instance.componentId) {
+      ctx.productRoot.remove(group);
+      disposeGroup(group);
+      ctx.groups.delete(instance.instanceId);
+      group = null;
+    }
+
     if (!group) {
       group = new THREE.Group();
       group.add(component.template.clone(true));
+      // The identity this cache is really keyed on. Stored rather than derived
+      // so the check above cannot be fooled by an id that was reused.
+      group.userData.componentId = instance.componentId;
       if (selectable && !derived) group.userData.instanceId = instance.instanceId;
       ctx.productRoot.add(group);
       ctx.groups.set(instance.instanceId, group);
@@ -132,6 +167,22 @@ export function syncProduct(ctx, scene, components, {
   }
 
   return ctx.groups.size;
+}
+
+/**
+ * Give back the materials a discarded group cloned.
+ *
+ * `applyFinish` clones a material per mesh so parts can be coloured
+ * independently, which means every group that leaves the scene takes real GPU
+ * memory with it. A configurator rebuilds on every tap, so "it will be garbage
+ * collected" is not good enough: three.js does not release GPU resources on GC.
+ * Geometries are NOT disposed - they belong to the component's template and are
+ * shared by every clone of it.
+ */
+function disposeGroup(group) {
+  group.traverse((o) => {
+    if (o.isMesh && o.userData.ownMaterial) o.material?.dispose();
+  });
 }
 
 /**
@@ -157,7 +208,15 @@ function applyFinish(group, component, instance, { showGuides, isSelected }) {
     if (!o.material) return;
 
     if (!o.userData.baseColour) o.userData.baseColour = o.material.color.clone();
-    o.material = o.material.clone();
+    // CLONE ONCE, then mutate. `template.clone(true)` shares materials with
+    // the template, so the first clone here is what makes a part's colour its
+    // own. Doing it on every sync leaked a material per mesh per rebuild -
+    // invisible in the editor, where a rebuild is a click, and not invisible in
+    // a configurator, where it is every tap on a stepper.
+    if (!o.userData.ownMaterial) {
+      o.material = o.material.clone();
+      o.userData.ownMaterial = true;
+    }
     if (chosen?.hex) o.material.color.set(`#${chosen.hex}`);
     else o.material.color.copy(o.userData.baseColour);
     // Selection reads as a warm rim, never a colour change — the finish being
