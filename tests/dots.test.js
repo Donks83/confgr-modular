@@ -180,14 +180,32 @@ describe('where a placed part can go instead', () => {
     }
   });
 
-  it('offers nothing for a frame, and says why', () => {
+  // The anchor is a ladder, not a refusal. Matt asked to tap a ladder and
+  // change it, so the panel needs to know this one's POSITION is fixed while
+  // its type is not - which is why the answer carries `kind` rather than being
+  // a flat no.
+  it('says the first ladder stays put, and calls it a ladder', () => {
     const built = build();
     const frameId = built.assembly.instances[0].instanceId;
     const r = moveCandidates(built, components, frameId);
     expect(r.ok).toBe(false);
-    expect(r.structural).toBe(true);
-    expect(r.reason).toMatch(/part of the frame/i);
+    expect(r.kind).toBe('frame');
+    expect(r.anchor).toBe(true);
+    expect(r.reason).toMatch(/stands on|measured from/i);
     expect(movePoints(built, components, frameId)).toEqual([]);
+  });
+
+  // A span is the one thing that is still nobody's to move: it IS the bay, and
+  // taking it out would leave a run with a hole in it.
+  it('offers nothing for a span, and says what to change instead', () => {
+    const built = build();
+    const span = built.assembly.instances
+      .find((i) => i.componentId === built.size.span.componentId);
+    const r = moveCandidates(built, components, span.instanceId);
+    expect(r.ok).toBe(false);
+    expect(r.kind).toBe('span');
+    expect(r.structural).toBe(true);
+    expect(r.reason).toMatch(/width|bays/i);
   });
 
   it('offers nothing for a part that is not on the product', () => {

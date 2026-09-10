@@ -42,7 +42,7 @@ import { resolveTransforms, snapSupport } from './assembly.js';
 import { overlaps } from './collision.js';
 import { encodeConfiguration } from './configuration.js';
 import { impliedComponentIds } from './implied.js';
-import { MOUNTING, isMounting, FOOT } from './ar.js';
+import { MOUNTING, isMounting, isGrounded, FOOT } from './ar.js';
 
 export const GUIDED_VERSION = 1;
 
@@ -159,6 +159,7 @@ export function defaultChoices(schema) {
     variantId: variant.id,
     sizeId: size.id,
     frameId: frame.componentId,
+    frames: {},
     bays: variant.defaultBays ?? 1,
     adds: {},
     mounting: variant.defaultMounting || MOUNTING.FLOOR,
@@ -209,6 +210,20 @@ export function normaliseChoices(schema, choices = {}) {
   const footHeightMm = FOOT.heightsMm.includes(choices.footHeightMm)
     ? choices.footHeightMm : FOOT.heightsMm[0];
 
+  // WHICH LADDER STANDS WHERE. Kept only for positions the run actually has,
+  // and only for frames this variant offers - switching depth must not leave a
+  // 320 mm ladder recorded against position 2 of a 200 mm run. An entry equal
+  // to the global choice is dropped rather than stored, so "make them all
+  // 905 mm" leaves nothing behind to contradict it later.
+  const frames = {};
+  for (const [key, id] of Object.entries(choices.frames || {})) {
+    const index = Number(key);
+    if (!Number.isInteger(index) || index < 0 || index > bays) continue;
+    if (id === frame.componentId) continue;
+    if (!variant.frames.some((f) => f.componentId === id)) continue;
+    frames[index] = id;
+  }
+
   // Remembered positions, kept only for slots that still exist. A count going
   // from 3 to 1 must not leave a position recorded for the third one: it would
   // come back if the count went up again, which is a product changing shape
@@ -216,19 +231,40 @@ export function normaliseChoices(schema, choices = {}) {
   const at = {};
   for (const [key, ref] of Object.entries(choices.at || {})) {
     if (!ref || typeof ref !== 'object' || !ref.instanceId || !ref.snapId) continue;
+
+    const kept = {
+      instanceId: String(ref.instanceId),
+      snapId: String(ref.snapId),
+    };
+    // Which of the part's own snaps mates. Optional, because most parts have
+    // one sensible mount and every record written before it existed omits it.
+    if (ref.mountSnapId) kept.mountSnapId = String(ref.mountSnapId);
+
+    // A FRAME SLOT is a position in the run, not a copy of a component, so it
+    // is bounded by the bay count rather than by an accessory's count. Position
+    // 0 is the anchor and has no recorded height - it stands on the floor by
+    // definition - so a record against it is dropped rather than honoured.
+    if (isFrameSlot(key)) {
+      const index = frameIndexOf(key);
+      if (!Number.isInteger(index) || index < 1 || index > bays) continue;
+      at[key] = kept;
+      continue;
+    }
+
     const hash = key.lastIndexOf('#');
     if (hash < 0) continue;
     const componentId = key.slice(0, hash);
     const index = Number(key.slice(hash + 1));
     if (!Number.isInteger(index) || index < 0) continue;
     if (index >= (adds[componentId] || 0)) continue;
-    at[key] = { instanceId: String(ref.instanceId), snapId: String(ref.snapId) };
+    at[key] = kept;
   }
 
   return {
     variantId: variant.id,
     sizeId: size.id,
     frameId: frame.componentId,
+    frames,
     bays,
     adds,
     at,
@@ -266,12 +302,26 @@ export function moveCandidates(built, components, instanceId) {
   const slot = built.slots?.[instanceId] || null;
   const instance = built.assembly.instances.find((i) => i.instanceId === instanceId);
   if (!instance) return { ok: false, reason: 'That part is not on this product.', candidates: [] };
-  if (!slot) {
+
+  // THREE KINDS OF PART, and they answer differently.
+  //
+  //   an accessory  - move it, remove it
+  //   a ladder      - change its type, change the height it hangs at
+  //   a span        - neither; it IS the bay, and taking one out would leave a
+  //                   run with a hole in it
+  //
+  // Frames used to fall in with the spans and say "that is part of the frame,
+  // change the size or the number of bays instead". Matt asked for the thing
+  // that answer refused, so a frame is now its own kind.
+  const kind = isFrameSlot(slot) ? 'frame' : (slot ? 'add' : 'span');
+
+  if (kind === 'span') {
     return {
       ok: false,
       slot: null,
+      kind,
       structural: true,
-      reason: 'That is part of the frame. Change the size or the number of bays instead.',
+      reason: 'That is a shelf holding the run together. Change the width or the number of bays instead.',
       candidates: [],
     };
   }
@@ -279,7 +329,22 @@ export function moveCandidates(built, components, instanceId) {
   const { transforms } = resolveTransforms(built.assembly, components);
   const allowed = canMove(built.assembly, instanceId);
   if (!allowed.ok) {
-    return { ok: false, slot, reason: 'That part cannot be moved.', candidates: [] };
+    // The anchor. Its height is not a choice - the whole product is measured
+    // from it - but its TYPE still is, which is why this carries `kind` rather
+    // than reading as a flat refusal.
+    return {
+      ok: false,
+      slot,
+      kind,
+      anchor: allowed.reason === 'is-anchor',
+      componentId: instance.componentId,
+      reason: kind === 'frame' && allowed.reason === 'is-anchor'
+        ? (isGrounded(built.mounting)
+          ? 'This is the ladder the run stands on, so it stays on the floor. Its type can still change.'
+          : 'This is the ladder the run is measured from, so its position is fixed. Its type can still change.')
+        : 'That part cannot be moved.',
+      candidates: [],
+    };
   }
 
   const { placements } = moveTargets(built.assembly, components, transforms, instanceId, {});
@@ -288,6 +353,24 @@ export function moveCandidates(built, components, instanceId) {
 
   const add = (built.size?.adds || []).find((a) => a.componentId === instance.componentId);
   const mustBeHeld = !!add?.spans;
+
+  // NOTHING BELOW THE FLOOR.
+  //
+  // The first version of the ladder height list offered −1305, −710, −355 and 0
+  // mm. All four are legal joints - a ladder mates a span by any of its own
+  // rungs, and mating by a high rung hangs the ladder down - and three of them
+  // put most of the ladder underground. Legal is not the same as offerable, and
+  // this is the second time that distinction has cost a round.
+  //
+  // Measured from the ANCHOR's base, because for a grounded product that IS the
+  // floor: the product's origin is the anchor frame's base centre, which is why
+  // the AR export rebases from it. On a wall-mounted product there is no floor
+  // and hanging lower is a real option, so the limit simply does not apply.
+  const anchorId = built.assembly.instances[0]?.instanceId;
+  const floorY = isGrounded(built.mounting) && anchorId
+    ? (transforms.get(anchorId)?.translation[1] ?? 0)
+    : null;
+  const FLOOR_TOLERANCE_M = 0.001;
 
   const candidates = [];
   for (const placement of distinctPlacements(built.assembly, components, mine)) {
@@ -300,6 +383,7 @@ export function moveCandidates(built, components, instanceId) {
     const s = survey(moved, components, instanceId, instance.componentId);
     if (!s) continue;
     if (mustBeHeld && s.met < s.total) continue;
+    if (floorY !== null && s.worldY < floorY - FLOOR_TOLERANCE_M) continue;
 
     const t = s.transforms.get(instanceId);
     candidates.push({
@@ -309,7 +393,14 @@ export function moveCandidates(built, components, instanceId) {
       // because the candidate was only accepted by making the move and looking
       // at the result.
       pose: t,
-      at: { instanceId: placement.point.instanceId, snapId: placement.point.snapId },
+      at: {
+        instanceId: placement.point.instanceId,
+        snapId: placement.point.snapId,
+        // Two candidates can share a point and differ only by which of the
+        // part's own snaps mates - which for a ladder is the difference between
+        // standing on the floor and hanging halfway up.
+        mountSnapId: placement.mountSnapId || null,
+      },
       heightMm: Math.round(s.worldY * 1000),
       sideways: here ? Math.abs(t.translation[0] - here.translation[0]) : 0,
       current: here
@@ -322,7 +413,13 @@ export function moveCandidates(built, components, instanceId) {
   }
 
   return {
-    ok: true, slot, componentId: instance.componentId, candidates,
+    // `kind` on EVERY path, including this one. It was on the three early
+    // returns and not on the success return, so a ladder that could be moved
+    // came back as kind undefined - and the panel, which decides what to offer
+    // from it, showed a middle ladder as a nameless accessory with "Remove this
+    // one" underneath. The anchor looked right because its answer came from an
+    // early return, which is exactly how a partial change survives a test run.
+    ok: true, slot, kind, componentId: instance.componentId, candidates,
   };
 }
 
@@ -337,7 +434,7 @@ export function moveCandidates(built, components, instanceId) {
  */
 export function moveOptions(built, components, instanceId) {
   const r = moveCandidates(built, components, instanceId);
-  if (!r.ok) return r;
+  if (!r.ok) return { ...r, options: [] };
 
   const byHeight = new Map();
   for (const c of r.candidates) {
@@ -357,6 +454,7 @@ export function moveOptions(built, components, instanceId) {
   return {
     ok: true,
     slot: r.slot,
+    kind: r.kind,
     componentId: r.componentId,
     options: [...byHeight.values()].sort((a, b) => a.heightMm - b.heightMm),
   };
@@ -430,6 +528,25 @@ export function addPoints(built, components, componentId) {
  * on. Recording the intent rather than the outcome avoids the whole class.
  */
 export const slotKeyFor = (componentId, index) => `${componentId}#${index}`;
+
+/**
+ * The slot for the nth FRAME in the run, counting the anchor as zero.
+ *
+ * Deliberately not `slotKeyFor(componentId, n)`. An accessory slot is "the nth
+ * clothes rail", so its key carries the component - which is right, because
+ * changing the count of rails must not disturb the shelves. A frame slot is
+ * "the second position in the run", and the whole point of the change is that
+ * the component AT that position can be swapped. Keying it by component would
+ * mean changing a ladder's type moved its recorded height to a different slot,
+ * and the ladder would jump.
+ */
+export const frameSlotFor = (index) => `frame#${index}`;
+
+/** Is this slot a position in the run rather than a copy of an accessory? */
+export const isFrameSlot = (slot) => typeof slot === 'string' && slot.startsWith('frame#');
+
+/** Which position in the run, or null. */
+export const frameIndexOf = (slot) => (isFrameSlot(slot) ? Number(slot.slice('frame#'.length)) : null);
 
 /**
  * The builder's name for a part that was drawn from a configuration id.
@@ -588,7 +705,7 @@ export const PLACE = { EXTEND: 'extend', FILL: 'fill' };
  */
 export function autoAttach(assembly, components, componentId, {
   instanceId, catalogue = null, prefer = null, policy = PLACE.FILL,
-  requireFullyHeld = false, explain = false, at = null,
+  requireFullyHeld = false, explain = false, at = null, kin = null,
 } = {}) {
   const list = catalogue || [componentId];
 
@@ -627,6 +744,21 @@ export function autoAttach(assembly, components, componentId, {
     }
   }
 
+  // WHICH OF ITS OWN RUNGS IT MATES BY, when the record says.
+  //
+  // A point is not always a position. A frame offered at a span's free end fits
+  // by ANY of its own rungs - eight of them on a 2210 - and every one of those
+  // is the same point on the same span, so `{instanceId, snapId}` cannot tell
+  // them apart. That is precisely the difference between a frame standing on the
+  // floor and the same frame hung halfway up, which is the staggered layout in
+  // Kesseboehmer's photography and what Matt asked for: "change what height it
+  // sits at".
+  //
+  // Optional, and absent means "any" - so every record written before this
+  // existed still resolves, and an accessory with one sensible mount never has
+  // to carry it.
+  const wantMount = at?.mountSnapId || null;
+
   // LEVEL WITH THE ONES ALREADY THERE - the tie-break that actually matters,
   // and the third one tried.
   //
@@ -637,13 +769,30 @@ export function autoAttach(assembly, components, componentId, {
   // "lowest world height" the frame mates by its TOP rung and dangles 1305 mm
   // below the floor - a legal product, and not one anybody asked for.
   //
-  // So the target is the height of the last part of the SAME component already
-  // on the product. Frames come out level with the frames, spans level with the
-  // spans, and a run stays a run. With nothing of that component there yet
-  // there is nothing to be level with, and the next tie-break takes over.
+  // So the target is the height of the last part of the same KIND already on
+  // the product. Frames come out level with the frames, spans level with the
+  // spans, and a run stays a run. With nothing of that kind there yet there is
+  // nothing to be level with, and the next tie-break takes over.
+  //
+  // KIND, NOT PART NUMBER, and that distinction was worth a second round of
+  // this bug. "Same component" was fine while every frame in a run was the same
+  // article, and Matt then asked for the thing it could not do: "is it possible
+  // to be able to add ladders of different types to mix and match?" A 905 mm
+  // frame arriving next to a 668 mm one has no part of its own component on the
+  // product, so it found nothing to be level with, fell through to
+  // lowest-world-height, mated by its TOP rung and hung 709.5 mm BELOW THE
+  // FLOOR. Every pair of heights did it; the geometry was fine and the policy
+  // was choosing the worst legal answer.
+  //
+  // `kin` is the set of component ids that count as the same kind, and it comes
+  // from the SCHEMA - the variant's own list of frames - because that is where
+  // "these are all ladders" is written down. Deriving it from geometry would be
+  // guessing, and this file is not allowed to know what a rung is.
+  const isKin = kin ? (id) => kin.has(id) : (id) => id === componentId;
+
   const levelTarget = (() => {
     for (let i = assembly.instances.length - 1; i >= 0; i -= 1) {
-      if (assembly.instances[i].componentId !== componentId) continue;
+      if (!isKin(assembly.instances[i].componentId)) continue;
       const t = transforms.get(assembly.instances[i].instanceId);
       if (t) return t.translation[1];
     }
@@ -660,6 +809,7 @@ export function autoAttach(assembly, components, componentId, {
     );
 
     for (const placement of candidates) {
+      if (wantMount && placement.mountSnapId !== wantMount) continue;
       tried += 1;
       const next = attachAt(assembly, placement, instanceId);
       const s = survey(next, components, instanceId, componentId);
@@ -776,10 +926,29 @@ export function buildGuided(schema, choices, components) {
   let n = 0;
   const nextId = () => `g${(n += 1)}`;
 
+  // WHICH LADDER STANDS AT WHICH POSITION IN THE RUN.
+  //
+  // Matt: "is it possible to be able to add ladders of different types to mix
+  // and match? maybe i can click on a ladder in the scene and change its type
+  // and then change what height it sits?"
+  //
+  // So the frame is no longer one global choice. `choices.frames[i]` overrides
+  // the i-th frame in the run and defaults to `choices.frameId`, which keeps
+  // the Height control meaning what it always meant - all of them - while
+  // letting one position differ. Frames get SLOTS for the same reason
+  // accessories do (§5.24): a tap in the scene has to come back as a choice,
+  // and a count cannot say which ladder was tapped.
+  //
+  // `kin` is the whole point of the change further up. Every frame in the
+  // variant counts as the same KIND for levelling, so a 905 arriving beside a
+  // 668 comes out standing on the floor instead of hanging 709.5 mm below it.
+  const frameKin = new Set((variant.frames || []).map((f) => f.componentId));
+  const frameIdAt = (i) => c.frames?.[i] || c.frameId;
+
   let assembly = {
     instances: [{
       instanceId: nextId(),
-      componentId: c.frameId,
+      componentId: frameIdAt(0),
       selections: {},
       position: [0, 0, 0],
       rotation: [0, 0, 0, 1],
@@ -787,6 +956,11 @@ export function buildGuided(schema, choices, components) {
     }],
     connections: [],
   };
+
+  // The anchor is a slot like any other, so its TYPE can be changed by tapping
+  // it. Its POSITION cannot - it is the thing everything else hangs off, and
+  // `canMove` refuses it by name.
+  slots[assembly.instances[0].instanceId] = frameSlotFor(0);
 
   // The frame the run is currently growing from. Not the root - the far end.
   let growingFrom = assembly.instances[0].instanceId;
@@ -804,15 +978,43 @@ export function buildGuided(schema, choices, components) {
     assembly = span.assembly;
     const spanId = assembly.instances[assembly.instances.length - 1].instanceId;
 
-    const frame = autoAttach(assembly, components, c.frameId, {
-      instanceId: nextId(), catalogue, prefer: spanId, policy: PLACE.EXTEND,
-    });
-    if (!frame.ok) {
-      refused.push({ componentId: c.frameId, reason: frame.reason });
+    const index = bay + 1;
+    const frameId = frameIdAt(index);
+    const key = frameSlotFor(index);
+    const remembered = c.at?.[key] || null;
+    const id = nextId();
+    const opts = {
+      instanceId: id, catalogue, prefer: spanId, policy: PLACE.EXTEND, kin: frameKin,
+    };
+
+    // Same two-step as an accessory: honour a recorded height, and if the
+    // product has changed so much that it no longer exists, put the frame back
+    // where the policy would have put it and SAY SO. A ladder that vanishes
+    // because its rung went away would take the rest of the run with it.
+    let r = remembered
+      ? autoAttach(assembly, components, frameId, { ...opts, at: remembered })
+      : null;
+    if (r && !r.ok) {
+      dropped.push({ slot: key, componentId: frameId, label: 'Ladder', reason: r.reason });
+      r = null;
+    }
+    if (!r) r = autoAttach(assembly, components, frameId, opts);
+
+    if (!r.ok) {
+      refused.push({ componentId: frameId, reason: r.reason });
       break;
     }
-    assembly = frame.assembly;
-    growingFrom = assembly.instances[assembly.instances.length - 1].instanceId;
+    assembly = r.assembly;
+    slots[id] = key;
+    slotAt[key] = {
+      instanceId: r.point.instanceId,
+      snapId: r.point.snapId,
+      // WHICH OF ITS OWN RUNGS. Every rung of this frame is offered at the same
+      // point on the span, so without this the record cannot tell the floor
+      // from halfway up.
+      mountSnapId: r.placement?.mountSnapId || null,
+    };
+    growingFrom = id;
   }
 
   // Accessories last, and in the schema's own order rather than the order the

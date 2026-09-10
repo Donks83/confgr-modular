@@ -401,14 +401,20 @@ describe('moving a part that is already on the product', () => {
     for (const o of r.options) expect(o.held).toBe(o.heldOf);
   });
 
-  it('refuses to move the frame, and says what to do instead', () => {
-    // A frame is not a slot. Moving one would take the run apart, and "change
-    // the size or the number of bays" is the actual answer.
+  // WAS "refuses to move the frame, and says what to do instead", and the
+  // refusal was the thing Matt then asked for: "click on a ladder in the scene
+  // and change its type and then change what height it sits". So a frame is a
+  // slot now. The anchor still cannot MOVE - the run is measured from it - but
+  // it is answered as a ladder whose position is fixed rather than as a
+  // structural part with nothing to offer.
+  it('answers the first ladder as a ladder that cannot move', () => {
     const built = withDrawer();
     const r = moveOptions(built, components, built.assembly.instances[0].instanceId);
     expect(r.ok).toBe(false);
-    expect(r.structural).toBe(true);
-    expect(r.reason).toMatch(/number of bays/);
+    expect(r.kind).toBe('frame');
+    expect(r.anchor).toBe(true);
+    expect(r.options).toEqual([]);
+    expect(r.reason).toMatch(/type can still change/i);
   });
 
   it('puts the part where it was told, and keeps it there', () => {

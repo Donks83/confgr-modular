@@ -291,16 +291,27 @@ export const SHRINK_ENOUGH = 0.75;
  * quarter of the radius or more - because removing one shelf should leave the
  * view exactly alone, while changing the whole range should not.
  *
- * The target is deliberately NOT re-centred on the new product either.
- * Re-centring reads better while a run grows sideways - it keeps the thing you
- * are building in the middle - and it is still the camera moving on its own,
- * which is the complaint.
+ * AND IT DOES RE-CENTRE, which is the third correction to this function and the
+ * one a customer would have hit first. The original said re-centring "reads
+ * better while a run grows sideways" and refused it anyway, on the grounds that
+ * it is still the camera moving by itself. That was the wrong call: a run grows
+ * to the RIGHT, so three bays put most of the product off the side of the
+ * screen while the size strip cheerfully read 2790 mm. Nothing was broken and
+ * there was nothing to see.
+ *
+ * The distinction that makes it safe is the one already here. When nothing
+ * dimensional changed, nothing moves - no re-centring, no zoom, the view is
+ * exactly where it was left. When the product actually changed size, the camera
+ * was going to move anyway, and moving the target with it is what keeps the
+ * thing somebody just added in front of them. The DIRECTION is never touched:
+ * that is the part a person sets by dragging, and it survives everything.
  */
 export function followProduct(ctx) {
   const bounds = new THREE.Box3().setFromObject(ctx.productRoot);
   if (bounds.isEmpty()) return false;
 
-  const radius = bounds.getBoundingSphere(new THREE.Sphere()).radius;
+  const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+  const radius = sphere.radius;
   const before = ctx.productRadius ?? null;
   ctx.productRadius = radius;
 
@@ -321,6 +332,9 @@ export function followProduct(ctx) {
   const offset = ctx.camera.position.clone().sub(ctx.controls.target);
   if (offset.lengthSq() === 0) return false;
   offset.multiplyScalar(radius / before);
+  // The new middle of the product, so a run that grew sideways is still in
+  // front of the person who grew it.
+  ctx.controls.target.copy(sphere.center);
   ctx.camera.position.copy(ctx.controls.target).add(offset);
   ctx.camera.updateProjectionMatrix();
   ctx.controls.update();

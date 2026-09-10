@@ -126,11 +126,10 @@ describe('following a product that changed', () => {
     expect(ctx.camera.position.distanceTo(before)).toBeCloseTo(0, 6);
   });
 
-  it('gives a grown product the same room it had, keeping angle and target', () => {
+  it('gives a grown product the same room it had, keeping the angle', () => {
     const ctx = ctxWith();
     frameProduct(ctx);
     const angle = dir(ctx);
-    const target = ctx.controls.target.clone();
     const was = dist(ctx);
     const radiusBefore = ctx.productRadius;
 
@@ -141,7 +140,9 @@ describe('following a product that changed', () => {
     // occupies the same fraction of the frame as before.
     expect(dist(ctx) / was).toBeCloseTo(ctx.productRadius / radiusBefore, 5);
     expect(dir(ctx).angleTo(angle)).toBeCloseTo(0, 6);
-    expect(ctx.controls.target.distanceTo(target)).toBeCloseTo(0, 6);
+    // The TARGET is deliberately no longer asserted here. This test used to
+    // hold it still, and that is the line that left a three-bay run off the
+    // side of the screen; re-centring has its own test below.
   });
 
   it('scales a close-up by the same proportion rather than reframing it', () => {
@@ -212,12 +213,13 @@ describe('following a product that changed', () => {
     expect(dist(ctx)).toBeLessThan(far);
   });
 
-  it('leaves the direction and the target alone when it does react', () => {
+  // The DIRECTION is the part a person sets by dragging, so it survives every
+  // reaction. The target does not - see below.
+  it('leaves the direction alone when it does react', () => {
     const ctx = ctxWith([2.85, 1.6, 0.32]);
     frameProduct(ctx);
     zoomTo(ctx, dist(ctx) * 2);
     const before = ctx.camera.position.clone().sub(ctx.controls.target).normalize();
-    const target = ctx.controls.target.clone();
 
     ctx.productRoot.clear();
     const small = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.67, 0.2));
@@ -227,6 +229,42 @@ describe('following a product that changed', () => {
 
     const after = ctx.camera.position.clone().sub(ctx.controls.target).normalize();
     expect(after.angleTo(before)).toBeCloseTo(0, 6);
+  });
+
+  // RE-CENTRING, and the third correction to this function. A run grows to the
+  // RIGHT, so adding two bays put most of the product off the side of the
+  // screen while the size strip read 2790 mm - nothing broken, nothing to see.
+  // Growing is a change the person made and the camera was moving anyway.
+  it('re-centres on the product when it grows sideways', () => {
+    const ctx = ctxWith([0.95, 1.6, 0.32]);
+    frameProduct(ctx);
+    const target = ctx.controls.target.clone();
+
+    // A three-bay run: same height and depth, three times the width, and its
+    // middle is now well to the right of where the camera was looking.
+    ctx.productRoot.clear();
+    const run = new THREE.Mesh(new THREE.BoxGeometry(2.79, 1.6, 0.32));
+    run.position.set(0.92, 0.8, 0);
+    ctx.productRoot.add(run);
+
+    expect(followProduct(ctx)).toBe(true);
+    expect(ctx.controls.target.x).toBeCloseTo(0.92, 3);
+    expect(ctx.controls.target.x).toBeGreaterThan(target.x);
+  });
+
+  // And it must NOT re-centre when nothing dimensional changed, or every tap on
+  // a stepper would drag the view around - which is the original complaint.
+  it('does not re-centre when the product only shifted a little', () => {
+    const ctx = ctxWith([2.85, 1.6, 0.32]);
+    frameProduct(ctx);
+    const target = ctx.controls.target.clone();
+
+    ctx.productRoot.clear();
+    const nearlySame = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 0.32));
+    nearlySame.position.set(0.4, 0.8, 0);
+    ctx.productRoot.add(nearlySame);
+
+    expect(followProduct(ctx)).toBe(false);
     expect(ctx.controls.target.distanceTo(target)).toBeCloseTo(0, 6);
   });
 

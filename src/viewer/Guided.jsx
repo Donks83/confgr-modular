@@ -28,7 +28,7 @@ import './options.css';
 import {
   buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions,
   moveCandidates, movePoints, addPoints,
-  slotKeyFor, builderIdOf, addAvailability, GuidedError,
+  slotKeyFor, frameIndexOf, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
 import { pointKey } from '../engine/attach.js';
 import { MOUNTING } from '../engine/ar.js';
@@ -210,7 +210,17 @@ export default function Guided({
   }, [built.configurationId]);
 
   const change = useCallback((next) => {
-    setChoices(normaliseChoices(schema, next));
+    setChoices((prev) => {
+      // THE HEIGHT CONTROL MEANS ALL OF THEM. Per-ladder types are overrides on
+      // top of that global choice, so changing the global one has to clear
+      // them - otherwise "make them all 905 mm" leaves the 2210 somebody put in
+      // position 2 standing there contradicting the control that just said
+      // otherwise.
+      const cleared = next.frameId && prev.frameId && next.frameId !== prev.frameId
+        ? { ...next, frames: {} }
+        : next;
+      return normaliseChoices(schema, cleared);
+    });
   }, [schema]);
 
   // What the tapped part can do. Computed here rather than held in state so it
@@ -227,11 +237,41 @@ export default function Guided({
     // telling the person it was part of the frame. Whether the part is
     // structural is the thing that decides, and the engine already said.
     const add = (size?.adds || []).find((a) => a.componentId === componentId);
-    const label = r.structural
-      ? (componentId === built.choices.frameId ? 'Frame' : (size?.span?.label || 'Shelf'))
-      : (add?.label || componentId);
-    return { ...r, componentId, label };
-  }, [picked, built, components, size]);
+
+    // A LADDER NAMES ITS POSITION, not just itself. With mixed heights in one
+    // run, "Ladder" on its own leaves somebody guessing which of the four they
+    // tapped, and the panel is about to offer to change it.
+    if (r.kind === 'frame') {
+      const index = frameIndexOf(built.slots?.[picked]);
+      const here = (variant?.frames || []).find((f) => f.componentId === componentId);
+      return {
+        ...r,
+        componentId,
+        label: index === 0 ? 'First ladder' : `Ladder ${index + 1}`,
+        types: (variant?.frames || []).map((f) => ({
+          componentId: f.componentId,
+          label: f.label,
+          current: f.componentId === componentId,
+        })),
+        typeLabel: here?.label || null,
+        frameIndex: index,
+      };
+    }
+
+    const label = r.kind === 'span' ? (size?.span?.label || 'Shelf') : (add?.label || componentId);
+    return { ...r, componentId, label, types: [] };
+  }, [picked, built, components, size, variant]);
+
+  // WHICH LADDER STANDS HERE. Recorded against the POSITION rather than against
+  // the component, so changing the type does not move the recorded height to a
+  // different slot and make the ladder jump.
+  const applyType = useCallback((type) => {
+    if (move?.frameIndex == null) return;
+    change({
+      ...built.choices,
+      frames: { ...built.choices.frames, [move.frameIndex]: type.componentId },
+    });
+  }, [move, built, change]);
 
   // A part the person moved is remembered against its SLOT, so the whole
   // product stays a function of the choices and the move survives every later
@@ -281,7 +321,11 @@ export default function Guided({
       return { mode: 'add', points: addPoints(built, components, placing) };
     }
     if (picked) {
-      return { mode: 'move', points: movePoints(built, components, picked) };
+      const points = movePoints(built, components, picked);
+      // One dot is where the part already is. Drawing it says "you may move
+      // this here", which is not true of the place it is - and for a ladder on
+      // a floor-standing run that is the only position there is.
+      return points.length > 1 ? { mode: 'move', points } : null;
     }
     return null;
   }, [built, components, placing, picked]);
@@ -489,10 +533,16 @@ export default function Guided({
         <MovePanel
           label={move.label}
           options={move.options || []}
+          types={move.types || []}
           reason={move.reason}
           structural={!!move.structural}
-          canDelete={!!move.slot}
+          // A ladder is a POSITION in the run, not a copy of something, so it
+          // cannot be removed one at a time - the bay count is what decides how
+          // many there are. Offering "remove this one" would either take a bay
+          // out from the middle or do nothing.
+          canDelete={!!move.slot && move.kind !== 'frame'}
           onMove={applyMove}
+          onType={applyType}
           onDelete={applyDelete}
           onClose={() => setPicked(null)}
         />

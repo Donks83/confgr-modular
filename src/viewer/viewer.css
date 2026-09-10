@@ -224,6 +224,22 @@
     border-left: 1px solid #3a332c;
   }
 
+  /* THE CANVAS STOPS WHERE THE PANEL STARTS.
+   *
+   * It used to run underneath it, full width, and that quietly broke framing:
+   * `frameProduct` and `followProduct` centre the product on the CANVAS, so a
+   * three-bay run came out centred on a point 180 px behind the bill of
+   * materials, with a third of the product hidden under it. The size strip read
+   * 2790 mm and there was nothing there to see - the same shape as the mobile
+   * bottom sheet in §5.24, where a panel covering the view made the product
+   * look mis-drawn.
+   *
+   * Fixed by making the drawing area the area somebody can actually see, rather
+   * than by teaching the camera about panels. That also keeps picking honest:
+   * the raycaster works from the canvas rect, so the dots stay exactly where
+   * they are drawn. */
+  .cfgv-stage { margin-right: 360px; }
+
   .cfgv-handle { cursor: default; align-items: flex-start; padding: 16px; }
   .cfgv-grip { display: none; }
   .cfgv-body { display: block; }

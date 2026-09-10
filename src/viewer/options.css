@@ -370,7 +370,10 @@
 
 /* On a wide screen the options are a rail down the left, so the strip starts
    where the stage does rather than under the rail. */
-@media (min-width: 768px) {
+/* 900px, matching the breakpoint where the options actually become a left rail.
+   At 768 they are still a bottom sheet, so indenting this strip by the rail's
+   width put it 312 px in from nothing. */
+@media (min-width: 900px) {
   .cfgg-ask {
     left: 312px;
   }
