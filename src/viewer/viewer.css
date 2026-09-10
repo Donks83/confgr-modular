@@ -158,6 +158,33 @@
  * the pseudo-element with `.cfgv-ar-text`.
  */
 
+/* WHERE THE BUTTON ACTUALLY IS.
+ *
+ * Top-right of the stage, above every panel. It used to sit at the bottom of
+ * the sheet body, under the bill of materials - which on a phone means inside a
+ * collapsed sheet AND underneath the options panel, at a lower z-index. It
+ * rendered correctly and could not be reached, which is the worst of both.
+ *
+ * z-index 4 is one above the options panel (2), the Configure toggle (3) and
+ * the "tap a dot" strip (3): AR is the one control that must never be covered,
+ * because a customer looking for it has no other way in. */
+.cfgv-arfloat {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+  /* The stage is the only thing behind it, so the pointer must pass through
+     everywhere except on the button itself - otherwise this corner stops
+     orbiting the product. */
+  pointer-events: none;
+}
+
+.cfgv-arfloat > * {
+  pointer-events: auto;
+  margin-top: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
 .cfgv-ar {
   display: flex;
   align-items: center;

@@ -33,7 +33,7 @@ import {
   createMarkerLayer, drawMarkers, markerAt, hoverMarker,
   clearGhost, showGhostAt, createGesture, MARKER_MODE,
 } from './interact.js';
-import { arAvailability } from './ar-link.js';
+import { arAvailability, AR_MODE } from './ar-link.js';
 import ArButton from './ArButton.jsx';
 import { resolveConfiguration } from '../engine/configuration.js';
 import { formatQuote } from '../engine/quote.js';
@@ -311,6 +311,11 @@ export default function Viewer({
     title: title || null,
   }), [ar, resolved, title]);
 
+  // Is AR an ACTION here, or an explanation? The answer decides where it is
+  // drawn, and getting it wrong is what hid the button: a link goes on the
+  // stage, a sentence goes in the sheet.
+  const arIsLink = !arWithheld && !!arLink && arLink.mode !== AR_MODE.NONE;
+
   return (
     <div className="cfgv">
       {/* One or the other, never both. With an interaction layer the shared
@@ -324,6 +329,30 @@ export default function Viewer({
         onPointerUp={interaction ? gesture.onPointerUp : onTapUp}
         onPointerCancel={interaction ? gesture.cancel : undefined}
       />
+
+      {/* AR ON THE STAGE, not at the bottom of the bill of materials.
+       *
+       * Matt: "how do i start the AR mode?" and then "i dont see the view in
+       * your room anywhere". It was rendering perfectly - inside the collapsed
+       * bottom sheet, below a twenty-line quote, and on a phone UNDERNEATH the
+       * options panel, which covers the lower 46vh at a higher z-index. The DOM
+       * said the link was at y 724-796; the panel owned 439-812. Present,
+       * drawn, and unreachable.
+       *
+       * Two taps in a non-obvious order is not a way to offer the thing the
+       * whole AR chain was built for, so the button is now a control on the
+       * stage like Configure. The SENTENCE stays in the sheet: "AR needs a
+       * phone" and "reset the options to see it in AR" are explanations, and
+       * explanations belong next to what they qualify rather than floating over
+       * a product. */}
+      {arIsLink && (
+        <div className="cfgv-arfloat">
+          {/* Its own component because its DOM shape is a requirement iOS
+              enforces silently, and a component can be rendered in jsdom and
+              have its children counted. See ArButton.jsx. */}
+          <ArButton availability={arLink} hasAr={!!ar} />
+        </div>
+      )}
 
       {error && (
         <div className="cfgv-error" role="alert">
@@ -379,10 +408,13 @@ export default function Viewer({
               </pre>
             )}
 
-            {/* Its own component because its DOM shape is a requirement iOS
-                enforces silently, and a component can be rendered in jsdom and
-                have its children counted. See ArButton.jsx. */}
-            <ArButton availability={arLink} hasAr={!!ar} withheld={arWithheld} />
+            {/* ONLY THE SENTENCE LIVES HERE. The BUTTON moved onto the stage -
+                see `cfgv-arfloat` below and the note on `arIsLink`. An
+                explanation belongs next to the numbers it qualifies; an action
+                does not. */}
+            {!arIsLink && (
+              <ArButton availability={arLink} hasAr={!!ar} withheld={arWithheld} />
+            )}
           </div>
         </div>
       )}

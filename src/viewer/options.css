@@ -318,13 +318,16 @@
 }
 
 /* ASKING WHERE.
-   Top of the stage, not the bottom: the sheet, the bill-of-materials strip and
-   the AR button all live along the bottom edge, and the one message that says
-   what the dots are for cannot be the fifth thing stacked there. */
+   Top of the stage, not the bottom: the sheet and the bill-of-materials strip
+   live along the bottom edge, and the one message that says what the dots are
+   for cannot be the fourth thing stacked there. */
 .cfgg-ask {
   position: absolute;
   z-index: 3;
-  top: 12px;
+  /* Clear of the AR button, which owns the top-right corner of the stage and
+     must not be covered - a customer hunting for "view in your room" has no
+     other route to it. */
+  top: 68px;
   left: 12px;
   right: 12px;
   display: flex;
