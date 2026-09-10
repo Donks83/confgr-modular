@@ -1,14 +1,17 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 9 September 2026, end of session 7. State verified against the
-code at commit `2b5ca38`, not from memory. Sessions 6 and 7 changed what this
+**Last updated:** 10 September 2026, end of session 8. State verified against the
+code at commit `6d4d7a4`, not from memory. Sessions 6 to 8 changed what this
 project *is* for a customer: session 6 finished the range (80 of 80) and closed
-the chain from a measured part to a button on a phone (§5.15–§5.23); session 7
-was a feedback loop with Matt testing on his own devices, and it began with him
-asking why he could not configure the thing (§5.24). The deliverable is now a
-**configurator** rather than a viewer — authored options, the engine placing
-every part, a URL that restores the product and the controls, a mobile bottom
-sheet, a camera that does not reset, and parts a customer can move or remove.
+the chain from a measured part to a button on a phone (§5.15–§5.23); sessions 7
+and 8 were a feedback loop with Matt testing on his own devices, and it began
+with him asking why he could not configure the thing (§5.24, §5.25). The
+deliverable is now a **configurator** rather than a viewer — authored options,
+the engine placing every part, a URL that restores the product and the controls,
+a mobile bottom sheet, a camera that does not reset, parts a customer can move
+or remove, snap dots and drag-to-place shared with the editor, and AR of
+whatever the customer has configured rather than of the product the bundle
+opened on.
 
 **The state model is the part worth remembering:** a guided configuration is
 *counts*, and a count cannot say which rung a rail is on, so a moved part is
@@ -16,9 +19,9 @@ recorded as intent against a **slot** and re-checked on every rebuild. The
 product stays a pure function of the choices, which is what keeps the URL, the
 configuration id and the quote round-tripping.
 
-**Code:** `C:\Claude\confgr-modular` — git, 78 commits, pushed to
+**Code:** `C:\Claude\confgr-modular` — git, 86 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
-**Tests:** 578 passing across 28 files (`npm test`).
+**Tests:** 711 passing across 36 files (`npm test`).
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -2899,10 +2902,201 @@ change-and-revert returns the identical summary, and the same URL renders the
 identical layout — so there is no determinism bug, and the transient itself is
 unexplained rather than dismissed.
 
+> **Explained in session 8** (§5.25): neither transient nor a mystery. The scene
+> was caching parts by instance id, and the runtime names instances by POSITION,
+> so a changed option kept the ids and re-used the previous product's parts.
+> `fitBounds` was measuring a scene that really was 1923 mm wide. Kept here
+> rather than deleted: the reading was right and the reasoning about it was wrong.
+
 **578 tests** across 28 files (43 in `tests/guided.test.js`, 13 in
 `tests/options.test.jsx`, 11 in `tests/movePanel.test.jsx`, 10 in
 `tests/camera.test.js`, and the rest across the bundle and AR suites).
 
+---
+
+### 5.25 The interaction Matt asked for, four faults it uncovered, and AR that follows the options
+
+Session 8 was not planned work. It was Matt testing on his own devices and
+saying what he saw, seven times, and each answer being a commit. What he said
+first was the whole brief: *"it very messy ii think you need to re look at it
+its not configurable at all"*, with two screenshots of a three-bay product that
+had assembled itself wrongly.
+
+Asked how it should behave, he described the editor's own interaction: *"iitt
+needs to be tthe dragon and drop we had at the start with the snap dots, click a
+dott add an accessory to the do and then you can click and drag to change its
+location same with the ladders"*. And for options that cannot be placed:
+**"Show them greyed, with the reason"**.
+
+#### The pointer layer moved down, not sideways
+
+The editor had had snap dots and drag-to-move since week one. The runtime had a
+tap. So the work was not to write an interaction — it was to move the one that
+existed **down** out of the editor so both could have it. `src/viewer/interact.js`
+is that move: marker geometry and styling, hit testing, ghost preview, and
+`createGesture` — a state machine over pointerdown/move/up with **no three.js and
+no DOM**, which is what makes a five-pixel drag threshold something a test can
+assert rather than something a person has to feel.
+
+`Configurator.jsx` lost 160 lines and gained an import. That the editor still
+behaves identically is not an opinion: the probe script drives it headlessly and
+the layout dumps match.
+
+#### Four faults, and each one was found by looking rather than by reasoning
+
+**`moveTargetAt` had never existed.** `Configurator.jsx:1052` called it on every
+pointermove during a drag. A `ReferenceError`, every time, since 3 September — so
+the ghost preview had never once appeared. Nothing had ever probed a drag. Found
+by reading the code in order to move it.
+
+**An id is not a part.** `syncProduct` cached scene groups by `instanceId`, and
+the runtime names instances `p0, p1…` **by position**. Change the depth and the
+ids stay the same while the components underneath them change, so the scene kept
+the old parts and re-used them for the new ones. Both products had ten parts, so
+nothing was added or removed: it looked exactly like bad placement, which is why
+Matt read it as *"why cant it be like it originally was?"*
+
+The tell was in his own screenshot: **the bill of materials was right and the
+dimensions were wrong.** The bill comes from the configuration, the dimensions
+from `fitBounds`, which measures the scene. Two numbers that disagree name which
+of the two is lying. `syncProduct` now compares component identity as well as
+instance id, and `disposeGroup` frees the cloned materials that had been leaking
+per sync since three.js does not release GPU memory on GC.
+
+This also explains the **transient 1923 mm** reading recorded as "unexplained" in
+§5.24. It was not transient and it was not unexplained: it was this bug, mid-update.
+
+**A ladder can hang 2 metres underground.** Mixed ladder types — Matt: *"is it
+possible to be able to add ladders of different types to mix and match?"* — went
+in as per-position frame slots, `frame#<n>`, keyed by POSITION rather than by
+component so that swapping a ladder's type does not move its recorded height.
+`autoAttach` levels a new part against the last one of the same kind, and it
+matched on `componentId`, so a *different* ladder type found nothing to be level
+with and fell through to lowest-world-height: **up to 2015 mm below the floor.**
+Fixed with `kin`, a set of ids counting as the same kind, taken from the schema's
+own frames list rather than from a guess. Then the height list itself offered
+−1305 / −710 / −355 / 0 mm — three of the four underground — so heights are now
+filtered against the floor, measured from the anchor rather than assumed to be zero.
+
+**`kind` was set on three early returns and not on the success return.** So the
+anchor ladder answered correctly and every other ladder rendered as a nameless
+accessory with a Remove button. Found by tapping the second one. The test now
+walks every frame slot rather than the first.
+
+#### Three Android faults, all of them in the last 10% of the work
+
+Matt, from his phone: *"the configure menu is still always visible on mobile
+(even when I click done) and the view resets evetime I click an option. and its
+very difficult to click the snap markers"*.
+
+**Done did nothing** because `.cfgg-panel { display: flex }` beats `[hidden]`.
+`[hidden]` works only through the UA stylesheet's `display: none`, which is the
+weakest rule in the cascade, and any author `display` wins. The evidence had been
+sitting in the file — a `display: flex !important` with a comment about overriding
+the attribute — and, worse, **I had read `hidden: true` on a visibly open panel
+earlier the same day and not asked why.**
+
+**The jumping view was my own regression.** Re-framing triggered on any growth
+over 0.1%, and adding one shelf trips that. `followProduct` now separates two
+questions that had been one: has the product changed SIZE enough to re-frame
+(`SHRINK_ENOUGH` 0.75, `GROW_ENOUGH` 1.1), and has its CENTRE drifted
+(`DRIFT_ENOUGH` 0.2 of the radius). Neither, and the camera is left alone.
+
+**The dots were too small for a thumb.** Not a styling change: each dot now
+carries an invisible hit box four times its size, `markerAt` tries the visible
+dots first and falls back to the boxes, and the drag threshold goes from 5 px to
+12 px on a coarse pointer. `pointer: coarse` is the test, not a UA sniff.
+
+#### The AR button was unreachable, twice
+
+*"and how do ii start the AR mode?"* then *"ii dont see theview in your room
+anywhere"*. It was rendering perfectly: at y 724–796, inside a collapsed bottom
+sheet, under a twenty-line quote, and on a phone underneath an options panel that
+owns y 439–812 at a higher z-index. Present, drawn, unreachable.
+
+The rule that came out of it is worth more than the fix: **a link is an action
+and belongs on the stage; a sentence is an explanation and belongs with the
+numbers it qualifies.** Never both places, and the link never in the sheet again.
+
+#### AR that follows the options, which is the answer to a question asked three times
+
+*"so i can't configure a product and view it in my room?"* No — and it took
+three askings for me to treat that as the fault it was. A bundle carries ONE
+pre-baked AR pair, of the product it opens on, so the moment a customer adds a
+bay the handoff was withheld with a sentence asking them to put the options back.
+For a configurator whose whole pitch is seeing it in your room, that is close to
+useless, and *"reset the options"* is not an answer.
+
+Nothing new had to be invented. §5.18 made a configuration a **value**; §5.19
+turned that value into a GLB with no editor running; §5.20 turned the GLB into a
+Quick Look-valid USDZ. All three had never been put behind a URL.
+`tools/serve-ar.mjs` is that URL:
+
+    ar/build/product.glb?c=<configuration id>     Android, Scene Viewer
+    ar/build/product.usdz?c=<configuration id>    iOS, Quick Look
+
+The extension is in the **path** and the configuration in the **query**, because
+Quick Look reads the path. The route is a separate segment from the shipped
+`ar/` pair so a generated file never shadows one on disk, and it is **relative**,
+resolved against the page — a client's IT department will put the folder in a
+subdirectory and nobody will tell us.
+
+The runtime end is two pure functions rather than a condition inside a component,
+because the two questions are different questions:
+
+- **`arHandoff`** asks about the BUNDLE. Static: the shipped pair is right for
+  exactly one product, so withhold, with a sentence. Routed: nothing to withhold.
+- **`arAvailability`** asks about the PAGE: is this device one of the two that
+  have AR at all? A route changes which PRODUCTS are covered, not which DEVICES.
+
+A route alone is now a complete AR block, so `--no-ar --ar-route` ships the page
+and the endpoint without the 5 MB — a smaller bundle whose AR covers *more*
+products than the big one.
+
+**And a fault caught in my own new code.** The disk cache keyed on the first 120
+characters of the id's base64, to stay inside a file-name limit. A configuration
+id lists its components before its instances, so the one-bay and two-bay ids of
+the same range are **byte-identical for their first 505 characters** — measured,
+from the schema's own default and `{...bays: 2}`. The two products shared a cache
+file, and whichever was asked for second would have been served the other's
+model: the wrong product in somebody's room, with nothing about it looking wrong.
+Now SHA-256 of the whole id. Not `configurationDigest`, whose own comment says
+32-bit FNV-1a is a label rather than a boundary — eight hex characters is a
+coin-flip collision at about 77,000 products, and a collision here is the same
+silent wrong answer.
+
+#### Verified over a real https tunnel
+
+The bundle went behind a Cloudflare quick tunnel — free, no account, random
+four-word subdomain that changes on restart — because Scene Viewer fetches the
+model in its own process and cannot see a laptop's localhost.
+
+On a page reporting a Pixel user agent, a **three-bay product (7 parts, 2790 mm)**
+draws *"View in your room"* as an `intent://` link whose `file=` is the route
+carrying **the id on screen**, not the one the bundle was baked with. The route
+answers with three distinct models for one, two and three bays — **443,980 /
+444,432 / 444,892 bytes**, three different hashes — and the one-bay GLB is the
+same size, byte for byte, as the pair the exporter shipped, so the route
+*reproduces* the exporter rather than approximating it. Built in 121 ms, served
+from cache thereafter. A bad id returns 422 with the engine's own sentence; no id
+returns 400.
+
+One fault in the checking rather than the code, worth writing down: the first
+probe reported 404 on every request, and the cause was PowerShell — `"$f?c="`
+interpolates a variable called `f?c`, because `?` is legal in a PowerShell
+variable name, so the URL silently lost its file name. The server was right and
+the harness was wrong, which is the failure mode a test harness is supposed to
+make impossible.
+
+**Still unconfirmed, and it is the same item as in §5.20 and §5.23:** whether
+Quick Look and Scene Viewer actually accept these files on a real handset. That
+needs Matt's phone. Everything up to the handoff is now proved; the handoff
+itself is not.
+
+**711 tests** across 36 files (29 in `tests/arRoute.test.js`, 21 in
+`tests/ladders.test.js`, 19 in `tests/gesture.test.js`, 14 in `tests/dots.test.js`,
+11 in `tests/sync.test.js`, 9 in `tests/touch.test.js`, 7 in
+`tests/availability.test.js`, and the rest across the engine, bundle and AR suites).
 ---
 
 ## 6. Roadmap
@@ -3089,9 +3283,10 @@ order rather than wish order:
    models load up front for about 4 MB; and a real client folder actually sent
    to somebody.
 6. **AR:** ~~GLB export of a configuration~~ (§5.19), ~~USDZ conversion~~
-   (§5.20) and ~~the handoff to the phone's own AR viewer~~ (§5.23) — **all
-   three done** → the hosted `/ar?c=<id>` landing route → the QR handoff
-   (§4.5). **Both formats come out of one configuration id**, so Android and
+   (§5.20), ~~the handoff to the phone's own AR viewer~~ (§5.23) and ~~the
+   per-configuration route~~ (§5.25) — **all four done** → a host to put the
+   route on → the QR handoff (§4.5). **Both formats come out of one
+   configuration id**, so Android and
    iOS are fed by the same chain and neither is a special case, and every
    exported bundle now carries both plus a button that offers the right one:
    `rel="ar"` to Quick Look on iOS, a Scene Viewer intent on Android, and a
@@ -3201,13 +3396,15 @@ Not the same as the phase order, and worth stating separately:
     The state model had to change first — a count cannot say which rung —
     so a position is recorded against a SLOT and re-checked on every rebuild
     rather than trusted.
-15. **The `/ar?c=` route, back on the critical path** — put there by the
-    configurator rather than by AR. A pre-baked AR file is of one product,
-    so a customer who configures needs the model generated for what they
-    chose: either client-side with three's own exporters (unverified on a
-    device) or from a hosted endpoint (§4.5 item 5). Until then AR is offered
-    for the product the bundle opens on and withheld, with a sentence, after
-    that.
+15. ~~**The `/ar?c=` route, back on the critical path**~~ — **DONE, session 8**
+    (§5.25). A pre-baked AR file is of one product, so a customer who
+    configures needed the model generated for what they chose.
+    `tools/serve-ar.mjs` answers `ar/build/product.glb?c=<id>` and the USDZ
+    beside it, generated on demand and cached on disk by a SHA-256 of the id;
+    the manifest carries the route and the runtime stops withholding wherever
+    there is one. Verified over an https tunnel on a three-bay product. What
+    remains is not this item: it is a host to put it on, which is a decision
+    about money rather than a piece of engineering.
 
 **Everything else on this list that our own work can move is done.** What is
 left is not engineering:
@@ -3247,6 +3444,74 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 8 — 10 September 2026
+
+**Matt was the loop again, and this time he had a phone.** Seven sentences from
+him, seven commits. Nothing below was planned before he said it.
+
+- **"it very messy ii think you need to re look at it its not configurable at
+  all"** - with two screenshots. Asked how it should work, he described the
+  editor's own interaction: snap dots, click a dot to add, click and drag to
+  relocate. So the work was not to write an interaction but to move the one that
+  already existed **down** out of the editor, into `src/viewer/interact.js`, so
+  the runtime could have it. `Configurator.jsx` lost 160 lines and gained an
+  import; the editor behaves identically, proved by the headless probe rather
+  than by looking.
+- **"why cant it be like it originally was? this isn't working either"** - the
+  worst fault of the session and the best evidence. `syncProduct` cached scene
+  groups by `instanceId`, and the runtime names instances **by position**, so a
+  changed option kept the ids and re-used the previous product's parts. Both
+  products had ten parts, so it looked exactly like bad placement. The tell was
+  in his own screenshot: **the bill of materials was right and the dimensions
+  were wrong**, and those two numbers come from different places. It also
+  explains the 1923 mm reading §5.24 recorded as unexplained.
+- **"This is PERFECT! ... is it possible to add ladders of different types to
+  mix and match?"** - per-position frame slots, and two faults behind them: a
+  ladder of a different type had nothing to be level with and hung up to
+  **2015 mm below the floor**, and the height list then offered three heights
+  that were underground. Levelling now works on `kin` from the schema, and
+  heights are filtered against the floor measured from the anchor.
+- **"and how do ii start the AR mode?"** then **"ii dont see theview in your
+  room anywhere"** - it was at y 724-796, inside a collapsed sheet, under a
+  twenty-line quote, beneath a panel owning y 439-812 at a higher z-index. The
+  rule that came out of it: **a link is an action and goes on the stage, a
+  sentence is an explanation and goes with the numbers it qualifies.**
+- **"the configure menu is still always visible on mobile (even when I click
+  done) and the view resets evetime I click an option. and its very difficult to
+  click the snap markers"** - three Android faults in one sentence. Done was
+  inert because `display: flex` beats `[hidden]`, and **the evidence had been in
+  the file all along**; the jumping view was my own regression, re-framing on any
+  growth over 0.1%, which one shelf trips; the dots now carry invisible hit boxes
+  four times their size, with a 12 px drag threshold on a coarse pointer.
+- **"so i can't configure a product and view it in my room?"** - asked three
+  times before I treated it as the fault it was. A bundle carried one pre-baked
+  AR pair, so AR was withheld the moment anybody changed anything.
+  `tools/serve-ar.mjs` puts §5.18-§5.20 behind a URL and the withholding is
+  gone. **Verified over an https tunnel** on a page reporting a Pixel: a
+  three-bay product hands Scene Viewer the id on screen, and one, two and three
+  bays come back as three distinct models.
+
+**Two faults were mine, in code written this session.** The AR cache keyed on
+the first 120 characters of a configuration id's base64 - and the one-bay and
+two-bay ids agree for their first **505** characters, so the two products shared
+a cache file and one of them would have put the wrong model in somebody's room.
+And the first probe of the finished route reported 404 on everything, which was
+PowerShell interpolating `"$f?c="` as a variable named `f?c`: the server was
+right and the harness was wrong.
+
+**One process failure worth recording.** Editing this document with PowerShell
+5.1's `Get-Content` decoded it as Windows-1252 and wrote it back re-encoded -
+1,045 lines changed for a 186-line insert, every accented character mangled. Git
+made it a thirty-second revert. The insert was redone in Node as a single string
+splice: 185 insertions, 0 deletions.
+
+**Still not confirmed by anybody:** whether Quick Look and Scene Viewer accept
+these files on a real handset. Every step up to the handoff is now proved. The
+handoff needs a phone, and that is five minutes of Matt's time rather than
+anything left to build.
+
+**711 tests** across 36 files, up from 578 across 28.
 
 ### Session 7 — 9 September 2026
 
@@ -3311,6 +3576,12 @@ somebody else's shelf. And a transient 1923 mm width reading, where 1870 was
 expected, is **unexplained**. Change-and-revert returns the identical summary
 and the same URL renders an identical 18-line layout, so it is not a determinism
 bug; that is as far as it got, and it is written here rather than dropped.
+
+> **Session 8 answered both** (§5.25). `/ar?c=` is built and verified over an
+> https tunnel, so a configured product now reaches AR; and the 1923 mm was the
+> scene caching parts by instance id — the measurement was right and the
+> reasoning about it was wrong. Nothing about AR has still been seen on a
+> handset, which is the one part of that paragraph that has not moved.
 
 **578 tests across 28 files**, up from 547. Five commits.
 
@@ -3851,6 +4122,13 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   34,106 triangles and 443,980 bytes — comfortably inside — but a five-bay run
   with cabinets has never been exported and nobody knows where the line is.
   Measure a realistic worst case before quoting the limit to anyone.
+- **Where does the AR route actually live?** §5.25 makes AR follow the options,
+  but only while something is running `tools/serve-ar.mjs` on an https host —
+  Scene Viewer fetches the model in its own process and will not accept a
+  laptop. A Cloudflare quick tunnel proves it and is not a delivery: the
+  subdomain is four random words that change on every restart. The choice is
+  Matt's and it is about money rather than engineering — a domain pointed at a
+  named Cloudflare tunnel, or a small paid host. **Asked, not yet answered.**
 - Why was Studio's PDF-quote control removed on 11 August 2026? The plan says
   find out before rebuilding it.
 
