@@ -32,6 +32,7 @@ import {
 } from '../engine/guided.js';
 import { pointKey } from '../engine/attach.js';
 import { MOUNTING } from '../engine/ar.js';
+import { arHandoff } from './ar-link.js';
 
 /**
  * Deleting the nth of something, in slot terms.
@@ -455,8 +456,13 @@ export default function Guided({
     );
   }
 
-  // AR only while the product on screen IS the product in the ar/ folder.
-  const arMatches = !!arConfigurationId && arConfigurationId === built.configurationId;
+  // Whether AR follows the options or only the opening product is a property
+  // of the BUNDLE, and `arHandoff` is where that is decided and tested. On a
+  // routed bundle nothing is withheld; on a static one the shipped pair is
+  // right for exactly one product and saying so beats showing the wrong room.
+  const handoff = arHandoff({
+    ar, arConfigurationId, configurationId: built.configurationId,
+  });
 
   return (
     <div className={`cfgg${panelOpen ? ' cfgg-open' : ''}`}>
@@ -466,11 +472,8 @@ export default function Guided({
         catalogue={catalogue}
         tierId={tierId}
         title={title}
-        ar={arMatches ? ar : null}
-        arWithheld={ar && !arMatches
-          ? 'View in your room is ready for the starting product. Reset the '
-            + 'options to see it in AR, or ask us for a link to this one.'
-          : null}
+        ar={handoff.ar}
+        arWithheld={handoff.withheld}
         // Selection is back in the runtime, but only in the CONFIGURATOR. A
         // plain viewer of one configuration still has nothing to click.
         selectable

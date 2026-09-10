@@ -140,7 +140,10 @@ export function parseManifest(json) {
   }
   // An `ar` block that names neither file is a lie rather than an omission, and
   // it would produce a button that cannot work. Refused by name, like the rest.
-  if (json.ar && !json.ar.glb && !json.ar.usdz) {
+  // A `route` counts: a bundle whose host builds models on demand ships no
+  // pair at all, and refusing that would refuse the only shape of bundle in
+  // which AR follows the customer's own choices.
+  if (json.ar && !json.ar.glb && !json.ar.usdz && !json.ar.route) {
     throw new ManifestError('The manifest claims AR but names no AR file.');
   }
   return json;

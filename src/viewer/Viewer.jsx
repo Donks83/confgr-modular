@@ -315,7 +315,10 @@ export default function Viewer({
     maxTouchPoints: typeof navigator === 'undefined' ? 0 : (navigator.maxTouchPoints || 0),
     mounting: resolved?.mounting || null,
     title: title || null,
-  }), [ar, resolved, title]);
+    // The product ON SCREEN, which is what a routed host will be asked to
+    // build. A static bundle ignores it.
+    configurationId: configurationId || null,
+  }), [ar, resolved, title, configurationId]);
 
   // Is AR an ACTION here, or an explanation? The answer decides where it is
   // drawn, and getting it wrong is what hid the button: a link goes on the

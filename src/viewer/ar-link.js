@@ -39,6 +39,36 @@ import { placementFor } from '../engine/ar.js';
 /** Where the exporter puts the two AR files, relative to index.html. */
 export const AR_DIR = 'ar';
 
+/**
+ * Where a LIVE host answers "build me the model for this configuration",
+ * relative to index.html.
+ *
+ * A bundle carries one pre-baked pair, of the product it opens on, so the
+ * moment a customer adds a bay the handoff has nothing to hand over. Matt
+ * asked three times in one session — "so i can't configure a product and view
+ * it in my room?" — and the honest answer was no. A host that can run
+ * `exportConfiguration` can answer for EVERY configuration, and this is the
+ * path it answers on.
+ *
+ * RELATIVE, like `arAssetUrl` and for the same reason: a bundle does not know
+ * whether it will be served at the root or in a subdirectory, and nobody will
+ * tell us. Resolved against the page.
+ *
+ * A SEPARATE SEGMENT from `AR_DIR`, so a generated file never shadows the
+ * pre-baked one — the two coexist, and a manifest without `route` still works
+ * on a dumb static host exactly as before.
+ *
+ * The FILE NAME carries the extension, and the configuration goes in the
+ * query. That is for Quick Look: WebKit is handed the URL and decides what it
+ * is looking at partly from the path, so `…/product.usdz?c=…` is a materially
+ * safer thing to hand it than `…/ar?c=…&f=usdz`. It costs nothing to spell it
+ * the safe way.
+ */
+export const AR_ROUTE = 'ar/build';
+
+/** The two file names the route answers on, by format. */
+export const AR_ROUTE_FILES = { glb: 'product.glb', usdz: 'product.usdz' };
+
 export const AR_MODE = {
   /** iOS: an <a rel="ar"> to a USDZ. */
   QUICK_LOOK: 'quick-look',
@@ -89,6 +119,66 @@ export function arAssetUrl(file, pageHref) {
 }
 
 /**
+ * The absolute URL at which a live host will build ONE configuration's model.
+ *
+ * The configuration id is the whole request, and it is also the cache key: the
+ * same id always names the same product, so a file once built never needs
+ * building again. That is a property of the id (§5.18) rather than a trick,
+ * and it is why this can be an endpoint on a laptop rather than a queue.
+ *
+ * Returns null without an id, which is the honest answer for a page that has
+ * not resolved a product yet — a link with no `c=` would be a request the host
+ * cannot answer.
+ */
+export function arRouteUrl(route, {
+  configurationId = null, format = 'glb', pageHref = null,
+} = {}) {
+  if (!route || !configurationId || !pageHref) return null;
+  const file = AR_ROUTE_FILES[format] || AR_ROUTE_FILES.glb;
+  try {
+    const url = new URL(`${String(route).replace(/\/+$/, '')}/${file}`, pageHref);
+    url.searchParams.set('c', configurationId);
+    return url.href;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Which AR block, if any, applies to the product currently on screen.
+ *
+ * Two worlds, and the difference is the whole point of the route:
+ *
+ *   A STATIC bundle carries one pair of files, of the product it opens on. The
+ *   moment somebody changes an option the files describe a different product,
+ *   and offering them would put the wrong thing in their room — which is worse
+ *   than offering nothing. So it is withheld, with a sentence.
+ *
+ *   A ROUTED bundle can build any configuration on demand, so there is nothing
+ *   to withhold and no sentence to write. This is the case that answers Matt's
+ *   question rather than explaining it.
+ *
+ * Pure, and separate from `arAvailability`, because it is a question about the
+ * BUNDLE ("can this folder answer for an arbitrary product?") while
+ * availability is a question about the PAGE ("is this device one that can show
+ * one?"). Keeping them apart is what let the withholding rule be tested at all.
+ */
+export function arHandoff({
+  ar = null, arConfigurationId = null, configurationId = null,
+} = {}) {
+  if (!ar) return { ar: null, withheld: null };
+  if (ar.route) return { ar, withheld: null };
+  if (arConfigurationId && arConfigurationId === configurationId) {
+    return { ar, withheld: null };
+  }
+  return {
+    ar: null,
+    withheld: 'View in your room is ready for the starting product. Reset the '
+      + 'options to see it in AR, or ask us for a link to this one.',
+  };
+}
+
+/**
  * Scene Viewer, by intent.
  *
  * `mode=ar_preferred` rather than `ar_only`: on a phone without ARCore,
@@ -133,6 +223,7 @@ export function sceneViewerUrl(glbUrl, { title = null, mounting = null, pageHref
  */
 export function arAvailability({
   ar = null, pageHref = '', userAgent = '', maxTouchPoints = 0, mounting = null, title = null,
+  configurationId = null,
 } = {}) {
   const no = (reason) => ({ mode: AR_MODE.NONE, url: null, reason });
 
@@ -140,8 +231,14 @@ export function arAvailability({
 
   const platform = platformOf({ userAgent, maxTouchPoints });
 
+  // The route wins over the shipped file wherever there is one, because the
+  // shipped file is only ever right for the product the bundle opened on and
+  // the route is right for the product on screen. Falling back to the file
+  // when the page has no id yet is deliberate: it is the same product.
+  const routed = (format) => arRouteUrl(ar.route, { configurationId, format, pageHref });
+
   if (platform === 'ios') {
-    const url = arAssetUrl(ar.usdz, pageHref);
+    const url = routed('usdz') || arAssetUrl(ar.usdz, pageHref);
     if (!url) return no('This bundle has no USDZ, which is the only format iOS reads.');
     // No http(s) check. Quick Look is handed the file by WebKit rather than
     // fetching it in a second process, so unlike Scene Viewer it has no
@@ -150,7 +247,7 @@ export function arAvailability({
   }
 
   if (platform === 'android') {
-    const glb = arAssetUrl(ar.glb, pageHref);
+    const glb = routed('glb') || arAssetUrl(ar.glb, pageHref);
     if (!glb) return no('This bundle has no GLB, which is what Scene Viewer reads.');
     const url = sceneViewerUrl(glb, { title, mounting, pageHref });
     if (!url) {
@@ -176,12 +273,21 @@ export function arAvailability({
  * whoever receives it — which is not true of a folder you have to re-export to
  * ask a question about.
  */
-export function arBlock({ glb, usdz, triangles = null, vertical = false }) {
-  if (!glb && !usdz) return null;
+export function arBlock({
+  glb, usdz, triangles = null, vertical = false, route = null,
+}) {
+  // A route ALONE is a complete AR block: a host that builds on demand needs no
+  // shipped pair at all, and `--no-ar --ar-route` is a legitimate export (the
+  // page, and a live endpoint, with none of the 5 MB).
+  if (!glb && !usdz && !route) return null;
   return {
     glb: glb || null,
     usdz: usdz || null,
     triangles,
     vertical: !!vertical,
+    // Where the host answers for an ARBITRARY configuration, or null for a
+    // folder going on a dumb static server. The runtime reads this to decide
+    // whether AR follows the options or only the opening product.
+    route: route || null,
   };
 }

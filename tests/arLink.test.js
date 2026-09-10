@@ -197,6 +197,15 @@ describe('arBlock', () => {
       glb: 'product.glb', usdz: 'product.usdz', triangles: 34106, vertical: true,
     })).toEqual({
       glb: 'product.glb', usdz: 'product.usdz', triangles: 34106, vertical: true,
+      route: null,
+    });
+  });
+
+  it('is a complete block on a route alone, with no files at all', () => {
+    // `--no-ar --ar-route`: a folder that is only ever going behind the live
+    // host wants the endpoint and none of the 5 MB.
+    expect(arBlock({ glb: null, usdz: null, route: 'ar/build' })).toEqual({
+      glb: null, usdz: null, triangles: null, vertical: false, route: 'ar/build',
     });
   });
 

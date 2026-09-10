@@ -386,6 +386,9 @@ describe('a real exported bundle', () => {
       usdz: 'product.usdz',
       triangles: expect.any(Number),
       vertical: false,
+      // No `--ar-route`, so this folder is honest about covering exactly one
+      // product: the runtime withholds AR the moment an option changes.
+      route: null,
     });
     expect(manifest.ar.triangles).toBeGreaterThan(0);
     // The manifest's figure is the exporter's own measurement, not a second

@@ -50,7 +50,7 @@ import { execFileSync } from 'node:child_process';
 import {
   buildManifest, partsNeededFor, MANIFEST_NAME, MODELS_DIR,
 } from '../src/viewer/manifest.js';
-import { AR_DIR, arBlock } from '../src/viewer/ar-link.js';
+import { AR_DIR, AR_ROUTE, arBlock } from '../src/viewer/ar-link.js';
 import { configurationDigest } from '../src/engine/configuration.js';
 import { MOUNTING } from '../src/engine/ar.js';
 
@@ -162,7 +162,7 @@ function walk(dir, base = dir) {
  * out, and that question is on the list for the five minutes with a real phone.
  */
 export async function writeArAssets({
-  configurationId, folder, models: modelsDir, title = null, arNormals = true,
+  configurationId, folder, models: modelsDir, title = null, arNormals = true, arRoute = null,
 }) {
   const { exportConfiguration } = await import('./export-glb.mjs');
   const { glbToUsdz, verifyUsdz } = await import('./export-usdz.mjs');
@@ -197,6 +197,10 @@ export async function writeArAssets({
       // can answer a question about it without re-exporting anything.
       triangles: exported.ready.triangles,
       vertical,
+      // The shipped pair stays, route or no route: it is the fallback for a
+      // page that has not resolved an id yet, and it is where the triangle
+      // count comes from. The route only says the host can do better.
+      route: arRoute,
     }),
     title,
     // Reported separately as well as summed, because they are read by
@@ -224,7 +228,7 @@ export async function writeArAssets({
  */
 export async function writeBundle({
   configurationId, folder, dist, models: modelsDir, title = null, generated = null,
-  ar = true, arNormals = true, guided = null,
+  ar = true, arNormals = true, guided = null, arRoute = null,
 }) {
   const needed = partsNeededFor(configurationId, { guided });
 
@@ -279,10 +283,18 @@ export async function writeBundle({
   let arResult = null;
   if (ar) {
     arResult = await writeArAssets({
-      configurationId, folder, models: modelsDir, title, arNormals,
+      configurationId, folder, models: modelsDir, title, arNormals, arRoute,
     });
     bytes += arResult.bytes;
   }
+
+  // A route with no shipped pair: `--no-ar --ar-route`, for a folder that is
+  // only ever going behind the live host. It is a smaller bundle whose AR
+  // covers MORE products than the 5 MB version, which is worth being able to
+  // ask for.
+  const arOnlyRoute = !ar && arRoute
+    ? arBlock({ glb: null, usdz: null, route: arRoute })
+    : null;
 
   const manifest = buildManifest({
     configuration: configurationId,
@@ -290,7 +302,7 @@ export async function writeBundle({
     catalogue: hasCatalogue ? 'catalogue.json' : null,
     title,
     generated,
-    ar: arResult?.ar || null,
+    ar: arResult?.ar || arOnlyRoute,
     guided,
   });
   writeFileSync(join(folder, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -298,7 +310,7 @@ export async function writeBundle({
 
   return {
     folder, manifest, models: needed, bytes,
-    ar: arResult?.ar || null,
+    ar: arResult?.ar || arOnlyRoute,
     ready: arResult?.ready || null,
     arBytes: arResult ? { glb: arResult.glbBytes, usdz: arResult.usdzBytes } : null,
   };
@@ -357,10 +369,18 @@ async function main(argv) {
     const wantsAr = !argv.includes('--no-ar');
     if (wantsAr) console.log('exporting the AR pair…');
 
+    // `--ar-route` on its own takes the default path; `--ar-route <path>`
+    // names another, for a host that answers somewhere else. Present is the
+    // whole signal: it is a claim about the HOST, so it cannot be verified
+    // here, and a route that turns out to be wrong falls back to the shipped
+    // pair rather than breaking the page.
+    const arRoute = argv.includes('--ar-route') ? (at('--ar-route') || AR_ROUTE) : null;
+
     const r = await writeBundle({
       configurationId: id, folder, dist, models: modelsDir, title: at('--title'), ar: wantsAr,
       arNormals: !argv.includes('--no-ar-normals'),
       guided,
+      arRoute,
     });
 
     console.log(`\n  wrote   ${r.folder}  ${(r.bytes / 1024).toFixed(1)} kB`);
@@ -370,7 +390,17 @@ async function main(argv) {
       guided ? 'the options can reach' : 'this configuration references'}:`);
     for (const m of r.models) console.log(`            ${m}`);
     console.log(`  prices  ${r.manifest.catalogue ? 'catalogue.json included' : 'none on file'}`);
-    if (r.ar) {
+    if (r.ar && r.ar.route) {
+      // Said FIRST and in full, because it is the difference between AR that
+      // covers one product and AR that covers every product the options can
+      // reach — and because a route that the host does not actually answer is
+      // a claim this tool cannot check.
+      console.log(`  route   ${r.ar.route}/product.glb?c=<id> — AR follows the`);
+      console.log('          customer\'s own choices, PROVIDED the host runs');
+      console.log('          tools/serve-ar.mjs. On a plain static host the');
+      console.log(`          shipped pair is used instead${r.arBytes ? '' : ', and there is none'}.`);
+    }
+    if (r.arBytes) {
       console.log(`  AR      ${r.ar.triangles.toLocaleString()} triangles, ${
         r.ar.vertical ? 'wall' : 'floor'} placement`);
       // Named per platform rather than summed. A person deciding whether the
