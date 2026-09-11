@@ -4129,6 +4129,14 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   subdomain is four random words that change on every restart. The choice is
   Matt's and it is about money rather than engineering — a domain pointed at a
   named Cloudflare tunnel, or a small paid host. **Asked, not yet answered.**
+  And the quick tunnel is less dependable than one morning's success suggested:
+  on 11 September three consecutive names resolved **AAAA-only, with no A
+  record**, and `main-pc`'s resolver served nothing at all for them — a tunnel
+  whose own log said *"Registered tunnel connection"* was unreachable from the
+  machine that started it. `Start AR host.bat` now leads with the **LAN
+  address** for exactly this reason: a phone on the same wifi needs no DNS, no
+  Cloudflare and no propagation, and Scene Viewer is satisfied by any absolute
+  http(s) URL, a LAN one included.
 - Why was Studio's PDF-quote control removed on 11 August 2026? The plan says
   find out before rebuilding it.
 
