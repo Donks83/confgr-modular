@@ -35,7 +35,9 @@ import {
   isCoarsePointer, DRAG_THRESHOLD_PX,
 } from './interact.js';
 import { arAvailability, AR_MODE } from './ar-link.js';
+import { scanAvailability } from './scan-link.js';
 import ArButton from './ArButton.jsx';
+import ScanToPhone from './ScanToPhone.jsx';
 import { resolveConfiguration } from '../engine/configuration.js';
 import { formatQuote } from '../engine/quote.js';
 
@@ -61,6 +63,16 @@ export default function Viewer({
    * loud rather than leaving a gap where a button was.
    */
   arWithheld = null,
+  /**
+   * The encoded choices, for the QR code.
+   *
+   * Passed rather than read out of `window.location`, and the difference
+   * matters: `Guided` writes the URL in an EFFECT, which runs after this
+   * render, so a code built from the address bar would carry the product as it
+   * was one change ago. Nobody would notice on screen and the phone would open
+   * the wrong shelf.
+   */
+  scanChoices = null,
   /**
    * Selection, off by default.
    *
@@ -325,6 +337,20 @@ export default function Viewer({
   // stage, a sentence goes in the sheet.
   const arIsLink = !arWithheld && !!arLink && arLink.mode !== AR_MODE.NONE;
 
+  // The other end of the same problem. AR needs a phone; the person choosing is
+  // at a desk; and the URL that would move the product from one to the other is
+  // four hundred characters of base64 that nobody is going to retype. So where
+  // there is no AR link, there is a camera-sized one instead.
+  //
+  // Only when AR is not already an action here: on a phone the button IS the
+  // handoff, and a QR code next to it would be a code pointing at the screen
+  // showing it.
+  const scan = useMemo(() => (arIsLink ? null : scanAvailability({
+    pageHref: typeof window === 'undefined' ? '' : window.location.href,
+    choices: scanChoices,
+    configurationId: configurationId || null,
+  })), [arIsLink, scanChoices, configurationId]);
+
   return (
     <div className="cfgv">
       {/* One or the other, never both. With an interaction layer the shared
@@ -423,6 +449,17 @@ export default function Viewer({
                 does not. */}
             {!arIsLink && (
               <ArButton availability={arLink} hasAr={!!ar} withheld={arWithheld} />
+            )}
+
+            {/* And the remedy directly under the explanation, which is the
+                whole point of putting it here: "AR needs a phone" followed by
+                the means of getting this product onto one. When there is no
+                scannable URL - localhost, or a double-clicked file - the reason
+                takes its place, because a code that cannot work is worse than a
+                sentence saying why. */}
+            {scan?.ok && <ScanToPhone url={scan.url} />}
+            {scan && !scan.ok && scan.reason && (
+              <p className="cfgv-ar-no">{scan.reason}</p>
             )}
           </div>
         </div>

@@ -192,6 +192,14 @@ export default function Guided({
       : MOUNTING_LABELS;
   }, [variant]);
 
+  // Computed once and used twice: the address bar writes it in an effect, and
+  // the QR code needs it DURING the render. Reading it back out of the URL for
+  // the code would hand a phone the product as it was one change ago.
+  const encoded = useMemo(
+    () => (built.choices ? encodeChoices(built.choices) : null),
+    [built.choices],
+  );
+
   // The id goes into the URL so the product can be sent. `replaceState` rather
   // than `pushState`: every tap on a stepper would otherwise be a history entry
   // and the back button would walk a customer backwards through their own
@@ -201,14 +209,13 @@ export default function Guided({
     try {
       const url = new URL(window.location.href);
       url.searchParams.set('c', built.configurationId);
-      const o = encodeChoices(built.choices);
-      if (o) url.searchParams.set('o', o);
+      if (encoded) url.searchParams.set('o', encoded);
       window.history.replaceState(null, '', url);
     } catch {
       // A page served from somewhere that will not take a URL rewrite still
       // configures perfectly well; it just cannot be shared by copying the bar.
     }
-  }, [built.configurationId]);
+  }, [built.configurationId, encoded]);
 
   const change = useCallback((next) => {
     setChoices((prev) => {
@@ -474,6 +481,8 @@ export default function Guided({
         title={title}
         ar={handoff.ar}
         arWithheld={handoff.withheld}
+        // The live choices, for the QR code - see the note on `encoded`.
+        scanChoices={encoded}
         // Selection is back in the runtime, but only in the CONFIGURATOR. A
         // plain viewer of one configuration still has nothing to click.
         selectable

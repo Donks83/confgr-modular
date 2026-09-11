@@ -230,6 +230,46 @@
   line-height: 1.45;
 }
 
+/* The QR code, on a desktop, under the sentence explaining why there is no AR
+   button here. A camera is the only way to get four hundred characters of
+   base64 from this screen into a phone, and the sentence on its own asked
+   somebody to type them. */
+.cfgv-scan {
+  margin: 12px 0 0;
+}
+
+.cfgv-scan-label {
+  margin: 0 0 8px;
+  color: #8d8175;
+  font-size: 12px;
+}
+
+/* SIZED IN PIXELS rather than as a percentage, because the thing being sized is
+   not the picture - it is the MODULE. A version 15 code is 85 modules across
+   including its margin, so 200px gives each module about 2.3px and a phone
+   hunts for it; 260px gives it 3px and the scan is instant. The number is a
+   floor for the worst case measured on this range, not a taste decision. */
+.cfgv-scan-code {
+  display: block;
+  width: 260px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  /* The code is black on white whatever the page is, because a QR inverted is
+     a QR most readers refuse. The border stops it looking like a hole in a
+     dark panel. */
+  border: 1px solid #d8cfc4;
+}
+
+.cfgv-scan-url {
+  margin: 8px 0 0;
+  color: #8d8175;
+  font-size: 10px;
+  line-height: 1.4;
+  /* A four-hundred-character URL must not push the panel wider than the page. */
+  word-break: break-all;
+}
+
 /* ------------------------------------------------------------ wider than a phone
  *
  * One breakpoint, not four. 720px is where a bottom sheet stops being the right
