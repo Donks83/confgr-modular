@@ -4129,14 +4129,28 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
   subdomain is four random words that change on every restart. The choice is
   Matt's and it is about money rather than engineering — a domain pointed at a
   named Cloudflare tunnel, or a small paid host. **Asked, not yet answered.**
-  And the quick tunnel is less dependable than one morning's success suggested:
-  on 11 September three consecutive names resolved **AAAA-only, with no A
-  record**, and `main-pc`'s resolver served nothing at all for them — a tunnel
-  whose own log said *"Registered tunnel connection"* was unreachable from the
-  machine that started it. `Start AR host.bat` now leads with the **LAN
-  address** for exactly this reason: a phone on the same wifi needs no DNS, no
-  Cloudflare and no propagation, and Scene Viewer is satisfied by any absolute
-  http(s) URL, a LAN one included.
+  And on 11 September the tunnel appeared to stop working, which turned out to
+  be neither Cloudflare nor the tunnel: **`main-pc`'s DNS servers
+  (194.168.4.100 / 194.168.8.100) do not serve `*.trycloudflare.com`
+  subdomains.** They return nothing at all, while 1.1.1.1, 8.8.8.8 and 9.9.9.9
+  all return the same A and AAAA records — and asking Cloudflare's address
+  directly with the name in the Host header returns **200**. So the tunnel was
+  up and serving the whole time and the laptop that started it could not look
+  up its own URL. `trycloudflare.com` itself resolves, so it is the wildcard
+  subdomains specifically, and the likely cause is ISP-level filtering of a
+  domain that gets used for phishing. **The fix is a resolver, not a rebuild:**
+  1.1.1.1 on the machine or the router.
+  `Start AR host.bat` therefore leads with the **LAN address** — a phone on the
+  same wifi needs no DNS, no Cloudflare and no propagation, and Scene Viewer is
+  satisfied by any absolute http(s) URL, a LAN one included — and when the
+  tunnel URL does not answer it asks the same question of a public resolver and
+  says which of the two is at fault, because a dead tunnel and an unresolvable
+  name are the same blank page.
+
+  > Recorded because the first diagnosis was wrong and shipped: commit
+  > `cd40c55` said "AAAA-only, no A record", read off an `nslookup` whose output
+  > I had only half read. Three resolvers disagreeing with one is the check that
+  > would have caught it, and it is now what the script does.
 - Why was Studio's PDF-quote control removed on 11 August 2026? The plan says
   find out before rebuilding it.
 

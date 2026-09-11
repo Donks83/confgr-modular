@@ -86,60 +86,84 @@ $lan = @(Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
 $lanUrl = if ($lan) { "http://$($lan[0]):$Port" } else { $null }
 
 # A quick tunnel is TWO things that can fail apart: the tunnel registers with
-# Cloudflare, and the random four-word name becomes resolvable. The second one
-# really does fail - names have come back with AAAA records and NO A record, and
-# this machine's resolver served nothing at all for them, so a tunnel whose own
-# log said "Registered tunnel connection" was unreachable from the laptop that
-# started it. Twice in a row, which is a pattern rather than a fluke.
+# Cloudflare, and the name becomes resolvable HERE. The second one fails on this
+# machine, and the cause is neither Cloudflare nor the tunnel:
 #
-# Since the name is thrown away on every run, the cure is to take another one -
-# and to check for an IPv4 record BEFORE trusting it, because that is the thing
-# that was actually missing and a plain fetch cannot tell "no A record" apart
-# from "not propagated yet".
+#   THIS NETWORK'S DNS SERVERS DO NOT SERVE *.trycloudflare.com SUBDOMAINS.
+#   194.168.4.100 / 194.168.8.100 return nothing at all for a tunnel name, while
+#   1.1.1.1, 8.8.8.8 and 9.9.9.9 all return the same A and AAAA records for it -
+#   and a request sent straight to that address with the right Host header comes
+#   back 200. So the tunnel is up and serving; the laptop that started it simply
+#   cannot look up its own URL. `trycloudflare.com` itself resolves, so it is the
+#   wildcard subdomains specifically.
+#
+# That is worth distinguishing from a dead tunnel, because the two look identical
+# from a browser and only one of them is anybody's fault. So this asks the
+# question both ways and says which it is. It is also why the LAN address is
+# printed first: it involves no DNS at all.
+#
+# I got this wrong first time round and wrote "IPv6-only, no A record" into the
+# commit and the project doc, on the strength of an nslookup whose output I had
+# only half read. Both are corrected. The check below is the version that would
+# have caught me.
+Write-Host '  opening the tunnel...'
+$tunnel = Start-Process -FilePath $cloudflared -ArgumentList 'tunnel', '--url', "http://localhost:$Port" `
+  -RedirectStandardOutput $tunnelOut -RedirectStandardError $tunnelErr -WindowStyle Hidden -PassThru
+
+# cloudflared prints the URL to stderr, inside a box, after a few seconds.
 $url = $null
-$tunnel = $null
+foreach ($wait in 1..30) {
+  Start-Sleep 1
+  $hit = Select-String -Path $tunnelErr, $tunnelOut -Pattern 'https://[a-z0-9-]+\.trycloudflare\.com' -ErrorAction SilentlyContinue |
+    Select-Object -Last 1
+  if ($hit) { $url = $hit.Matches[0].Value; break }
+}
+if (-not $url) { Write-Host (Get-Content $tunnelErr -Raw); Fail 'the tunnel did not report a URL' }
+
+$name = ([Uri]$url).Host
 $ok = $false
+$why = ''
 
-foreach ($attempt in 1..3) {
-  if ($tunnel) {
-    Write-Host "  that name is not resolving - taking another one (attempt $attempt)..."
-    Stop-Process -Id $tunnel.Id -Force -ErrorAction SilentlyContinue
-    Remove-Item $tunnelOut, $tunnelErr -ErrorAction SilentlyContinue
-    Start-Sleep 2
+# 1. The ordinary question, asked the way a browser on this machine would.
+foreach ($wait in 1..4) {
+  try {
+    if ((Invoke-WebRequest "$url/manifest.json" -UseBasicParsing -TimeoutSec 15).StatusCode -eq 200) {
+      $ok = $true
+      break
+    }
+  } catch { Start-Sleep 4 }
+}
+
+# 2. If that failed, find out WHOSE fault it is, because "tunnel is down" and
+#    "this network cannot look the name up" are the same blank page.
+if (-not $ok) {
+  $mine = @(Resolve-DnsName $name -Type A -ErrorAction SilentlyContinue |
+    Where-Object { $_.IPAddress -and $_.IPAddress -notmatch ':' } |
+    Select-Object -ExpandProperty IPAddress)
+  $theirs = @(Resolve-DnsName $name -Type A -Server 1.1.1.1 -ErrorAction SilentlyContinue |
+    Where-Object { $_.IPAddress -and $_.IPAddress -notmatch ':' } |
+    Select-Object -ExpandProperty IPAddress)
+
+  if (-not $mine -and $theirs) {
+    # The tunnel is asked directly, bypassing DNS entirely: Cloudflare's own
+    # address, this name in the Host header. A 200 here and nothing through the
+    # resolver names the culprit beyond argument.
+    $code = & curl.exe -s -o NUL -w '%{http_code}' --resolve "${name}:443:$($theirs[0])" "$url/manifest.json" 2>$null
+    $dns = @(Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+      ForEach-Object { $_.ServerAddresses } | Select-Object -Unique)
+    if ($code -eq '200') {
+      $why = "the tunnel IS working - this network's DNS ($($dns -join ', ')) will not resolve" `
+        + " *.trycloudflare.com. Public resolvers do. A phone on mobile data should reach it;" `
+        + ' a phone on this wifi will not. Use the wifi address, or set DNS to 1.1.1.1.'
+    } else {
+      $why = "this network's DNS will not resolve the name AND the tunnel answered $code" `
+        + ' when asked directly. Use the wifi address.'
+    }
+  } elseif (-not $theirs) {
+    $why = 'the name does not resolve anywhere yet - Cloudflare may be slow. Use the wifi address.'
   } else {
-    Write-Host '  opening the tunnel...'
+    $why = 'the name resolves but the page did not answer. Use the wifi address.'
   }
-
-  $tunnel = Start-Process -FilePath $cloudflared -ArgumentList 'tunnel', '--url', "http://localhost:$Port" `
-    -RedirectStandardOutput $tunnelOut -RedirectStandardError $tunnelErr -WindowStyle Hidden -PassThru
-
-  # cloudflared prints the URL to stderr, inside a box, after a few seconds.
-  $url = $null
-  foreach ($wait in 1..30) {
-    Start-Sleep 1
-    $hit = Select-String -Path $tunnelErr, $tunnelOut -Pattern 'https://[a-z0-9-]+\.trycloudflare\.com' -ErrorAction SilentlyContinue |
-      Select-Object -Last 1
-    if ($hit) { $url = $hit.Matches[0].Value; break }
-  }
-  if (-not $url) { Write-Host (Get-Content $tunnelErr -Raw); Fail 'the tunnel did not report a URL' }
-
-  # Proved rather than assumed: a tunnel that is up and a host that answers are
-  # two different things, and the useless version of this script is one that
-  # prints a URL nobody has asked a question of. `manifest.json` rather than the
-  # page, because it is the smallest thing that proves BOTH ends.
-  $host4 = ([Uri]$url).Host
-  foreach ($wait in 1..6) {
-    $a = @(Resolve-DnsName $host4 -Type A -ErrorAction SilentlyContinue |
-      Where-Object { $_.IPAddress -and $_.IPAddress -notmatch ':' })
-    if (-not $a) { Start-Sleep 4; continue }
-    try {
-      if ((Invoke-WebRequest "$url/manifest.json" -UseBasicParsing -TimeoutSec 15).StatusCode -eq 200) {
-        $ok = $true
-        break
-      }
-    } catch { Start-Sleep 4 }
-  }
-  if ($ok) { break }
 }
 
 Write-Host ''
@@ -152,8 +176,7 @@ if ($ok) {
   Write-Host "   $url" -ForegroundColor Green
 } else {
   Write-Host "   $url" -ForegroundColor DarkYellow
-  Write-Host '   ^ three names tried and none resolved from this machine, so' -ForegroundColor DarkYellow
-  Write-Host '     use the wifi address above. A phone may still reach it.' -ForegroundColor DarkYellow
+  Write-Host "   ^ $why" -ForegroundColor DarkYellow
 }
 Write-Host '  ============================================================'
 Write-Host ''
