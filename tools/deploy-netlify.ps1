@@ -26,6 +26,51 @@ Set-Location $root
 
 function Fail($m) { Write-Host "`n  $m`n" -ForegroundColor Red; Read-Host 'Enter to close'; exit 1 }
 
+# NOTHING MAY DIE SILENTLY. The first version of this script hit an unhandled
+# terminating error and PowerShell exited mid-pipeline, which left cmd.exe
+# asking "Terminate batch job (Y/N)?" - a prompt that names neither what failed
+# nor that anything had. Matt saw only that. A trap costs four lines and is the
+# difference between a bug report and a mystery.
+trap {
+  Write-Host "`n  Stopped: $($_.Exception.Message)" -ForegroundColor Red
+  Write-Host "  at $($_.InvocationInfo.ScriptLineNumber): $($_.InvocationInfo.Line.Trim())" -ForegroundColor DarkGray
+  Write-Host ''
+  Read-Host '  Enter to close'
+  exit 1
+}
+
+<#
+  Run a command that is not PowerShell, and judge it by its EXIT CODE.
+
+  This is the whole of the bug above. Native programs write progress to stderr
+  perfectly routinely - esbuild prints its summary there, node printed a
+  deprecation warning there - and with $ErrorActionPreference = 'Stop', a
+  native program's stderr becomes a TERMINATING ERROR the moment it is
+  redirected into a PowerShell pipeline. So `esbuild ... 2>&1 | Write-Host`
+  killed the script on a line that said "Done in 376ms".
+
+  Exit codes are what these programs actually use to report failure, so that is
+  what gets checked, and stderr goes to a log to be printed if it matters.
+#>
+function Invoke-Native {
+  param([string]$What, [string]$Exe, [string[]]$Arguments, [string]$Log)
+  $previous = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    if ($Log) {
+      & $Exe @Arguments 2> $Log
+    } else {
+      & $Exe @Arguments
+    }
+  } finally {
+    $ErrorActionPreference = $previous
+  }
+  if ($LASTEXITCODE -ne 0) {
+    if ($Log -and (Test-Path $Log)) { Write-Host (Get-Content $Log -Raw) -ForegroundColor DarkGray }
+    Fail "$What failed (exit code $LASTEXITCODE)"
+  }
+}
+
 if (-not (Test-Path (Join-Path $Models 'guided.json'))) {
   Fail "No guided.json in '$Models' - that is the option schema, and without it this would export a viewer rather than a configurator."
 }
@@ -35,8 +80,9 @@ if (-not (Test-Path (Join-Path $Models 'guided.json'))) {
 # manifest; without it the page would fall back to AR of the opening product
 # only, and nothing would say so until somebody was standing in a room.
 Write-Host "`n  exporting the bundle..." -ForegroundColor Cyan
-& node tools/export-bundle.mjs --guided --models $Models --ar-route --out $Out
-if ($LASTEXITCODE -ne 0) { Fail 'the export failed, so there is nothing to deploy' }
+Invoke-Native 'the export' 'node' @(
+  'tools/export-bundle.mjs', '--guided', '--models', $Models, '--ar-route', '--out', $Out
+)
 
 $manifest = Get-Content (Join-Path $Out 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if (-not $manifest.ar.route) {
@@ -49,7 +95,11 @@ Write-Host "  $models part models, AR route '$($manifest.ar.route)'"
 # failure into a local one - and prints the number that decides whether it fits.
 Write-Host '  checking the function builds...' -ForegroundColor Cyan
 $fn = Join-Path $env:TEMP 'confgr-ar-fn.mjs'
-& npx --yes esbuild netlify/functions/ar.mjs --bundle --platform=node --format=esm --target=node20 --minify --outfile=$fn 2>&1 | Out-String | Write-Host
+Remove-Item $fn -ErrorAction SilentlyContinue
+Invoke-Native 'the function bundle' 'npx' @(
+  '--yes', 'esbuild', 'netlify/functions/ar.mjs', '--bundle', '--platform=node',
+  '--format=esm', '--target=node20', '--minify', "--outfile=$fn"
+) (Join-Path $env:TEMP 'confgr-esbuild.log')
 if (-not (Test-Path $fn)) { Fail 'the AR function does not bundle, so it would fail on Netlify instead of here' }
 Write-Host ("  function {0} kB + {1} MB of models" -f
   [math]::Round((Get-Item $fn).Length / 1KB, 1),
@@ -57,9 +107,18 @@ Write-Host ("  function {0} kB + {1} MB of models" -f
 
 Write-Host "`n  deploying..." -ForegroundColor Cyan
 Write-Host '  (first run only: a browser will open for you to authorise and name the site)'
-$args = @('--yes', 'netlify-cli', 'deploy')
-if (-not $Draft) { $args += '--prod' }
-& npx @args
+# NOT $args: that is an automatic variable holding this script's own arguments,
+# and writing to it is a quiet way to confuse the next person reading this.
+$deploy = @('--yes', 'netlify-cli', 'deploy')
+if (-not $Draft) { $deploy += '--prod' }
+
+# NO stderr redirection here, deliberately. This one is INTERACTIVE on the
+# first run - it opens a browser and asks which site to use - so its output has
+# to reach the window rather than a log, and its prompts have to reach the
+# keyboard.
+$previous = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try { & npx @deploy } finally { $ErrorActionPreference = $previous }
 
 if ($LASTEXITCODE -ne 0) {
   Fail 'the deploy did not finish. The URL above, if there is one, is a draft rather than the live site.'
