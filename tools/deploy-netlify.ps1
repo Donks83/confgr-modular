@@ -114,7 +114,9 @@ function Read-Log($path) {
 $status = Read-Log $statusLog
 
 if ($CheckOnly) {
-  Write-Host ("  signed in: {0}" -f $(if ($status -match 'Not logged in') { 'NO - the deploy would start a browser sign-in' } else { 'yes' }))
+  # Named precisely. "Signed in to Netlify" is ambiguous and the ambiguity is
+  # the bug: the website and the command line tool sign in separately.
+  Write-Host ("  command line tool signed in: {0}" -f $(if ($status -match 'Not logged in') { 'NO - it will ask for a token or open a browser' } else { 'yes' }))
   Write-Host "  models:    $Models"
   Write-Host "  publish:   $Out"
   Write-Host ''
@@ -123,24 +125,59 @@ if ($CheckOnly) {
 }
 
 if ($status -match 'Not logged in') {
-  Write-Host ''
-  Write-Host '  You are not signed in to Netlify yet, so this is step 1 of 2.' -ForegroundColor Yellow
-  Write-Host ''
-  Write-Host '  A browser is about to open. Sign in (or create a free account -'
-  Write-Host '  no card), click Authorise, then come back to THIS window.'
-  Write-Host ''
-  Write-Host '  It waits until you have finished, and shows nothing while it does.'
-  Write-Host '  That is normal. Do not press Ctrl+C.' -ForegroundColor Yellow
-  Write-Host ''
-  Read-Host '  Enter to open the browser'
+  <#
+    TWO DIFFERENT SIGN-INS, and conflating them cost Matt an evening. He was
+    signed in to app.netlify.com in Chrome, saw this script say "you are not
+    signed in to Netlify", and reasonably replied that he was. He was right.
+    The COMMAND LINE TOOL on this machine keeps its own token, in
+    %APPDATA%\netlify, and a browser session is not it.
 
-  $ErrorActionPreference = 'Continue'
-  try { & npx --yes netlify-cli login } finally { $ErrorActionPreference = $previous }
+    So the message says which one, and offers the route that involves no
+    waiting at all: a token pasted in. `netlify login` opens a browser and then
+    blocks silently, which is the thing that already got Ctrl+C'd twice.
+  #>
+  Write-Host ''
+  Write-Host '  Step 1 of 2: the Netlify COMMAND LINE TOOL on this PC is not' -ForegroundColor Yellow
+  Write-Host '  signed in yet. That is separate from being signed in to' -ForegroundColor Yellow
+  Write-Host '  netlify.com in your browser, which you may well already be.' -ForegroundColor Yellow
+  Write-Host ''
+  Write-Host '  Quickest way, no waiting:'
+  Write-Host '    1. Open app.netlify.com/user/applications#personal-access-tokens'
+  Write-Host '    2. "New access token", give it any name, copy it'
+  Write-Host '    3. Paste it below'
+  Write-Host ''
+  Write-Host '  Or press Enter with nothing pasted, and a browser will open for'
+  Write-Host '  you to click Authorise instead. That way WAITS SILENTLY until'
+  Write-Host '  you have finished in the browser, which is normal - the silence'
+  Write-Host '  is not a hang, so do not press Ctrl+C.' -ForegroundColor Yellow
+  Write-Host ''
+  $token = Read-Host '  Token (or Enter for the browser)'
+
+  if ($token -and $token.Trim()) {
+    # Held for this run only, in this process. Persisting somebody's token is
+    # their decision to make deliberately, not a side effect of a deploy
+    # script, and `setx` would put it in the registry for every program on the
+    # machine to read.
+    $env:NETLIFY_AUTH_TOKEN = $token.Trim()
+    Write-Host '  using that token for this run' -ForegroundColor Green
+    Write-Host '  (to avoid pasting it every time, set NETLIFY_AUTH_TOKEN as a'
+    Write-Host '   Windows user environment variable yourself)'
+  } else {
+    Write-Host ''
+    Write-Host '  opening the browser - click Authorise, then come back here...' -ForegroundColor Cyan
+    $ErrorActionPreference = 'Continue'
+    try { & npx --yes netlify-cli login } finally { $ErrorActionPreference = $previous }
+  }
 
   try { & npx --yes netlify-cli status *> $statusLog } finally { $ErrorActionPreference = $previous }
   $status = Read-Log $statusLog
   if ($status -match 'Not logged in') {
-    Fail 'still not signed in, so there is nothing to deploy to. Run this again once the browser step has finished.'
+    # The `+` stays at the END of the line: PowerShell ends the expression at a
+    # line break, so a leading `+` on the next line is a parse error - which is
+    # the third time this file has been caught by 5.1 syntax, and the third
+    # time the parse check found it rather than Matt.
+    Fail ('the command line tool still is not signed in. If you pasted a token, ' +
+      'check it was copied whole; if you used the browser, check the Authorise step finished.')
   }
 }
 
