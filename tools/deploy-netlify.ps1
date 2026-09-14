@@ -17,7 +17,10 @@
 param(
   [string]$Models = 'youk',
   [string]$Out = 'bundle-netlify',
-  [switch]$Draft
+  [switch]$Draft,
+  # Report what is and is not ready, and change nothing. Useful on its own, and
+  # it is how this script gets tested without signing anybody in.
+  [switch]$CheckOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,9 +74,78 @@ function Invoke-Native {
   }
 }
 
+# EVERYTHING IS WRITTEN DOWN, because the first two failures of this script were
+# both diagnosed by guesswork from a screenshot. A transcript costs nothing and
+# turns "it says Terminate batch job" into a file somebody can read.
+$log = Join-Path $env:TEMP ('confgr-deploy-{0:yyyyMMdd-HHmmss}.log' -f (Get-Date))
+try { Start-Transcript -Path $log -Force | Out-Null } catch { }
+Write-Host "  log: $log" -ForegroundColor DarkGray
+
 if (-not (Test-Path (Join-Path $Models 'guided.json'))) {
   Fail "No guided.json in '$Models' - that is the option schema, and without it this would export a viewer rather than a configurator."
 }
+
+<#
+  ARE YOU SIGNED IN? Asked FIRST, and this is the whole of the second bug.
+
+  Netlify's CLI signs you in by opening a browser and then waiting, silently,
+  for as long as it takes. Run from a double-clicked batch window that looks
+  identical to a hung program - so it gets Ctrl+C, and cmd.exe answers with
+  "Terminate batch job (Y/N)?", which says nothing about Netlify, nothing about
+  signing in, and nothing about the script having got as far as it did.
+
+  Checked before the two minutes of exporting, too: being told to sign in should
+  not cost a bundle build first.
+#>
+Write-Host '  checking you are signed in to Netlify...' -ForegroundColor Cyan
+$statusLog = Join-Path $env:TEMP 'confgr-netlify-status.log'
+$previous = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try { & npx --yes netlify-cli status *> $statusLog } finally { $ErrorActionPreference = $previous }
+
+# `??` is PowerShell 7 and the .bat launches Windows PowerShell 5.1, which
+# would fail on it at PARSE time - before a single line ran, and therefore
+# before the transcript, the trap, or any message at all. Exactly the failure
+# this script keeps being caught by.
+function Read-Log($path) {
+  $text = Get-Content $path -Raw -ErrorAction SilentlyContinue
+  if ($null -eq $text) { '' } else { $text }
+}
+$status = Read-Log $statusLog
+
+if ($CheckOnly) {
+  Write-Host ("  signed in: {0}" -f $(if ($status -match 'Not logged in') { 'NO - the deploy would start a browser sign-in' } else { 'yes' }))
+  Write-Host "  models:    $Models"
+  Write-Host "  publish:   $Out"
+  Write-Host ''
+  try { Stop-Transcript | Out-Null } catch { }
+  exit 0
+}
+
+if ($status -match 'Not logged in') {
+  Write-Host ''
+  Write-Host '  You are not signed in to Netlify yet, so this is step 1 of 2.' -ForegroundColor Yellow
+  Write-Host ''
+  Write-Host '  A browser is about to open. Sign in (or create a free account -'
+  Write-Host '  no card), click Authorise, then come back to THIS window.'
+  Write-Host ''
+  Write-Host '  It waits until you have finished, and shows nothing while it does.'
+  Write-Host '  That is normal. Do not press Ctrl+C.' -ForegroundColor Yellow
+  Write-Host ''
+  Read-Host '  Enter to open the browser'
+
+  $ErrorActionPreference = 'Continue'
+  try { & npx --yes netlify-cli login } finally { $ErrorActionPreference = $previous }
+
+  try { & npx --yes netlify-cli status *> $statusLog } finally { $ErrorActionPreference = $previous }
+  $status = Read-Log $statusLog
+  if ($status -match 'Not logged in') {
+    Fail 'still not signed in, so there is nothing to deploy to. Run this again once the browser step has finished.'
+  }
+}
+
+$account = ([regex]::Match($status, 'Email:\s*(\S+)')).Groups[1].Value
+Write-Host ("  signed in{0}" -f $(if ($account) { " as $account" } else { '' })) -ForegroundColor Green
 
 # THE BUNDLE IS BUILT FIRST, and locally, so that what goes up is a folder you
 # could have opened yourself. `--ar-route` is what puts the route in the
