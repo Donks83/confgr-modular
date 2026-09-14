@@ -6,6 +6,10 @@ dist-electron/
 # rather than a thing you version.
 dist-viewer/
 bundle-*/
+# Generated at deploy time from netlify/build/ar.src.mjs, with sharp aliased
+# out - see tools/deploy-netlify.ps1. The SOURCE is committed; this is a build
+# artefact that is 1.3 MB of bundled three.js.
+netlify/functions/
 .vite/
 *.log
 .DS_Store
@@ -67,3 +71,4 @@ youk/officetilt.png
 youk/officeclamp.png
 youk/officeclamptilt.png
 youk/officefeet.png
+.netlify/ 

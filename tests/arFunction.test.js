@@ -15,7 +15,9 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import handler, { config, findModels } from '../netlify/functions/ar.mjs';
+// The SOURCE, not the bundle in netlify/functions - that one is generated at
+// deploy time (with sharp aliased out) and is gitignored.
+import handler, { config, findModels } from '../netlify/build/ar.src.mjs';
 
 const MODELS = 'youk';
 const has = existsSync(join(MODELS, 'guided.json')) && existsSync(MODELS);

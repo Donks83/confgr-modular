@@ -200,16 +200,38 @@ if (-not $manifest.ar.route) {
 $models = (Get-ChildItem (Join-Path $Out 'models') -Filter *.glb).Count
 Write-Host "  $models part models, AR route '$($manifest.ar.route)'"
 
-# The function is bundled by Netlify, but building it here first turns a deploy
-# failure into a local one - and prints the number that decides whether it fits.
-Write-Host '  checking the function builds...' -ForegroundColor Cyan
-$fn = Join-Path $env:TEMP 'confgr-ar-fn.mjs'
+<#
+  THE FUNCTION IS BUNDLED HERE, not by Netlify, for one reason: the alias.
+
+  `@gltf-transform/functions` declares `sharp` as a dependency and never imports
+  it - both mentions in its source are inside doc comments. But sharp is NATIVE,
+  so Netlify's own bundler shipped it as an external module and the deployed
+  function died on load, twice: first the Windows binary on a Linux runtime,
+  then "libvips-cpp.so.8.18.6: cannot open shared object file". Two 502s for a
+  library that is never called.
+
+  Aliasing it to a stub here removes it from the graph entirely, so there is no
+  native module left to get wrong. See netlify/build/sharp-stub.mjs.
+
+  NOT MINIFIED, deliberately: Netlify reads `export const config` STATICALLY to
+  learn which URLs the function claims, and static analysis of minified code is
+  a risk taken for nothing - 1.3 MB either way, once gzipped over the wire.
+#>
+Write-Host '  bundling the function (without sharp)...' -ForegroundColor Cyan
+$fn = 'netlify/functions/ar.mjs'
 Remove-Item $fn -ErrorAction SilentlyContinue
 Invoke-Native 'the function bundle' 'npx' @(
-  '--yes', 'esbuild', 'netlify/functions/ar.mjs', '--bundle', '--platform=node',
-  '--format=esm', '--target=node20', '--minify', "--outfile=$fn"
+  '--yes', 'esbuild', 'netlify/build/ar.src.mjs', '--bundle', '--platform=node',
+  '--format=esm', '--target=node20', "--outfile=$fn",
+  '--alias:sharp=./netlify/build/sharp-stub.mjs'
 ) (Join-Path $env:TEMP 'confgr-esbuild.log')
 if (-not (Test-Path $fn)) { Fail 'the AR function does not bundle, so it would fail on Netlify instead of here' }
+
+# Asserted rather than assumed, because this exact import is what took the site
+# down twice and the symptom was a 502 with no clue in it.
+if ((Get-Content $fn -Raw) -match '(from|require\(|import\()\s*[''"]sharp[''"]') {
+  Fail 'the bundle still imports sharp, so the deployed function would 502 on load'
+}
 Write-Host ("  function {0} kB + {1} MB of models" -f
   [math]::Round((Get-Item $fn).Length / 1KB, 1),
   [math]::Round(((Get-ChildItem (Join-Path $Out 'models') -File | Measure-Object Length -Sum).Sum) / 1MB, 2))

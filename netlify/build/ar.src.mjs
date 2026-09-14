@@ -50,9 +50,20 @@ const PUBLISH = 'bundle-netlify';
  * rewrite the function can see the REWRITTEN path, and the format is read from
  * the path. Claiming the routes means `request.url` is the URL the phone asked
  * for, which is the same URL `arRouteUrl` built, which is the point.
+ *
+ * LITERAL STRINGS, and they have to be. The obvious version of this built the
+ * paths from AR_ROUTE and AR_ROUTE_FILES so there was one source of truth - and
+ * Netlify's bundler READS this config statically, without running the module,
+ * so an imported constant is not a value it can see. It refused the deploy
+ * with "Must be a string or array of strings", which is a fault no local test
+ * could have caught: in Node the template literals evaluate perfectly.
+ *
+ * So the paths are spelled out here and `tests/arFunction.test.js` asserts they
+ * are exactly what `arRouteUrl` builds. The duplication is real; the test is
+ * what stops it drifting.
  */
 export const config = {
-  path: [`/${AR_ROUTE}/${AR_ROUTE_FILES.glb}`, `/${AR_ROUTE}/${AR_ROUTE_FILES.usdz}`],
+  path: ['/ar/build/product.glb', '/ar/build/product.usdz'],
 };
 
 /**
