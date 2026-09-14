@@ -1,0 +1,49 @@
+# Deploying the configurator, with AR that follows the customer's choices.
+#
+# DEPLOYED FROM THIS MACHINE, not from git, and that is a constraint rather than
+# a preference. The part models are derived from Kesseboehmer's CAD and are
+# gitignored on purpose (see .gitignore), so a build running on Netlify's
+# servers from a git checkout would have no geometry to work with. `netlify
+# deploy` uploads what is on disk, which is exactly right here.
+#
+# That is also why there is no build command: `tools/deploy-netlify.ps1` exports
+# the bundle locally first, and what gets uploaded is a folder somebody has
+# already been able to open.
+
+[build]
+  publish = "bundle-netlify"
+  # Nothing to build here. The bundle is exported before the upload, by the
+  # same `export-bundle.mjs` that makes a folder for a client.
+  command = ""
+
+[functions]
+  directory = "netlify/functions"
+  # esbuild, because the alternative ships node_modules whole: three.js and
+  # gltf-transform are 38 MB on disk and 676 kB once only the loader and
+  # exporter paths are kept. With the 27 part models the deployable zip is
+  # 1.19 MB against Netlify's 50 MB cap - measured, not estimated.
+  node_bundler = "esbuild"
+
+  # The models have to travel WITH the function, because the function builds
+  # the product out of them. They are read from disk by `loadFolder`, so they
+  # cannot be bundled into the JavaScript.
+  included_files = ["bundle-netlify/models/**"]
+
+# No [[redirects]] for the AR route on purpose: the function claims
+# `/ar/build/product.glb` and `.usdz` itself (see `export const config` in
+# netlify/functions/ar.mjs). A rewrite would leave the function looking at the
+# rewritten path, and the format is read from the path.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # index.html names hashed assets, so a stale copy asks for a bundle that is
+    # gone. The AR route sets its own far-future caching, which is safe there
+    # because a configuration id names one product for ever.
+    cache-control = "no-store, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    # Hashed file names, so these genuinely never change.
+    cache-control = "public, max-age=31536000, immutable"
