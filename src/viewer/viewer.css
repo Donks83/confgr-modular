@@ -27,9 +27,19 @@
   overflow: hidden;
 }
 
+/* THE BUILD SPACE IS LIGHT AND THE MENUS ARE NOT, which is the whole of what
+   Matt asked for. Kept to this one rule rather than flipping `.cfgv`: the sheet,
+   the options panel and the quote all read off the dark shell, and inverting
+   the shell would have taken them with it.
+
+   The colour matches `BACKGROUND` in scene.js. They are two places holding one
+   fact, and the visible symptom of them disagreeing is a seam down the edge of
+   the canvas for the one frame before WebGL paints - so `tests/lighting.test.js`
+   asserts they are equal. */
 .cfgv-stage {
   flex: 1 1 auto;
   min-height: 0;
+  background: #efece7;
   /* The canvas sets its own touch-action in scene.js - it has to, because the
      element is created there. This is the belt to that pair of braces. */
   touch-action: none;

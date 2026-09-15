@@ -22,9 +22,23 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 /** The look. Shared so a render and a screenshot cannot disagree about it. */
-export const BACKGROUND = '#1b1815';
+/*
+ * THE BUILD SPACE IS LIGHT, the menus are not. Matt: "is it possible to have
+ * the build space background light rather than in dark mode (not the menus
+ * just the 3d space background)".
+ *
+ * A warm off-white rather than pure white, for the same reason a photographer's
+ * sweep is never 255: a true white blows the highlight on anything light in
+ * front of it and gives the eye nothing to judge exposure against. This also
+ * puts dark steel against a pale ground, which is how the range is photographed.
+ */
+export const BACKGROUND = '#efece7';
+
+/** The grid, in the two greys that read as a floor rather than as graph paper. */
+export const GRID_LINES = ['#bdb6ac', '#d6d0c7'];
 
 /**
  * A scene, a camera, a renderer and controls, mounted in `mount`.
@@ -77,7 +91,34 @@ export function createScene(mount, { background = BACKGROUND } = {}) {
   // behaves on a phone — which is the only device AR exists on.
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
-  scene.add(new THREE.HemisphereLight('#cfd6e4', '#3a3128', 1.0));
+  /*
+   * AN ENVIRONMENT, and this is why the steel looked nearly black.
+   *
+   * Matt: "can we lighten the black material as its too dark at the moment."
+   * Raising the colour would have been the obvious answer and the wrong one. A
+   * METALLIC surface in a physically based renderer has no diffuse colour at
+   * all - it shows you what is around it. With no environment map there is
+   * nothing around it, so it reflects the void and renders almost black
+   * whatever its base colour says. Lamps give it a highlight and nothing else.
+   *
+   * AR never had this problem, which is the tell: Scene Viewer and Quick Look
+   * supply their own environment, so the same file that looked black here
+   * looked right on a phone. The app was the odd one out.
+   *
+   * `RoomEnvironment` is three's own procedural room - no file to download, no
+   * HDR to ship, a few kilobytes of code already in the bundle - prefiltered
+   * once at startup and disposed with the scene.
+   */
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const environment = pmrem.fromScene(new RoomEnvironment(), 0.04);
+  scene.environment = environment.texture;
+  pmrem.dispose();
+
+  // The ground half of the hemisphere is the light bouncing UP off the floor,
+  // so it follows the floor's colour. It was a dark brown because the build
+  // space was dark; against a pale floor it would be a shadow that is not
+  // there, darkening every underside in the product for no reason.
+  scene.add(new THREE.HemisphereLight('#cfd6e4', '#cfc9bf', 1.0));
 
   /*
    * THE KEY LIGHT IS ON THE ROOM SIDE, and it took Matt saying "the light
@@ -108,7 +149,7 @@ export function createScene(mount, { background = BACKGROUND } = {}) {
   // context because a wall-mounted product has no floor under it — leaving them
   // visible draws a floor the product is not standing on, and the shadow lands
   // somewhere the real thing would never cast one.
-  const grid = new THREE.GridHelper(4, 40, '#463c33', '#2c2721');
+  const grid = new THREE.GridHelper(4, 40, GRID_LINES[0], GRID_LINES[1]);
   scene.add(grid);
 
   const floor = new THREE.Mesh(
@@ -179,6 +220,12 @@ export function createScene(mount, { background = BACKGROUND } = {}) {
     raf = 0;
     observer.disconnect();
     controls.dispose();
+    // The prefiltered environment is a render target on the GPU, and three does
+    // not free it when the scene goes. Without this, opening and closing the
+    // viewer leaks one cube map each time - the same class of fault as the
+    // cloned materials in §5.25.
+    environment.dispose();
+    scene.environment = null;
     floor.geometry.dispose();
     floor.material.dispose();
     grid.dispose?.();

@@ -66,6 +66,48 @@ describe('the fill light', () => {
   });
 });
 
+describe('the build space', () => {
+  const css = readFileSync('src/viewer/viewer.css', 'utf8');
+  const background = source.match(/export const BACKGROUND = '([^']+)'/)[1];
+
+  it('is light, while the shell around it stays dark', () => {
+    // Matt asked for the 3D space only: "not the menus just the 3d space
+    // background". A light value here and a dark one on `.cfgv` is the whole
+    // of that, and both halves are asserted so neither drifts alone.
+    const brightness = parseInt(background.slice(1, 3), 16);
+    expect(brightness).toBeGreaterThan(200);
+    expect(css).toMatch(/\.cfgv \{[^}]*background: #1b1815/);
+  });
+
+  it('is not pure white', () => {
+    // A 255 sweep blows the highlight on anything pale in front of it and
+    // gives the eye nothing to judge exposure against.
+    expect(background.toLowerCase()).not.toBe('#ffffff');
+  });
+
+  it('is the same colour in the CSS and in the scene', () => {
+    // Two places holding one fact. When they disagree the symptom is a seam
+    // down the edge of the canvas for the frame before WebGL paints.
+    expect(css).toMatch(new RegExp(`\\.cfgv-stage \\{[^}]*background: ${background}`, 'i'));
+  });
+
+  it('gives metal something to reflect', () => {
+    // WHY THE STEEL LOOKED BLACK. A metallic surface has no diffuse colour -
+    // it shows what is around it - so with no environment map it reflects the
+    // void, whatever its base colour says. AR never had the problem because
+    // phones supply their own environment, which is what made the app the odd
+    // one out rather than the files.
+    expect(source).toMatch(/scene\.environment\s*=/);
+    expect(source).toMatch(/PMREMGenerator/);
+  });
+
+  it('frees the environment when the scene goes', () => {
+    // A prefiltered environment is a GPU render target and three does not free
+    // it with the scene. Same class of leak as the cloned materials in §5.25.
+    expect(source).toMatch(/environment\.dispose\(\)/);
+  });
+});
+
 describe('the pair, as a rotation', () => {
   it('is the old rig turned 180° about the vertical axis', () => {
     // Which is exactly negating x and z and leaving y alone. Recorded as the
