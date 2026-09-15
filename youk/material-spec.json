@@ -1,0 +1,53 @@
+{
+  "_why": [
+    "Kesseboehmer's STEP files carry no materials at all. A glTF primitive with",
+    "no material gets the format's DEFAULT material, which is white, fully",
+    "METALLIC and fully rough - so every part rendered as white chrome. In the",
+    "app that reads as flat and pale; in AR, where the viewer lights the scene",
+    "with its own bright environment, it blows out completely. Matt: 'when i",
+    "load it in AR is very bright and over exposed.' That is the cause, and it",
+    "is one line of the glTF spec rather than anything about the lighting.",
+    "",
+    "Colours here are sRGB, the way a person reads them off a colour picker.",
+    "tools/add-materials.mjs converts them to the linear values glTF actually",
+    "stores - 27/255 is 0.1059 as a fraction and 0.01096 once linearised, so",
+    "writing the sRGB number straight into baseColorFactor would come out",
+    "nearly ten times too bright.",
+    "",
+    "NO NORMAL OR BUMP MAPS, and not by choice: the converted meshes carry",
+    "POSITION and nothing else - no UVs - so there is nowhere to put a texture.",
+    "Generating UVs for 45 CAD parts is its own job. Roughness does the work",
+    "instead, which is most of what a brushed-metal read is anyway."
+  ],
+
+  "classes": {
+    "metal": {
+      "label": "Kesseboehmer steel, dark grey",
+      "srgb": [27, 27, 27],
+      "metallic": 0.85,
+      "roughness": 0.45,
+      "note": "Matt's figure. Metallic below 1.0 because a fully metallic surface with no environment to reflect goes black in some viewers."
+    },
+    "plastic": {
+      "label": "YouboXx, lighter grey",
+      "srgb": [50, 50, 50],
+      "metallic": 0.0,
+      "roughness": 0.6,
+      "note": "Matt's figure. Dielectric, so metallic is zero - plastic that reports itself as metal is the other way to blow out in AR."
+    },
+    "timber": {
+      "label": "PWS timber shelf",
+      "srgb": [194, 150, 102],
+      "metallic": 0.0,
+      "roughness": 0.75,
+      "note": "The colour make-timber.py already writes. Kept, so the boards do not change appearance."
+    }
+  },
+
+  "byPrefix": {
+    "pws-timber-": "timber",
+    "008547": "plastic"
+  },
+
+  "default": "metal"
+}

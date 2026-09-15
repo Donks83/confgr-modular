@@ -78,8 +78,22 @@ export function createScene(mount, { background = BACKGROUND } = {}) {
   controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 
   scene.add(new THREE.HemisphereLight('#cfd6e4', '#3a3128', 1.0));
+
+  /*
+   * THE KEY LIGHT IS ON THE ROOM SIDE, and it took Matt saying "the light
+   * direction definitely needs rotating 180 degrees" to see why it was wrong.
+   *
+   * +z is the WALL and -z is the room (§5.9), so a key at z = +2.2 stood behind
+   * the product and lit the face nobody looks at. Every shelf was lit on its
+   * back edge and the fronts - the surfaces a customer is judging - were in
+   * fill light only. Turned through 180° about the vertical axis, which is
+   * exactly negating x and z and leaving the height alone.
+   *
+   * The fill turns with it, so the pair keep their relationship: the fill still
+   * opposes the key rather than joining it.
+   */
   const key = new THREE.DirectionalLight('#fff4e6', 1.6);
-  key.position.set(2, 3.5, 2.2);
+  key.position.set(-2, 3.5, -2.2);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.camera.near = 0.1;
@@ -87,7 +101,7 @@ export function createScene(mount, { background = BACKGROUND } = {}) {
   scene.add(key);
 
   const fill = new THREE.DirectionalLight('#dfe6f5', 0.35);
-  fill.position.set(-2, 1.5, -1.5);
+  fill.position.set(2, 1.5, 1.5);
   scene.add(fill);
 
   // Ground: a grid to read scale from and a shadow catcher. Both are held on the
