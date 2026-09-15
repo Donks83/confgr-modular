@@ -214,6 +214,28 @@ export function componentForKind(size, kind) {
 }
 
 /**
+ * The add entry that describes a part, found anywhere in the variant.
+ *
+ * WHICH SIZE'S LIST TO LOOK IN used not to be a question: there was one size
+ * per run, so `built.size.adds` held every accessory on the product. With a
+ * per-bay width that is false - a 600 bay's shelf is not in a 900 size's list
+ * at all - and the two callers that asked it got the wrong answer silently:
+ * `moveCandidates` lost the `spans` flag and started offering a shelf
+ * positions it is only held at one end by, which `buildGuided` then refuses,
+ * which is the spring-back this file already has a comment about.
+ *
+ * The description is a property of the KIND, not of the length, so any size
+ * that offers the part gives the same answer.
+ */
+export function addForComponent(variant, componentId) {
+  for (const size of variant?.sizes || []) {
+    const found = (size.adds || []).find((a) => a.componentId === componentId);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
  * Every part a kind can become anywhere in this variant.
  *
  * Placement needs this: a shelf is dropped on a point, and which LENGTH it has
@@ -229,6 +251,27 @@ export function componentsForKind(variant, kind) {
     if (id && !ids.includes(id)) ids.push(id);
   }
   return ids;
+}
+
+/**
+ * The parts a control means, from either a kind or a bare part number.
+ *
+ * Every caller that used to hold a componentId now holds a kind, and the two
+ * cannot be told apart by looking - both are strings. Rather than a flag or a
+ * second argument, the variant answers: a kind resolves to parts, and anything
+ * that resolves to nothing is taken at face value and used as itself. That is
+ * what lets a link written before kinds existed still open.
+ *
+ * WIDEST FIRST, the same order `buildGuided` places in, so what the dots offer
+ * and what pressing + produces cannot come out in a different sequence.
+ */
+export function candidatesFor(variant, kindOrComponentId) {
+  if (!variant || !kindOrComponentId) return [];
+  const ids = componentsForKind(variant, kindOrComponentId);
+  if (!ids.length) return [kindOrComponentId];
+  return ids
+    .slice()
+    .sort((a, b) => (widthOfComponent(variant, b) - widthOfComponent(variant, a)));
 }
 
 /**
@@ -551,7 +594,12 @@ export function moveCandidates(built, components, instanceId) {
   const mine = placements.filter((p) => p.componentId === instance.componentId);
   const here = transforms.get(instanceId);
 
-  const add = (built.size?.adds || []).find((a) => a.componentId === instance.componentId);
+  // ASKED OF THE VARIANT, not of the run's size. A 600 bay's shelf is not in a
+  // 900 size's add list, so with mixed widths this used to come back null and
+  // `mustBeHeld` false - and a spanning shelf was then offered positions where
+  // only one end is held, which `buildGuided` refuses. The part springs back
+  // and the person sees a control that lied. See addForComponent.
+  const add = addForComponent(built.variant, instance.componentId);
   const mustBeHeld = !!add?.spans;
 
   // NOTHING BELOW THE FLOOR.
@@ -694,12 +742,20 @@ export function movePoints(built, components, instanceId) {
  * does - a 3x2 pouch legitimately offers fewer dots than a 1x1 one, and that is
  * the useful behaviour rather than a special case.
  */
-export function addPoints(built, components, componentId) {
-  if (!built?.assembly || !components?.size || !componentId) return [];
+export function addPoints(built, components, kind) {
+  if (!built?.assembly || !components?.size || !kind) return [];
   try {
+    // THE UNION OF EVERY LENGTH THE KIND CAN BE, because "where can a metal
+    // shelf go" in a run of a 900 bay and a 600 one is both bays, answered by
+    // two different part numbers. Asking about one length would light up half
+    // the product and quietly lose the other half.
+    const catalogue = candidatesFor(built.variant, kind);
     const { transforms } = resolveTransforms(built.assembly, components);
-    const matrix = attachMatrix(built.assembly, components, [componentId], transforms);
-    const allowed = new Set(pointsForComponent(matrix, componentId).map((p) => p.pointKey));
+    const matrix = attachMatrix(built.assembly, components, catalogue, transforms);
+    const allowed = new Set();
+    for (const id of catalogue) {
+      for (const p of pointsForComponent(matrix, id)) allowed.add(p.pointKey);
+    }
     return livePoints(matrix).filter((p) => allowed.has(pointKey(p)));
   } catch {
     return [];
@@ -1253,9 +1309,7 @@ export function buildGuided(schema, choices, components) {
      * that fits is the one that spans the bay rather than sitting half way
      * across it.
      */
-    const candidates = componentsForKind(variant, add.kind)
-      .slice()
-      .sort((a, b) => (widthOfComponent(variant, b) - widthOfComponent(variant, a)));
+    const candidates = candidatesFor(variant, add.kind);
 
     for (let i = 0; i < wanted; i += 1) {
       const key = slotKeyFor(add.kind, i);
@@ -1282,6 +1336,11 @@ export function buildGuided(schema, choices, components) {
       if (!r.ok) {
         refused.push({
           componentId: r.componentId,
+          // THE KIND AS WELL, because the control that asked for it is a kind
+          // now. Keyed on the part number alone, the shortfall note went
+          // looking for "008562" against a stepper called "metal-shelf" and
+          // found nothing - so "only 2 fit" was computed and never shown.
+          kind: add.kind,
           label: add.label,
           // How many of them DID go on, so the message can be about the
           // shortfall rather than about the failure. "3 of the 4 fit" is a
@@ -1304,6 +1363,12 @@ export function buildGuided(schema, choices, components) {
     choices: c,
     variant,
     size,
+    // THE RUN'S OWN LISTS, so nothing downstream has to recompute them and get
+    // a different answer. `size` is still the run's width - what the Width
+    // control shows - but it no longer describes the product: `sizes` is what
+    // each bay actually is, and `adds` is every kind any of them can take.
+    sizes: sizesInRun(variant, c, c.bays),
+    adds: addKinds,
     assembly,
     mounting: c.mounting,
     footHeightMm: c.footHeightMm,
@@ -1350,14 +1415,20 @@ export function buildGuided(schema, choices, components) {
  * @param {object} built  the result of buildGuided
  * @param {Map} components
  * @returns {Object<string, {ok: boolean, kind: string, reason: string}>}
- *   keyed by componentId. Only entries that are NOT ok carry a reason.
+ *   keyed by the add's KIND. Only entries that are NOT ok carry a reason.
  */
 export function addAvailability(built, components) {
   const out = {};
-  const adds = built?.size?.adds || [];
+  // KEYED BY KIND, and asked about every length that kind can be. A control
+  // says "metal shelf" now, not "008563", so greying it out because the 900 one
+  // will not fit would kill the control in a run whose 600 bay has room. The
+  // kind is available if ANY of its lengths can go somewhere.
+  const adds = built?.adds || built?.size?.adds || [];
   if (!adds.length) return out;
 
-  const catalogue = adds.map((a) => a.componentId);
+  const variant = built?.variant;
+  const partsOf = new Map(adds.map((a) => [a.kind || a.componentId, candidatesFor(variant, a.kind || a.componentId)]));
+  const catalogue = [...new Set([...partsOf.values()].flat())];
   let matrix = null;
   try {
     const { transforms } = resolveTransforms(built.assembly, components);
@@ -1374,21 +1445,27 @@ export function addAvailability(built, components) {
   const placed = new Set(built.assembly.instances.map((i) => i.componentId));
 
   for (const add of adds) {
-    const id = add.componentId;
-    if (pointsForComponent(matrix, id).length > 0) { out[id] = { ok: true }; continue; }
-    if (placed.has(id)) { out[id] = { ok: true }; continue; }
+    const key = add.kind || add.componentId;
+    const parts = partsOf.get(key) || [];
+    if (parts.some((id) => pointsForComponent(matrix, id).length > 0)) { out[key] = { ok: true }; continue; }
+    if (parts.some((id) => placed.has(id))) { out[key] = { ok: true }; continue; }
 
     // A STRING, not an object - the editor puts it straight in front of a
     // person. Reading it as `why.reason` silently produced undefined, so every
     // unplaceable part reported "no room left", INCLUDING the two that can
     // never fit at all. Caught by printing the sentence rather than trusting
     // the shape.
-    const why = whyComponentFitsNowhere(matrix, id);
+    const whys = parts.map((id) => whyComponentFitsNowhere(matrix, id));
     // A joint mismatch is a fact about the PART and the FRAME, so it holds for
     // every bay count and is worth phrasing as a property of the size. Anything
     // else is about how full the product is right now.
-    const never = !why || /joint|fit together|different kinds/i.test(why);
-    out[id] = never
+    //
+    // EVERY length has to be a mismatch for the KIND to be one. If the 900 rail
+    // does not match a 200 mm ladder but the 600 one does, the kind is not
+    // unavailable - the product is just full, and it comes back with a bay.
+    const never = !whys.length
+      || whys.every((w) => !w || /joint|fit together|different kinds/i.test(w));
+    out[key] = never
       ? {
         ok: false,
         kind: 'never',

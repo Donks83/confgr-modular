@@ -97,6 +97,15 @@ export default function Options({
   schema, choices, variant, size, refused = [], availability = {},
   mountings = [],
   /**
+   * WHAT THERE IS TO ADD, and it is no longer `size.adds`.
+   *
+   * A run whose bays are different widths has no single size describing it, so
+   * the engine hands over the union of every kind any bay can take and the
+   * control says "metal shelf" rather than "008563". Defaulted to the size's
+   * own list so an embed that has not been updated still renders.
+   */
+  adds = null,
+  /**
    * WHAT `+` MEANS, and it changed in §5.25.
    *
    * When a caller supplies `onPlace`, pressing + does not add a part - it says
@@ -116,9 +125,17 @@ export default function Options({
 
   const set = (patch) => onChange({ ...choices, ...patch });
 
-  // What the engine could not place, by part, so a stepper can say so next to
-  // itself rather than in a list somewhere else on the page.
-  const shortfall = new Map(refused.map((r) => [r.componentId, r]));
+  const rows = adds || size.adds || [];
+
+  // What the engine could not place, by KIND, so a stepper can say so next to
+  // itself rather than in a list somewhere else on the page. Keyed on the part
+  // number it used to name the stepper; now the stepper is a kind, so both are
+  // accepted and the kind wins.
+  const shortfall = new Map();
+  for (const r of refused) {
+    if (r.componentId) shortfall.set(r.componentId, r);
+    if (r.kind) shortfall.set(r.kind, r);
+  }
 
   // Two different sentences from two different questions, and the unavailable
   // one wins: "not available on 200 mm deep frames" is why the control is dead,
@@ -167,28 +184,33 @@ export default function Options({
         />
       </div>
 
-      {(size.adds || []).length > 0 && (
+      {rows.length > 0 && (
         <div className="cfgo-group">
           <div className="cfgo-label">Add to it</div>
-          {size.adds.map((a) => (
-            <Stepper
-              key={a.componentId}
-              label={a.label || a.componentId}
-              note={placing === a.componentId
-                ? 'tap a dot in the view'
-                : noteFor(a.componentId)}
-              off={availability[a.componentId]?.kind === 'never'}
-              active={placing === a.componentId}
-              value={choices.adds?.[a.componentId] || 0}
-              max={a.perBay ? (a.max ?? 1) * choices.bays : (a.max ?? 4)}
-              onChange={(n) => {
-                const now = choices.adds?.[a.componentId] || 0;
-                // Going UP is a question about where; going down is not.
-                if (onPlace && n > now) { onPlace(a.componentId); return; }
-                set({ adds: { ...choices.adds, [a.componentId]: n } });
-              }}
-            />
-          ))}
+          {rows.map((a) => {
+            // THE KIND IS THE KEY, everywhere: the React key, the count in
+            // `choices.adds`, the availability lookup and what `onPlace` is
+            // told. A part number is what the kind becomes in a given bay, and
+            // in a mixed-width run there is no single answer to that.
+            const k = a.kind || a.componentId;
+            return (
+              <Stepper
+                key={k}
+                label={a.label || k}
+                note={placing === k ? 'tap a dot in the view' : noteFor(k)}
+                off={availability[k]?.kind === 'never'}
+                active={placing === k}
+                value={choices.adds?.[k] || 0}
+                max={a.perBay ? (a.max ?? 1) * choices.bays : (a.max ?? 4)}
+                onChange={(n) => {
+                  const now = choices.adds?.[k] || 0;
+                  // Going UP is a question about where; going down is not.
+                  if (onPlace && n > now) { onPlace(k); return; }
+                  set({ adds: { ...choices.adds, [k]: n } });
+                }}
+              />
+            );
+          })}
         </div>
       )}
 

@@ -17,6 +17,10 @@
 //      STRING; reading it as `.reason` gave undefined and made every
 //      unplaceable part say "no room left", including the two that can never
 //      fit. That is the actual bug this file would have caught.
+//   4. It is keyed by KIND, and a kind is unavailable only when EVERY length it
+//      can be is. With per-bay widths the control says "clothes rail" and the
+//      product may hold a 900 bay and a 600 one; greying the control because
+//      the 900 rail will not fit would kill it for a bay that has room.
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -51,14 +55,14 @@ describe('what a frame can take', () => {
   it('reports every add on the 320 mm range as available', () => {
     const built = build({ variantId: 'd320', sizeId: 'w900' });
     const avail = addAvailability(built, components);
-    expect(Object.keys(avail).length).toBe(built.size.adds.length);
+    expect(Object.keys(avail).length).toBe(built.adds.length);
     expect(Object.values(avail).every((a) => a.ok)).toBe(true);
   });
 
-  it('reports the 900 mm rail as never available on 200 mm frames', () => {
+  it('reports the clothes rail as never available on 200 mm frames', () => {
     const built = build({ variantId: 'd200', sizeId: 'w900' });
     const avail = addAvailability(built, components);
-    const rail = avail['008531-clothes-rail-900mm'];
+    const rail = avail['clothes-rail'];
     expect(rail.ok).toBe(false);
     expect(rail.kind).toBe('never');
   });
@@ -69,7 +73,7 @@ describe('what a frame can take', () => {
   it('phrases it against the frame rather than against the product', () => {
     const built = build({ variantId: 'd200', sizeId: 'w900' });
     const avail = addAvailability(built, components);
-    const rail = avail['008531-clothes-rail-900mm'];
+    const rail = avail['clothes-rail'];
     expect(rail.reason).toMatch(/200 mm deep/);
     expect(rail.reason).not.toMatch(/room/);
   });
@@ -78,10 +82,10 @@ describe('what a frame can take', () => {
     const built = build({ variantId: 'd200', sizeId: 'w900' });
     const avail = addAvailability(built, components);
     const bad = Object.entries(avail).filter(([, a]) => !a.ok).map(([id]) => id).sort();
-    expect(bad).toEqual([
-      '008531-clothes-rail-900mm',
-      '008540-hook-strip-for-ladder-width-900mm',
-    ]);
+    // AS KINDS, and the count is the same two: on a 200 mm ladder neither the
+    // rail nor the full-width hook strip has a matching joint at ANY length, so
+    // both are 'never' rather than one length of each being unlucky.
+    expect(bad).toEqual(['clothes-rail', 'hook-strip-full']);
   });
 
   // A part already placed proves it fits. Without this the availability check
@@ -91,10 +95,26 @@ describe('what a frame can take', () => {
     const built = build({
       variantId: 'd320',
       sizeId: 'w900',
-      adds: { '008563-shelf-900mm-for-ladder-depth-320mm': 3 },
+      adds: { 'metal-shelf': 3 },
     });
     const avail = addAvailability(built, components);
-    expect(avail['008563-shelf-900mm-for-ladder-depth-320mm'].ok).toBe(true);
+    expect(avail['metal-shelf'].ok).toBe(true);
+  });
+
+  // THE CASE PER-BAY WIDTHS INTRODUCED. One 900 bay and one 450: the 900 rail
+  // fits the wide bay and there is no 450 rail at all, so the kind is available
+  // even though one of its lengths has nowhere to go. Keyed on a part number
+  // this control would have been dead for a product that can take one.
+  it('keeps a kind available when only one bay can take it', () => {
+    const built = build({
+      variantId: 'd320',
+      sizeId: 'w900',
+      bays: 2,
+      widths: { 1: 'w450' },
+    });
+    expect(built.sizes.map((s) => s.id)).toEqual(['w900', 'w450']);
+    const avail = addAvailability(built, components);
+    expect(avail['clothes-rail'].ok).toBe(true);
   });
 
   it('says nothing at all rather than greying everything when it cannot ask', () => {
@@ -108,9 +128,9 @@ describe('what a frame can take', () => {
         const built = build({ variantId: variant.id, sizeId: size.id });
         const avail = addAvailability(built, components);
         for (const add of size.adds || []) {
-          expect(avail[add.componentId]).toBeTruthy();
-          if (!avail[add.componentId].ok) {
-            expect(typeof avail[add.componentId].reason).toBe('string');
+          expect(avail[add.kind]).toBeTruthy();
+          if (!avail[add.kind].ok) {
+            expect(typeof avail[add.kind].reason).toBe('string');
           }
         }
       }

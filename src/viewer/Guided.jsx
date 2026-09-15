@@ -26,7 +26,7 @@ import Options from './Options.jsx';
 import MovePanel from './MovePanel.jsx';
 import './options.css';
 import {
-  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions,
+  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent,
   moveCandidates, movePoints, addPoints,
   slotKeyFor, frameIndexOf, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
@@ -244,7 +244,7 @@ export default function Guided({
     // component alone titled the frame's own shelf "Extra metal shelf" while
     // telling the person it was part of the frame. Whether the part is
     // structural is the thing that decides, and the engine already said.
-    const add = (size?.adds || []).find((a) => a.componentId === componentId);
+    const add = addForComponent(variant, componentId);
 
     // A LADDER NAMES ITS POSITION, not just itself. With mixed heights in one
     // run, "Ladder" on its own leaves somebody guessing which of the four they
@@ -266,7 +266,13 @@ export default function Guided({
       };
     }
 
-    const label = r.kind === 'span' ? (size?.span?.label || 'Shelf') : (add?.label || componentId);
+    // THE BAY'S OWN SPAN, not the run's. Tapping the shelf in a 600 bay of a
+    // mostly-900 run called it by the 900 shelf's name, which is the same class
+    // of mistake as the width control changing every bay: one size standing in
+    // for a product that no longer has one.
+    const spanSize = (built.sizes || [])
+      .find((s) => s.span?.componentId === componentId) || size;
+    const label = r.kind === 'span' ? (spanSize?.span?.label || 'Shelf') : (add?.label || componentId);
     return { ...r, componentId, label, types: [] };
   }, [picked, built, components, size, variant]);
 
@@ -361,19 +367,23 @@ export default function Guided({
 
   /** Put the accessory waiting for a position at this point. */
   const placeAt = useCallback((point) => {
-    const componentId = placing;
-    if (!componentId || !point) return;
-    const index = built.choices.adds?.[componentId] || 0;
+    // A KIND, not a part number. Which LENGTH it becomes is decided by the bay
+    // the point belongs to, and the engine works that out by trying the
+    // candidates against the joint - so this records only the intent, which is
+    // the same discipline every other slot follows.
+    const kind = placing;
+    if (!kind || !point) return;
+    const index = built.choices.adds?.[kind] || 0;
     setPlacing(null);
     change({
       ...built.choices,
-      adds: { ...built.choices.adds, [componentId]: index + 1 },
-      // The nth copy of this component is the slot, and the schema's order is
-      // the order buildGuided places them - so the one about to be added is
-      // index `n`, counting from zero.
+      adds: { ...built.choices.adds, [kind]: index + 1 },
+      // The nth copy of this kind is the slot, and the schema's order is the
+      // order buildGuided places them - so the one about to be added is index
+      // `n`, counting from zero.
       at: {
         ...built.choices.at,
-        [slotKeyFor(componentId, index)]: { instanceId: point.instanceId, snapId: point.snapId },
+        [slotKeyFor(kind, index)]: { instanceId: point.instanceId, snapId: point.snapId },
       },
     });
   }, [placing, built, change]);
@@ -528,7 +538,7 @@ export default function Guided({
       {placing && (
         <div className="cfgg-ask" role="status">
           <span className="cfgg-askwhat">
-            {(size?.adds || []).find((a) => a.componentId === placing)?.label || placing}
+            {(built.adds || []).find((a) => (a.kind || a.componentId) === placing)?.label || placing}
           </span>
           <span className="cfgg-askhow">
             {dots?.points?.length
@@ -588,13 +598,14 @@ export default function Guided({
           choices={built.choices}
           variant={variant}
           size={size}
+          adds={built.adds}
           refused={built.refused}
           availability={availability}
           mountings={mountings}
           placing={placing}
-          onPlace={(componentId) => {
+          onPlace={(kind) => {
             setPicked(null);
-            setPlacing(componentId);
+            setPlacing(kind);
             // The dots are in the scene, so the sheet has to get out of the
             // way. Asking "where?" and then covering half the product with the
             // question is the mobile bug from §5.24 in a new costume.

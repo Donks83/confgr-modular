@@ -24,6 +24,7 @@ import { join } from 'node:path';
 import {
   parseGuided, defaultChoices, buildGuided, normaliseChoices, sizeAt, sizesInRun,
   componentForKind, componentsForKind, kindFromChoiceKey, widthOfComponent, slotKeyFor,
+  moveCandidates, addForComponent,
 } from '../src/engine/guided.js';
 import { loadFolder } from '../tools/export-glb.mjs';
 
@@ -208,5 +209,56 @@ describe.runIf(has)('changing a width under parts that are already on', () => {
     const wide = build({ bays: 2, sizeId: 'w900', adds: { 'metal-shelf': 2 } });
     const narrow = buildGuided(schema, { ...wide.choices, widths: { 0: 'w450' } }, components);
     expect(narrow.assembly.instances.length).toBe(wide.assembly.instances.length);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// WHAT THE RUN IS, rather than what its Width control says.
+//
+// `built.size` is the run's width and nothing more once bays can differ. Two
+// callers were still reading `built.size.adds` as though it described the
+// product, and both failed silently rather than loudly - which is why they are
+// pinned here by the behaviour a person would see, not by the field.
+
+describe.runIf(has)('describing a run whose bays differ', () => {
+  it('reports every bay\'s own size, in bay order', () => {
+    const built = build({ bays: 3, sizeId: 'w900', widths: { 1: 'w600' } });
+    expect(built.sizes.map((s) => s.id)).toEqual(['w900', 'w600', 'w900']);
+  });
+
+  it('offers a kind the wide bay can take even though the narrow one cannot', () => {
+    // There is no 450 mm clothes rail in the whole range. The union is what the
+    // control means, because the customer's question is "can this product take
+    // a rail", and it can - in the 900 bay.
+    const built = build({ bays: 2, sizeId: 'w900', widths: { 1: 'w450' } });
+    expect(built.adds.map((a) => a.kind)).toContain('clothes-rail');
+  });
+
+  it('still knows a shelf has to be held at both ends in a narrow bay', () => {
+    // THE FAULT THIS PINS. `mustBeHeld` came from the RUN's size, so a 600 mm
+    // shelf - which is in no 900 size's add list - looked like a part with no
+    // `spans` flag. The move list then offered positions holding it at one end,
+    // `buildGuided` refused them on the rebuild, and the shelf sprang back to
+    // where it started. Every offered position must survive the rebuild.
+    const built = build({
+      bays: 2, sizeId: 'w900', widths: { 1: 'w600' }, adds: { 'metal-shelf': 1 },
+    });
+    const extra = [...built.assembly.instances]
+      .reverse()
+      .find((i) => built.slots?.[i.instanceId]?.startsWith('metal-shelf#'));
+    expect(extra).toBeTruthy();
+
+    const r = moveCandidates(built, components, extra.instanceId);
+    expect(r.ok).toBe(true);
+    expect(r.candidates.length).toBeGreaterThan(0);
+    for (const c of r.candidates) expect(c.held).toBe(c.heldOf);
+  });
+
+  it('names a tapped shelf by its own length, whichever bay it spans', () => {
+    const built = build({ bays: 2, sizeId: 'w900', widths: { 1: 'w600' } });
+    expect(addForComponent(variant, SHELF_600)?.kind).toBe('metal-shelf');
+    expect(addForComponent(variant, SHELF_900)?.kind).toBe('metal-shelf');
+    expect(addForComponent(variant, SHELF_450)?.spans).toBe(true);
+    expect(built.sizes.find((s) => s.span.componentId === SHELF_600)).toBeTruthy();
   });
 });
