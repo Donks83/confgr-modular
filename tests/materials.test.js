@@ -75,12 +75,19 @@ describe.runIf(has)('the materials themselves', () => {
     expect(spec.classes.timber.metallic).toBe(0);
   });
 
-  it('keeps the steel short of fully metallic', () => {
-    // A fully metallic surface has no diffuse colour at all, so in a viewer
-    // with a poor environment it goes black rather than dark grey. Below 1.0
-    // keeps the colour that was actually asked for.
-    expect(spec.classes.metal.metallic).toBeGreaterThan(0.5);
-    expect(spec.classes.metal.metallic).toBeLessThan(1);
+  it('treats the steel as powder coat rather than as bare metal', () => {
+    // THE SECOND HALF OF THE SAME MISTAKE. A metallic surface has no diffuse
+    // colour at all - it answers with reflections - so in a viewer whose
+    // environment is mostly empty it goes black however bright the lights
+    // are. The first pass set 0.85 and Matt said the result was "too dark",
+    // which is not a colour complaint: a Kesseboehmer shelf is a dielectric
+    // with a thin dark paint film on it, so the key light should land on it
+    // as shading rather than bounce off it as a reflection.
+    //
+    // Bounded rather than pinned, because the exact figure is a look and the
+    // claim worth holding is the physics: coated steel is not a mirror.
+    expect(spec.classes.metal.metallic).toBeGreaterThan(0);
+    expect(spec.classes.metal.metallic).toBeLessThan(0.3);
   });
 
   it('leaves the timber colour where make-timber.py had it', () => {

@@ -24,9 +24,9 @@
     "metal": {
       "label": "Kesseboehmer steel, dark grey",
       "srgb": [27, 27, 27],
-      "metallic": 0.85,
-      "roughness": 0.45,
-      "note": "Matt's figure. Metallic below 1.0 because a fully metallic surface with no environment to reflect goes black in some viewers."
+      "metallic": 0.15,
+      "roughness": 0.5,
+      "note": "Matt's colour. POWDER COAT IS NOT METAL: a coated shelf is a dielectric with a thin dark paint film on it, and metallic 0.85 told the renderer to answer with reflections of an environment that is mostly empty - which is why it came out near-black however bright the lights were. At 0.15 the key light lands on it as diffuse shading and it reads as dark grey with visible form."
     },
     "plastic": {
       "label": "YouboXx, lighter grey",
