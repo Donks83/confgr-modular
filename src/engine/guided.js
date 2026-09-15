@@ -88,6 +88,27 @@ export function parseGuided(json) {
           `Size "${v.id}/${s.id}" names no span part, so two frames could never be joined.`,
         );
       }
+
+      /*
+       * A PART WITH NO DECLARED KIND IS ITS OWN KIND, and this default is not a
+       * tidiness: without it, a schema written before kinds existed loses every
+       * accessory it has.
+       *
+       * Adds are counted by kind now, so that "a metal shelf" can be 008562 in
+       * a 600 bay and 008563 in a 900 one. Look a kind up for a part that never
+       * declared one and the answer is null, the count is discarded as naming
+       * nothing, and the product comes out as bare ladders - which is exactly
+       * what eleven tests said when this was first written, all of them using
+       * schemas with no kinds.
+       *
+       * Defaulting to the component id makes those schemas behave precisely as
+       * they did: one part, one kind, one width. Only a schema that actually
+       * declares kinds gets the new behaviour, which is the right way round.
+       */
+      if (!s.span.kind) s.span.kind = s.span.componentId;
+      for (const a of s.adds || []) {
+        if (!a.kind) a.kind = a.componentId;
+      }
     }
   }
   return json;
@@ -141,6 +162,139 @@ export function sizeOf(variant, choices = {}) {
 }
 
 /**
+ * The size of ONE BAY, which is not necessarily the size of the run.
+ *
+ * Matt: "i can change the width but it changes the width of all bays". A run of
+ * shelving is not one width - a bay against a chimney breast is narrower than
+ * the one beside it - so a width belongs to a BAY rather than to the product.
+ *
+ * Keyed by POSITION, exactly like `frames` (§5.25), and for the same reason:
+ * the first bay is the first bay whatever parts happen to be in it, so widening
+ * bay 2 does not move a shelf somebody put in bay 1. `choices.sizeId` remains
+ * the run's width and the default for any bay that has not been changed, which
+ * keeps the Width control meaning what it has always meant - all of them.
+ */
+export function sizeAt(variant, choices = {}, bay = 0) {
+  const overrideId = choices.widths?.[bay];
+  if (overrideId) {
+    const found = variant.sizes.find((s) => s.id === overrideId);
+    if (found) return found;
+  }
+  return sizeOf(variant, choices);
+}
+
+/**
+ * Every distinct size in a run, in bay order.
+ *
+ * What the bill of materials, the part list and the AR export all need: a
+ * product whose bays differ references parts no single size knows about.
+ */
+export function sizesInRun(variant, choices = {}, bays = 1) {
+  const out = [];
+  for (let bay = 0; bay < bays; bay += 1) out.push(sizeAt(variant, choices, bay));
+  return out;
+}
+
+/**
+ * The part that a KIND becomes at a given size, or null if that size does not
+ * offer it.
+ *
+ * The whole point of kinds. "A metal shelf" is 008563 in a 900 bay and 008562
+ * in a 600 one, and with mixed widths in one run the count of shelves cannot
+ * name a part number any more - only a kind. See tools/add-kinds.mjs.
+ *
+ * Null is a real answer rather than a failure: there is no 450 mm clothes rail,
+ * so a run with a 450 bay simply cannot put a rail in that bay.
+ */
+export function componentForKind(size, kind) {
+  if (!size || !kind) return null;
+  if (size.span?.kind === kind) return size.span.componentId;
+  const add = (size.adds || []).find((a) => a.kind === kind);
+  return add ? add.componentId : null;
+}
+
+/**
+ * Every part a kind can become anywhere in this variant.
+ *
+ * Placement needs this: a shelf is dropped on a point, and which LENGTH it has
+ * to be depends on the bay that point belongs to. Rather than work the bay out
+ * geometrically and then look up a part, the engine tries the candidates and
+ * lets the snaps decide - a 900 shelf does not fit a 600 bay, so the geometry
+ * that already refuses bad joints picks the length for free.
+ */
+export function componentsForKind(variant, kind) {
+  const ids = [];
+  for (const size of variant.sizes || []) {
+    const id = componentForKind(size, kind);
+    if (id && !ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+/**
+ * The width, in millimetres, of the bay a component belongs to.
+ *
+ * Read off the SIZE that offers the part rather than measured, because the
+ * schema already holds the answer and measuring geometry to recover a number
+ * somebody wrote down is how two sources of one fact start disagreeing. Zero
+ * for a part that is not width-dependent - a side rack is a side rack.
+ */
+export function widthOfComponent(variant, componentId) {
+  const widths = [];
+  for (const size of variant.sizes || []) {
+    const offered = size.span?.componentId === componentId
+      || (size.adds || []).some((a) => a.componentId === componentId);
+    if (offered) widths.push(Number(String(size.id).replace(/\D/g, '')) || 0);
+  }
+  // OFFERED BY MORE THAN ONE WIDTH MEANS IT HAS NO WIDTH. The side rack appears
+  // under 450, 600, 900 and 1200 alike because it hangs off a ladder rather
+  // than spanning a bay. Returning the first match called it a 450 mm part,
+  // which is not wrong by a little - it is a category error, and it would have
+  // sorted the candidate list by a number that means nothing.
+  if (widths.length !== 1) return 0;
+  return widths[0];
+}
+
+/**
+ * Place the first of several candidate parts that will actually go on.
+ *
+ * The mechanism behind "a shelf is automatically the correct length": the
+ * candidates are the same kind in every width the variant offers, and the
+ * winner is whichever one the joint checking accepts. If none fit, the LAST
+ * failure is returned rather than the first, because the last is the narrowest
+ * and its reason is the one worth reading - "there is nowhere left" rather than
+ * "a 1200 shelf does not fit here", which is true of almost everywhere.
+ */
+export function tryCandidates(assembly, components, candidates, opts) {
+  let last = null;
+  for (const componentId of candidates) {
+    if (!components.has?.(componentId)) continue;
+    const r = autoAttach(assembly, components, componentId, opts);
+    if (r.ok) return { ...r, componentId };
+    last = { ...r, componentId };
+  }
+  return last || { ok: false, reason: 'No part of that kind fits this product.', componentId: null };
+}
+
+/**
+ * The kind an add was recorded under, accepting the component id it used to be.
+ *
+ * URLs written before kinds existed carry `adds: {"008563-shelf-900mm...": 4}`,
+ * and a bundle's whole point is that somebody can send the link. An id that is
+ * no longer a key still names exactly one kind, so an old link opens as the
+ * product it always described rather than as a bare frame.
+ */
+export function kindFromChoiceKey(variant, key) {
+  if (!key) return null;
+  for (const size of variant.sizes || []) {
+    if (size.span?.kind && size.span.componentId === key) return size.span.kind;
+    const add = (size.adds || []).find((a) => a.componentId === key || a.kind === key);
+    if (add) return add.kind;
+  }
+  return null;
+}
+
+/**
  * The choices a schema starts on, so a runtime has something to draw before
  * anybody has touched a control.
  *
@@ -160,6 +314,10 @@ export function defaultChoices(schema) {
     sizeId: size.id,
     frameId: frame.componentId,
     frames: {},
+    // Per-bay widths, empty until somebody clicks the line between two ladders.
+    // An empty map means "every bay is the run's width", which is what the
+    // product has always been.
+    widths: {},
     bays: variant.defaultBays ?? 1,
     adds: {},
     mounting: variant.defaultMounting || MOUNTING.FLOOR,
@@ -195,15 +353,51 @@ export function normaliseChoices(schema, choices = {}) {
   const maxBays = variant.maxBays ?? 4;
   const bays = Math.max(1, Math.min(maxBays, Math.round(Number(choices.bays) || 1)));
 
+  // WHICH BAY IS HOW WIDE. Bounded by the bays the run actually has and by the
+  // sizes this variant offers, so reducing the bays drops the widths that no
+  // longer refer to anything and switching depth cannot leave a 600 recorded
+  // against a range that has no 600. An entry equal to the run's width is
+  // dropped rather than stored, for the same reason a frame override is: the
+  // Width control means "all of them", and a stored duplicate would sit there
+  // contradicting it the moment somebody used it.
+  const widths = {};
+  for (const [key, id] of Object.entries(choices.widths || {})) {
+    const bay = Number(key);
+    if (!Number.isInteger(bay) || bay < 0 || bay >= bays) continue;
+    if (!variant.sizes.some((s) => s.id === id)) continue;
+    if (id === size.id) continue;
+    widths[bay] = id;
+  }
+
+  // ADDS ARE COUNTED BY KIND, not by part number, because with two widths in
+  // one run a part number stops naming a choice: "four extra metal shelves" is
+  // four shelves whose LENGTHS depend on where they land. See
+  // tools/add-kinds.mjs for why the kinds are in the schema rather than
+  // inferred.
+  //
+  // An old key is accepted and converted. A bundle's whole point is that
+  // somebody can send the link, and every URL written before today carries
+  // `adds` keyed by component id - which still names exactly one kind, so those
+  // links open as the product they always described.
+  const kindsHere = new Map();
+  for (const s of sizesInRun(variant, { ...choices, widths }, bays)) {
+    for (const a of s.adds || []) if (!kindsHere.has(a.kind)) kindsHere.set(a.kind, a);
+  }
+
   const adds = {};
-  for (const a of size.adds || []) {
-    const asked = Math.round(Number(choices.adds?.[a.componentId]) || 0);
+  for (const [key, value] of Object.entries(choices.adds || {})) {
+    const kind = kindFromChoiceKey(variant, key);
+    const spec = kind ? kindsHere.get(kind) : null;
+    // A kind no bay in this run can take is dropped rather than carried: with
+    // every bay at 450 there is no clothes rail to count.
+    if (!spec) continue;
+    const asked = Math.round(Number(value) || 0);
     // `max` is per bay where the schema says so: one shoe rack per bay is a
     // sensible ceiling and one shoe rack per product is not, and the difference
     // only appears once somebody asks for three bays.
-    const ceiling = a.perBay ? (a.max ?? 1) * bays : (a.max ?? 4);
+    const ceiling = spec.perBay ? (spec.max ?? 1) * bays : (spec.max ?? 4);
     const n = Math.max(0, Math.min(ceiling, asked));
-    if (n > 0) adds[a.componentId] = n;
+    if (n > 0) adds[kind] = Math.max(adds[kind] || 0, n);
   }
 
   const mounting = isMounting(choices.mounting) ? choices.mounting : MOUNTING.FLOOR;
@@ -253,11 +447,16 @@ export function normaliseChoices(schema, choices = {}) {
 
     const hash = key.lastIndexOf('#');
     if (hash < 0) continue;
-    const componentId = key.slice(0, hash);
     const index = Number(key.slice(hash + 1));
     if (!Number.isInteger(index) || index < 0) continue;
-    if (index >= (adds[componentId] || 0)) continue;
-    at[key] = kept;
+
+    // The slot names a KIND now. An old record names the component it was, and
+    // is rewritten rather than dropped - otherwise sending somebody a link to a
+    // product with a moved shelf would deliver the shelf back at the bottom.
+    const was = key.slice(0, hash);
+    const kind = kindFromChoiceKey(variant, was) || was;
+    if (index >= (adds[kind] || 0)) continue;
+    at[slotKeyFor(kind, index)] = kept;
   }
 
   return {
@@ -265,6 +464,7 @@ export function normaliseChoices(schema, choices = {}) {
     sizeId: size.id,
     frameId: frame.componentId,
     frames,
+    widths,
     bays,
     adds,
     at,
@@ -966,12 +1166,17 @@ export function buildGuided(schema, choices, components) {
   let growingFrom = assembly.instances[0].instanceId;
 
   for (let bay = 0; bay < c.bays; bay += 1) {
-    const span = autoAttach(assembly, components, size.span.componentId, {
+    // EACH BAY TAKES ITS OWN WIDTH. Matt: "i can change the width but it
+    // changes the width of all bays". The span IS the width - it is the shelf
+    // that joins two ladders, so the part number chosen here is what sets the
+    // spacing, and every later part in that bay has to match it.
+    const baySize = sizeAt(variant, c, bay);
+    const span = autoAttach(assembly, components, baySize.span.componentId, {
       instanceId: nextId(), catalogue, prefer: growingFrom, policy: PLACE.EXTEND,
     });
     if (!span.ok) {
       refused.push({
-        componentId: size.span.componentId, label: size.span.label, reason: span.reason,
+        componentId: baySize.span.componentId, label: baySize.span.label, reason: span.reason,
       });
       break;
     }
@@ -1021,10 +1226,39 @@ export function buildGuided(schema, choices, components) {
   // controls happened to be touched, so the same choices always produce the
   // same product. Two customers who picked the same options must get the same
   // configuration id, or a quote cannot be reconciled with a drawing.
-  for (const add of size.adds || []) {
-    const wanted = c.adds[add.componentId] || 0;
+  // Every kind any bay in this run can take, in the schema's order. With one
+  // width that is the size's own list; with two it is the union, because a run
+  // of a 900 bay and a 450 one offers a clothes rail (900 has one) and the rail
+  // can only go in the 900.
+  const addKinds = [];
+  for (const s of sizesInRun(variant, c, c.bays)) {
+    for (const a of s.adds || []) if (!addKinds.some((k) => k.kind === a.kind)) addKinds.push(a);
+  }
+
+  for (const add of addKinds) {
+    const wanted = c.adds[add.kind] || 0;
+
+    /*
+     * THE LENGTH IS CHOSEN BY THE GEOMETRY, not by bookkeeping.
+     *
+     * Matt: "when we add a shelf (timber or metal) its automatically the
+     * correct length". With mixed widths "a metal shelf" is 008561, 008562,
+     * 008563 or 008564 depending on the bay it lands in - and rather than work
+     * out which bay a point belongs to and then look the part up, the engine
+     * tries the candidates and lets the snaps answer. A 900 shelf does not
+     * reach across a 600 bay, so the joint checking that has refused bad
+     * placements since week one picks the length for nothing.
+     *
+     * Widest first, so a run of one width behaves exactly as it did: the widest
+     * that fits is the one that spans the bay rather than sitting half way
+     * across it.
+     */
+    const candidates = componentsForKind(variant, add.kind)
+      .slice()
+      .sort((a, b) => (widthOfComponent(variant, b) - widthOfComponent(variant, a)));
+
     for (let i = 0; i < wanted; i += 1) {
-      const key = slotKeyFor(add.componentId, i);
+      const key = slotKeyFor(add.kind, i);
       const remembered = c.at?.[key] || null;
       const id = nextId();
       const opts = {
@@ -1035,16 +1269,19 @@ export function buildGuided(schema, choices, components) {
       // Dropping it rather than refusing the part is the kinder failure: the
       // customer reduced the bays and the rail they had moved has to go
       // SOMEWHERE, and saying "we put it back" beats losing it.
-      let r = remembered ? autoAttach(assembly, components, add.componentId, { ...opts, at: remembered }) : null;
-      if (r && !r.ok) {
-        dropped.push({ slot: key, componentId: add.componentId, label: add.label, reason: r.reason });
-        r = null;
+      let r = null;
+      if (remembered) {
+        r = tryCandidates(assembly, components, candidates, { ...opts, at: remembered });
+        if (!r.ok) {
+          dropped.push({ slot: key, componentId: r.componentId, label: add.label, reason: r.reason });
+          r = null;
+        }
       }
-      if (!r) r = autoAttach(assembly, components, add.componentId, opts);
+      if (!r) r = tryCandidates(assembly, components, candidates, opts);
 
       if (!r.ok) {
         refused.push({
-          componentId: add.componentId,
+          componentId: r.componentId,
           label: add.label,
           // How many of them DID go on, so the message can be about the
           // shortfall rather than about the failure. "3 of the 4 fit" is a

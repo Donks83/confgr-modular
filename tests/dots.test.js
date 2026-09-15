@@ -34,6 +34,13 @@ const YOUK = join(process.cwd(), 'youk');
 const SHELF = '008563-shelf-900mm-for-ladder-depth-320mm';
 const RACK = '008543-rack-for-ladder-depth-320mm';
 
+// Slots name a KIND, not a part number, since bays can differ in width and "a
+// metal shelf" is four different part numbers. The component ids above are
+// still what `addPoints` is asked about - that question is about geometry, and
+// geometry belongs to a part rather than to a kind.
+const SHELF_KIND = 'metal-shelf';
+const RACK_KIND = 'side-rack';
+
 let schema;
 let components;
 
@@ -97,13 +104,13 @@ describe('a dot that was pressed', () => {
 
     const after = build({
       adds: { [SHELF]: 1 },
-      at: { [slotKeyFor(SHELF, 0)]: { instanceId: target.instanceId, snapId: target.snapId } },
+      at: { [slotKeyFor(SHELF_KIND, 0)]: { instanceId: target.instanceId, snapId: target.snapId } },
     });
     expect(after.refused).toEqual([]);
     expect(after.dropped).toEqual([]);
 
     // The slot landed on the point that was asked for.
-    expect(after.slotAt[slotKeyFor(SHELF, 0)]).toEqual({
+    expect(after.slotAt[slotKeyFor(SHELF_KIND, 0)]).toEqual({
       instanceId: target.instanceId,
       snapId: target.snapId,
     });
@@ -115,9 +122,9 @@ describe('a dot that was pressed', () => {
     const ys = points.map((target) => {
       const after = build({
         adds: { [SHELF]: 1 },
-        at: { [slotKeyFor(SHELF, 0)]: { instanceId: target.instanceId, snapId: target.snapId } },
+        at: { [slotKeyFor(SHELF_KIND, 0)]: { instanceId: target.instanceId, snapId: target.snapId } },
       });
-      const id = Object.entries(after.slots).find(([, s]) => s === slotKeyFor(SHELF, 0))?.[0];
+      const id = Object.entries(after.slots).find(([, s]) => s === slotKeyFor(SHELF_KIND, 0))?.[0];
       return worldYof(after, id);
     });
     expect(new Set(ys).size).toBeGreaterThan(1);
@@ -127,7 +134,7 @@ describe('a dot that was pressed', () => {
 describe('where a placed part can go instead', () => {
   const withRack = () => {
     const built = build({ adds: { [RACK]: 1 } });
-    const id = Object.entries(built.slots).find(([, s]) => s.startsWith(RACK))?.[0];
+    const id = Object.entries(built.slots).find(([, s]) => s.startsWith(RACK_KIND))?.[0];
     return { built, id };
   };
 
@@ -166,7 +173,7 @@ describe('where a placed part can go instead', () => {
   // product rebuilds.
   it('only offers a spanning part positions it survives', () => {
     const built = build({ bays: 2, adds: { [SHELF]: 1 } });
-    const id = Object.entries(built.slots).find(([, s]) => s.startsWith(SHELF))?.[0];
+    const id = Object.entries(built.slots).find(([, s]) => s.startsWith(SHELF_KIND))?.[0];
     const slot = built.slots[id];
 
     for (const p of movePoints(built, components, id)) {

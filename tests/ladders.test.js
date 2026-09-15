@@ -276,7 +276,7 @@ describe('every answer says what kind of part it is', () => {
   it('for an accessory', () => {
     const SHELF = '008563-shelf-900mm-for-ladder-depth-320mm';
     const built = build({ bays: 2, adds: { [SHELF]: 1 } });
-    const id = Object.entries(built.slots).find(([, s]) => s.startsWith(SHELF))?.[0];
+    const id = Object.entries(built.slots).find(([, s]) => s.startsWith('metal-shelf'))?.[0];
     expect(moveCandidates(built, components, id).kind).toBe('add');
   });
 
