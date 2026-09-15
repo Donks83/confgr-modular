@@ -38,8 +38,8 @@ import {
   attachAt, placeFree, mountHeightMm, whyComponentFitsNowhere,
   canMove, moveTargets, moveTo,
 } from './attach.js';
-import { resolveTransforms, snapSupport } from './assembly.js';
-import { overlaps } from './collision.js';
+import { resolveTransforms, snapSupport, productFront } from './assembly.js';
+import { overlaps, boxFor } from './collision.js';
 import { encodeConfiguration } from './configuration.js';
 import { impliedComponentIds } from './implied.js';
 import { MOUNTING, isMounting, isGrounded, FOOT } from './ar.js';
@@ -760,6 +760,106 @@ export function addPoints(built, components, kind) {
   } catch {
     return [];
   }
+}
+
+/**
+ * The top-front corner of a placed part, in world space.
+ *
+ * Where a dimension line hangs off. The box is ORIENTED - a part is yawed to
+ * face its joint - so the extent along a world direction is the sum of its own
+ * three half-extents projected onto that direction, which is the same
+ * arithmetic `overlapDepth` does one axis at a time.
+ */
+function topFrontOf(box, front) {
+  if (!box) return null;
+  const along = (dir) => Math.abs(box.axes[0][0] * dir[0] + box.axes[0][1] * dir[1] + box.axes[0][2] * dir[2]) * box.half[0]
+    + Math.abs(box.axes[1][0] * dir[0] + box.axes[1][1] * dir[1] + box.axes[1][2] * dir[2]) * box.half[1]
+    + Math.abs(box.axes[2][0] * dir[0] + box.axes[2][1] * dir[1] + box.axes[2][2] * dir[2]) * box.half[2];
+
+  const up = along([0, 1, 0]);
+  const out = along(front);
+  return [
+    box.centre[0] + front[0] * out,
+    box.centre[1] + up,
+    box.centre[2] + front[2] * out,
+  ];
+}
+
+/**
+ * The line between each pair of neighbouring ladders, and what it can be set to.
+ *
+ * Matt: "can we have a marker similar to the hot spot dots that is a line
+ * connecting two neighbouring ladders that you can click to choose the spacing
+ * between those ladders".
+ *
+ * THE CONTROL IS WHERE THE THING IS. A width control in a panel has to say
+ * which bay it means, and in a run of four the answer is a number somebody has
+ * to map onto the product in front of them. A line drawn between the two
+ * ladders it governs does not have that problem: it is the bay, and tapping it
+ * is unambiguous even when three bays are already different widths.
+ *
+ * DRAWN ALONG THE TOP AND AT THE FRONT rather than through the middle of the
+ * bay, because the middle of the bay is where the shelves are. Read off the
+ * ladders' own oriented boxes, so it follows a product that has been turned
+ * round in AR instead of assuming which way is out of the screen.
+ *
+ * `centresMm` is MEASURED - the distance between the two ladders as they
+ * actually stand - and it is not the size's label. A YouK 900 bay puts its
+ * ladders at 920.1 mm centres because the shelf overhangs; that difference is
+ * real, and quietly printing "900" over a measurement would be inventing a
+ * number. The control shows the size's own label; this is here for anyone who
+ * needs the geometry.
+ */
+export function baySpacings(built, components) {
+  if (!built?.assembly || !components?.size || !built.variant) return [];
+
+  let transforms;
+  try { ({ transforms } = resolveTransforms(built.assembly, components)); } catch { return []; }
+
+  // Null when nothing in the range declares a front, and then the line is drawn
+  // on the room side of z, which is where this range's fronts point anyway.
+  const front = productFront(built.assembly, components, transforms) || [0, 0, -1];
+
+  // BY POSITION IN THE RUN, from the slot rather than from the order of the
+  // instances: a frame's slot is `frame#n` precisely so that the nth ladder
+  // stays the nth ladder whatever type is standing there.
+  const anchors = [];
+  for (const instance of built.assembly.instances) {
+    const index = frameIndexOf(built.slots?.[instance.instanceId]);
+    if (index == null) continue;
+    const point = topFrontOf(
+      boxFor(components.get(instance.componentId), transforms.get(instance.instanceId)),
+      front,
+    );
+    if (point) anchors[index] = point;
+  }
+
+  const options = built.variant.sizes.map((s) => ({ id: s.id, label: s.label }));
+  const out = [];
+  const sizes = built.sizes || [];
+  for (let bay = 0; bay < sizes.length; bay += 1) {
+    const from = anchors[bay];
+    const to = anchors[bay + 1];
+    // A bay whose far ladder was refused has no line. Better than a line to
+    // nowhere: the run is already reporting why in `refused`.
+    if (!from || !to) continue;
+
+    const size = sizes[bay];
+    out.push({
+      bay,
+      sizeId: size.id,
+      label: size.label,
+      centresMm: Math.round(
+        Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]) * 1000,
+      ),
+      from,
+      to,
+      midpoint: [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, (from[2] + to[2]) / 2],
+      facing: front,
+      options: options.map((o) => ({ ...o, current: o.id === size.id })),
+    });
+  }
+  return out;
 }
 
 /**

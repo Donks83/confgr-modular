@@ -127,11 +127,18 @@ export function isCoarsePointer() {
 export function createMarkerLayer(ctx) {
   const markerRoot = new THREE.Group();
   const ghostRoot = new THREE.Group();
-  ctx.scene.add(markerRoot, ghostRoot);
+  // ITS OWN GROUP, because the spacing lines and the dots change on different
+  // questions. The dots are cleared and redrawn every time the thing being
+  // placed or moved changes; the lines only change when the run does. Sharing
+  // markerRoot would mean every dot redraw threw the lines away.
+  const spanRoot = new THREE.Group();
+  ctx.scene.add(markerRoot, ghostRoot, spanRoot);
 
   Object.assign(ctx, {
     markerRoot,
     ghostRoot,
+    spanRoot,
+    spanGeo: new THREE.CylinderGeometry(1, 1, 1, 8),
     raycaster: ctx.raycaster || new THREE.Raycaster(),
     pointer: ctx.pointer || new THREE.Vector2(),
     markerGeo: new THREE.SphereGeometry(1, 12, 10),
@@ -144,12 +151,15 @@ export function createMarkerLayer(ctx) {
 
   return function dispose() {
     clearMarkers(ctx);
+    clearSpacings(ctx);
     clearGhost(ctx);
     ctx.markerGeo?.dispose();
+    ctx.spanGeo?.dispose();
     ctx.hitMaterial?.dispose();
-    ctx.scene.remove(markerRoot, ghostRoot);
+    ctx.scene.remove(markerRoot, ghostRoot, spanRoot);
     ctx.markerRoot = null;
     ctx.ghostRoot = null;
+    ctx.spanRoot = null;
   };
 }
 
@@ -162,6 +172,129 @@ export function clearMarkers(ctx) {
   }
   // The mesh ctx.hovered pointed at has just been thrown away.
   ctx.hovered = null;
+}
+
+/** Throw away every spacing line. */
+export function clearSpacings(ctx) {
+  if (!ctx?.spanRoot) return;
+  while (ctx.spanRoot.children.length) {
+    const m = ctx.spanRoot.children.pop();
+    m.traverse((o) => { if (o.isMesh && o.material !== ctx.hitMaterial) o.material?.dispose(); });
+  }
+}
+
+/** The key a spacing line answers to. One per bay, by POSITION in the run. */
+export const spacingKeyFor = (bay) => `bay#${bay}`;
+
+/** Which bay a key names, or null for anything that is not a spacing line. */
+export const bayFromKey = (key) => (
+  typeof key === 'string' && key.startsWith('bay#') ? Number(key.slice(4)) : null
+);
+
+/**
+ * How thick a spacing line is, in metres of product.
+ *
+ * 6 mm, which on the phone arithmetic in HIT_SCALE above draws as about one and
+ * a half pixels - a hairline, which is what a dimension line should be. It is
+ * hit through a box four times its length and twenty times its thickness, so
+ * being thin costs nothing in tappability.
+ */
+export const SPACING_RADIUS_M = 0.003;
+
+/** How far in front of the ladders the line floats, so it never z-fights. */
+export const SPACING_LIFT_M = 0.02;
+
+/**
+ * Draw the line between each pair of neighbouring ladders.
+ *
+ * Matt asked for "a marker similar to the hot spot dots that is a line
+ * connecting two neighbouring ladders that you can click to choose the
+ * spacing". It is drawn as a thin cylinder rather than a THREE.Line because
+ * `linewidth` is ignored by every WebGL renderer on every platform that
+ * matters - a Line is always one pixel, which is invisible on a phone and
+ * impossible to aim at.
+ *
+ * The KNOB at the midpoint is the affordance. A bare line between two ladders
+ * reads as part of the product; a line with a handle on it reads as a control,
+ * and it is the thing the eye goes to when somebody wants to change the gap.
+ *
+ * Positions come from the engine (`baySpacings`), including which way is out of
+ * the product, so a run turned round in AR keeps its lines on the front.
+ */
+export function drawSpacings(ctx, spacings, { activeBay = null } = {}) {
+  if (!ctx?.spanRoot) return 0;
+  clearSpacings(ctx);
+  if (!spacings?.length) return 0;
+
+  const touch = isCoarsePointer();
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  const mid = new THREE.Vector3();
+  const dir = new THREE.Vector3();
+  const lift = new THREE.Vector3();
+  const UP = new THREE.Vector3(0, 1, 0);
+
+  for (const s of spacings) {
+    a.fromArray(s.from);
+    b.fromArray(s.to);
+    lift.fromArray(s.facing || [0, 0, -1]).normalize().multiplyScalar(SPACING_LIFT_M);
+    a.add(lift);
+    b.add(lift);
+
+    dir.copy(b).sub(a);
+    const len = dir.length();
+    // Two ladders in the same place is not a bay. It cannot happen from a
+    // schema that loaded, but a zero-length cylinder is a NaN quaternion and
+    // that takes the whole scene out rather than one line.
+    if (len < 1e-4) continue;
+    mid.copy(a).add(b).multiplyScalar(0.5);
+
+    const on = activeBay === s.bay;
+    const key = spacingKeyFor(s.bay);
+    const radius = SPACING_RADIUS_M * (on ? 1.8 : 1) * (touch ? 1.4 : 1);
+
+    const group = new THREE.Group();
+    group.userData.pointKey = key;
+
+    const line = new THREE.Mesh(ctx.spanGeo, new THREE.MeshBasicMaterial({
+      color: on ? '#3ddc97' : '#4fc3d9',
+      transparent: true,
+      opacity: on ? 0.95 : 0.6,
+    }));
+    line.scale.set(radius, len, radius);
+    line.position.copy(mid);
+    line.quaternion.setFromUnitVectors(UP, dir.normalize());
+    line.renderOrder = 2;
+    line.userData.pointKey = key;
+
+    const knob = new THREE.Mesh(ctx.markerGeo, new THREE.MeshBasicMaterial({
+      color: on ? '#3ddc97' : '#4fc3d9',
+      transparent: true,
+      opacity: on ? 1 : 0.8,
+    }));
+    const knobRadius = (touch ? 0.018 : 0.012) * (on ? 1.3 : 1);
+    knob.scale.setScalar(knobRadius);
+    knob.position.copy(mid);
+    knob.renderOrder = 3;
+    knob.userData.pointKey = key;
+
+    // THE WHOLE LINE IS THE TARGET, not just the knob. An invisible box the
+    // length of the bay and far thicker than the line is the easiest thing on
+    // the product to hit, which is right: the alternative is asking somebody to
+    // tap a 12 mm bead on a phone. It is a child of the group, so `markerAt`
+    // finds it the same way it finds a dot's hit sphere.
+    const hit = new THREE.Mesh(ctx.spanGeo, ctx.hitMaterial);
+    hit.visible = false;
+    hit.scale.set(Math.max(knobRadius, radius * 6), len, Math.max(knobRadius, radius * 6));
+    hit.position.copy(mid);
+    hit.quaternion.copy(line.quaternion);
+    hit.userData.pointKey = key;
+    hit.userData.isHitBox = true;
+
+    group.add(line, knob, hit);
+    ctx.spanRoot.add(group);
+  }
+  return ctx.spanRoot.children.length;
 }
 
 /**
@@ -228,7 +361,7 @@ export function drawMarkers(ctx, points, {
  */
 export function markerAt(ctx, clientX, clientY) {
   const canvas = ctx?.renderer?.domElement;
-  if (!canvas || !ctx.markerRoot) return null;
+  if (!canvas || (!ctx.markerRoot && !ctx.spanRoot)) return null;
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return null;
 
@@ -240,8 +373,15 @@ export function markerAt(ctx, clientX, clientY) {
   ctx.raycaster.setFromCamera(ctx.pointer, ctx.camera);
 
   // The dot itself first, so an accurate press on a small dot beats a sloppy
-  // one on a big neighbour's hit box.
-  const direct = ctx.raycaster.intersectObjects(ctx.markerRoot.children, false);
+  // one on a big neighbour's hit box. The spacing lines are drawn meshes too,
+  // and they come AFTER the dots: while a part is being placed or moved the
+  // question on screen is about that part, and a line running behind a dot must
+  // not steal the press.
+  const drawn = [
+    ...ctx.markerRoot ? ctx.markerRoot.children : [],
+    ...ctx.spanRoot ? ctx.spanRoot.children.flatMap((g) => g.children.filter((c) => c.visible)) : [],
+  ];
+  const direct = ctx.raycaster.intersectObjects(drawn, false);
   if (direct.length) return direct[0].object;
 
   // Then the hit boxes, which are invisible and therefore skipped by a normal
@@ -250,8 +390,11 @@ export function markerAt(ctx, clientX, clientY) {
   // the DOT is returned rather than the box, so every caller downstream still
   // deals in the thing it can see.
   const boxes = [];
-  for (const dot of ctx.markerRoot.children) {
+  for (const dot of ctx.markerRoot?.children || []) {
     for (const child of dot.children) if (child.userData.isHitBox) boxes.push(child);
+  }
+  for (const line of ctx.spanRoot?.children || []) {
+    for (const child of line.children) if (child.userData.isHitBox) boxes.push(child);
   }
   if (!boxes.length) return null;
   const near = ctx.raycaster.intersectObjects(boxes, false);
@@ -349,8 +492,14 @@ export function dropTargets(assembly, components, transforms, instanceId, key) {
 export function hoverMarker(ctx, mesh) {
   const previous = ctx.hovered;
   if (previous === mesh) return false;
-  if (previous?.parent) previous.scale.setScalar(previous.userData.baseRadius);
-  if (mesh) mesh.scale.setScalar(mesh.userData.baseRadius * 1.8);
+  // A marker with no `baseRadius` is not a dot - a spacing line is a cylinder
+  // whose scale is its LENGTH, and setting all three from one number would
+  // collapse it to a bead. Guarded rather than filtered at the call site, so
+  // anything else added to the layer later cannot reintroduce this.
+  if (previous?.parent && previous.userData.baseRadius) {
+    previous.scale.setScalar(previous.userData.baseRadius);
+  }
+  if (mesh?.userData?.baseRadius) mesh.scale.setScalar(mesh.userData.baseRadius * 1.8);
   ctx.hovered = mesh || null;
   return true;
 }

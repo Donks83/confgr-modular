@@ -30,7 +30,7 @@ import {
   syncProduct, setGround, describeLayout, pickInstance,
 } from './product.js';
 import {
-  createMarkerLayer, drawMarkers, markerAt, hoverMarker,
+  createMarkerLayer, drawMarkers, drawSpacings, bayFromKey, markerAt, hoverMarker,
   clearGhost, showGhostAt, createGesture, MARKER_MODE,
   isCoarsePointer, DRAG_THRESHOLD_PX,
 } from './interact.js';
@@ -112,6 +112,22 @@ export default function Viewer({
    * }}
    */
   interaction = null,
+  /**
+   * The spacing lines between neighbouring ladders, from `baySpacings`.
+   *
+   * A separate prop rather than part of `interaction` because it is a separate
+   * question. The dots answer "where does THIS part go" and exist only while
+   * something is being placed or moved; a spacing line is a property of the
+   * run, and it is up to the caller whether to show it - `Guided` hides them
+   * while the dots are up, so the two never compete for a press.
+   *
+   * @type {null | {
+   *   spacings: Array<object>,      from the engine
+   *   activeBay: number|null,       the bay whose chooser is open
+   *   onBay: (bay:number) => void,  a line was clicked
+   * }}
+   */
+  spacing = null,
   onReady = null,
 }) {
   const mountRef = useRef(null);
@@ -127,6 +143,10 @@ export default function Viewer({
   // render-old copy of the caller's callbacks.
   const actRef = useRef(interaction);
   actRef.current = interaction;
+  // Same reason as actRef: the gesture is built once, and the spacing handler
+  // has to be the current one rather than the one that existed when it was.
+  const spacingRef = useRef(spacing);
+  spacingRef.current = spacing;
   // Whether this viewer has ever framed a product. Per instance rather than
   // per configuration id: in a guided flow the id changes on every tap, and
   // "have I shown this person a product yet" is the actual question.
@@ -182,6 +202,18 @@ export default function Viewer({
     });
     ctx.render();
   }, [interaction?.points, interaction?.mode, interaction?.pendingKey, interaction?.targeted]);
+
+  // ---------------------------------------------------------- the spacing lines
+  //
+  // Its own effect, because it changes on its own schedule: the lines move when
+  // the RUN changes and the dots change every time somebody picks a part up.
+  // Sharing one effect would redraw four cylinders on every pointer gesture.
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    drawSpacings(ctx, spacing?.spacings || [], { activeBay: spacing?.activeBay ?? null });
+    ctx.render();
+  }, [spacing?.spacings, spacing?.activeBay]);
 
   // --------------------------------------------------------------- the product
   useEffect(() => {
@@ -253,6 +285,15 @@ export default function Viewer({
 
     const ctx = ctxRef.current;
     if (!ctx) return;
+
+    // A SPACING LINE BEATS THE PART BEHIND IT. Without the pointer layer there
+    // is no gesture to ask, so this path has to make the same call the gesture
+    // makes: the line is a control drawn over the product, and a press that
+    // lands on one is about the gap rather than about the ladder behind it.
+    const marker = markerAt(ctx, e.clientX, e.clientY);
+    const bay = bayFromKey(marker?.userData?.pointKey);
+    if (bay != null) { spacing?.onBay?.(bay); return; }
+
     // null is a real answer: tapping the background is how a person puts a
     // part down, and it has to clear the selection rather than do nothing.
     onPick(pickInstance(ctx, e.clientX, e.clientY));
@@ -286,7 +327,15 @@ export default function Viewer({
     hitInstance: (x, y) => pickInstance(ctxRef.current, x, y),
     canDrag: (id) => (actRef.current?.canDrag?.(id) ?? { ok: false, reason: 'no-interaction' }),
     hooks: {
-      onPoint: (key, marker) => actRef.current?.onPoint?.(key, marker),
+      onPoint: (key, marker) => {
+        // The same precedence as the tap path above, in the one place the
+        // gesture routes a press on a marker. A spacing line and a dot are both
+        // markers as far as the gesture is concerned - it is deliberately
+        // ignorant of what they mean - so the meaning is decided here.
+        const bay = bayFromKey(key);
+        if (bay != null) { spacingRef.current?.onBay?.(bay); return; }
+        actRef.current?.onPoint?.(key, marker);
+      },
       onSelect: (id) => onPickRef.current?.(id),
       onDragStart: () => { ctxRef.current.controls.enabled = false; },
       onDragOver: (key, mesh, id) => {
@@ -305,7 +354,11 @@ export default function Viewer({
         ctx.render();
       },
       onDrop: (id, key) => {
-        if (key) actRef.current?.onMoved?.(id, key);
+        // A part cannot be dropped onto a spacing line. It should not be
+        // reachable - the lines are hidden while anything is being dragged -
+        // but a drop that silently addressed a bay as though it were a snap
+        // point is the kind of thing that only shows up as a part vanishing.
+        if (key && bayFromKey(key) == null) actRef.current?.onMoved?.(id, key);
       },
     },
   }), []);

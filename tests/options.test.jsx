@@ -17,7 +17,7 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import React from 'react';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 
 import Options from '../src/viewer/Options.jsx';
 import { MOUNTING } from '../src/engine/ar.js';
@@ -119,6 +119,87 @@ describe('what the panel offers', () => {
     expect(stepper('Bays').count).toBe('2');
     expect(stepper('Extra shelf').count).toBe('3');
     expect(stepper('Clothes rail').count).toBe('0');
+  });
+});
+
+// A run whose bays are different widths has no single size describing it, so
+// the engine hands over the union of every KIND any bay can take and a control
+// says "metal shelf" rather than "008563". Keyed on the part number, the count
+// and the note both went looking for a key that is no longer written, and the
+// steppers all showed zero while the product was carrying parts.
+describe('when the run is described by kinds rather than by one size', () => {
+  const adds = [
+    { kind: 'metal-shelf', componentId: SHELF, label: 'Extra shelf', max: 4, spans: true },
+    { kind: 'clothes-rail', componentId: RAIL, label: 'Clothes rail', max: 1, spans: true },
+  ];
+  const byKind = { ...choices, adds: { 'metal-shelf': 2 } };
+
+  it('counts by kind', () => {
+    draw({ adds, choices: byKind });
+    expect(stepper('Extra shelf').count).toBe('2');
+  });
+
+  it('greys a kind the frame cannot take, by kind', () => {
+    draw({
+      adds,
+      choices: byKind,
+      availability: { 'clothes-rail': { ok: false, kind: 'never', reason: 'not available on 200 mm deep frames' } },
+    });
+    expect(stepper('Clothes rail').note).toBe('not available on 200 mm deep frames');
+  });
+
+  it('puts the shortfall next to the kind that asked for it', () => {
+    // The engine refuses by PART - it is a 600 mm shelf that would not fit -
+    // and the control that asked is a kind. Without the kind on the refusal
+    // this note was computed and never shown.
+    draw({
+      adds,
+      choices: byKind,
+      refused: [{ componentId: SHELF, kind: 'metal-shelf', label: 'Extra shelf', placed: 2, asked: 4 }],
+    });
+    expect(stepper('Extra shelf').note).toBe('only 2 fit');
+  });
+
+  it('asks where by kind, so the engine can pick the length', () => {
+    const onPlace = vi.fn();
+    draw({ adds, choices: byKind, onPlace });
+    fireEvent.click(stepper('Extra shelf').plus);
+    expect(onPlace).toHaveBeenCalledWith('metal-shelf');
+  });
+});
+
+// The Width control shows the RUN's width and sets all of them. A bay set from
+// its own line in the view is an override on top, so with a 1200 bay and a 450
+// one the control still reads 900 - which without a word of explanation is
+// indistinguishable from a control that has stopped working.
+describe('when bays have been set one at a time', () => {
+  const help = () => [...document.querySelectorAll('.cfgo-help')].map((e) => e.textContent);
+
+  it('says nothing when every bay is the run\'s width', () => {
+    draw();
+    expect(help().some((t) => /set from the view/.test(t))).toBe(false);
+  });
+
+  it('counts the bays that carry a width of their own', () => {
+    draw({ choices: { ...choices, bays: 3, widths: { 0: 'w600', 2: 'w600' } } });
+    expect(help().some((t) => /^2 bays set from the view/.test(t))).toBe(true);
+  });
+
+  it('does not count a bay set to the width it already had', () => {
+    draw({ choices: { ...choices, bays: 3, widths: { 0: 'w900', 1: 'w600' } } });
+    expect(help().some((t) => /^1 bay set from the view/.test(t))).toBe(true);
+  });
+
+  // An override for bay 4 of a two-bay run is inert. Counting it would report
+  // more bays set than the product has.
+  it('ignores an override for a bay that is not there', () => {
+    draw({ choices: { ...choices, bays: 2, widths: { 5: 'w600' } } });
+    expect(help().some((t) => /set from the view/.test(t))).toBe(false);
+  });
+
+  it('warns that choosing here will set them all', () => {
+    draw({ choices: { ...choices, bays: 2, widths: { 1: 'w600' } } });
+    expect(help().some((t) => /Choosing here sets them all/.test(t))).toBe(true);
   });
 });
 

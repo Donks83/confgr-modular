@@ -24,10 +24,11 @@ import React, {
 import Viewer from './Viewer.jsx';
 import Options from './Options.jsx';
 import MovePanel from './MovePanel.jsx';
+import SpacingPanel from './SpacingPanel.jsx';
 import './options.css';
 import {
   buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent,
-  moveCandidates, movePoints, addPoints,
+  moveCandidates, movePoints, addPoints, baySpacings,
   slotKeyFor, frameIndexOf, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
 import { pointKey } from '../engine/attach.js';
@@ -146,6 +147,10 @@ export default function Guided({
   // The accessory waiting for a position: pressing + says "another one of
   // these", and the next tap on a dot says where. Null the rest of the time.
   const [placing, setPlacing] = useState(null);
+  // The bay whose spacing chooser is open, from tapping the line between two
+  // ladders. A POSITION in the run, not a part, which is why it is a number:
+  // bay 0 is a real bay and `null` has to mean "no chooser".
+  const [spacingBay, setSpacingBay] = useState(null);
   // The assembly the runtime drew, captured from onReady. Needed because the
   // drawn product's instance ids come from decoding the configuration id and
   // are not the builder's - see builderIdOf.
@@ -224,9 +229,21 @@ export default function Guided({
       // them - otherwise "make them all 905 mm" leaves the 2210 somebody put in
       // position 2 standing there contradicting the control that just said
       // otherwise.
-      const cleared = next.frameId && prev.frameId && next.frameId !== prev.frameId
+      let cleared = next.frameId && prev.frameId && next.frameId !== prev.frameId
         ? { ...next, frames: {} }
         : next;
+      // THE WIDTH CONTROL MEANS ALL OF THEM TOO, and for the same reason: a
+      // per-bay width is an override on top of the run's, so moving the run's
+      // has to clear them. Otherwise "make them all 600" leaves the 1200 bay
+      // somebody set from its own line standing there contradicting the control
+      // that just said otherwise.
+      //
+      // Deliberately NOT applied when the sizeId is unchanged, so setting one
+      // bay from its line - which sends the same sizeId back with a new
+      // `widths` - does not wipe the entry it just made.
+      if (cleared.sizeId && prev.sizeId && cleared.sizeId !== prev.sizeId) {
+        cleared = { ...cleared, widths: {} };
+      }
       return normaliseChoices(schema, cleared);
     });
   }, [schema]);
@@ -344,6 +361,53 @@ export default function Guided({
     return null;
   }, [built, components, placing, picked]);
 
+// -------------------------------------------------------------- the spacing
+  //
+  // Matt: "can we have a marker similar to the hot spot dots that is a line
+  // connecting two neighbouring ladders that you can click to choose the
+  // spacing between those ladders".
+  //
+  // HIDDEN WHILE THE DOTS ARE UP, which is the whole of how the two controls
+  // stay out of each other's way. A person placing a shelf is answering "where"
+  // and every mark on the product should be an answer to that; a line running
+  // across the bay would be one more thing to hit by mistake. It also means no
+  // drag can ever end on one, which is the failure the `onDrop` guard in Viewer
+  // exists to catch if this is ever relaxed.
+  const spacings = useMemo(() => {
+    if (built.error || placing || picked) return [];
+    try { return baySpacings(built, components); } catch { return []; }
+  }, [built, components, placing, picked]);
+
+  // The chooser can outlive the bay it was opened on - reduce the bay count
+  // with a chooser open and it would be asking about a gap that is no longer
+  // there - so the OPEN bay is derived from what exists rather than trusted.
+  const spacingFor = useMemo(
+    () => spacings.find((s) => s.bay === spacingBay) || null,
+    [spacings, spacingBay],
+  );
+
+  /** Set one bay's width, leaving every other bay as it is. */
+  const applySpacing = useCallback((option) => {
+    if (spacingBay == null) return;
+    setSpacingBay(null);
+    change({
+      ...built.choices,
+      widths: { ...built.choices.widths, [spacingBay]: option.id },
+    });
+  }, [spacingBay, built, change]);
+
+  const spacing = useMemo(() => ({
+    spacings,
+    activeBay: spacingFor ? spacingFor.bay : null,
+    onBay: (bay) => {
+      // Tapping the line that is already open closes it, the same as tapping
+      // the width it already has.
+      setPicked(null);
+      setPanelOpen(false);
+      setSpacingBay((prev) => (prev === bay ? null : bay));
+    },
+  }), [spacings, spacingFor]);
+
   // key -> the engine's own point, so a tap on a dot becomes an {instanceId,
   // snapId} record without asking a second question and getting a different
   // answer.
@@ -449,6 +513,7 @@ export default function Guided({
   const clearPointer = useCallback(() => {
     setPlacing(null);
     setPicked(null);
+    setSpacingBay(null);
   }, []);
 
   // A position that could not be honoured is FORGOTTEN rather than kept, or it
@@ -498,6 +563,7 @@ export default function Guided({
         selectable
         selectedId={picked}
         interaction={interaction}
+        spacing={spacing}
         onPick={(drawnId) => {
           const id = drawnId
             ? builderIdOf(built, drawnRef.current, drawnId)
@@ -506,6 +572,7 @@ export default function Guided({
           // adding a part, as well as how they put one down.
           if (!id) { clearPointer(); return; }
           setPlacing(null);
+          setSpacingBay(null);
           setPicked(id);
           // Opening the option sheet over a part somebody just tapped hides
           // the thing they are pointing at.
@@ -524,7 +591,7 @@ export default function Guided({
         type="button"
         className="cfgg-toggle"
         aria-expanded={panelOpen}
-        hidden={panelOpen || !!picked || !!placing}
+        hidden={panelOpen || !!picked || !!placing || !!spacingFor}
         onClick={() => setPanelOpen(true)}
       >
         Configure
@@ -549,6 +616,20 @@ export default function Guided({
             Cancel
           </button>
         </div>
+      )}
+
+      {/* Never both. The spacing lines are hidden while a part is selected, so
+          `spacingFor` cannot be set at the same time as `move` - but they draw
+          in the same corner, and two dialogs stacked there would be a bug that
+          only appears on a phone. */}
+      {spacingFor && !move && (
+        <SpacingPanel
+          bay={spacingFor.bay}
+          options={spacingFor.options}
+          centresMm={spacingFor.centresMm}
+          onChoose={applySpacing}
+          onClose={() => setSpacingBay(null)}
+        />
       )}
 
       {move && (

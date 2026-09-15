@@ -21,13 +21,14 @@ import React from 'react';
 
 /** One row of mutually exclusive options. */
 function Choice({
-  label, help, options, value, onChange,
+  label, help, note, options, value, onChange,
 }) {
   if (options.length < 2) return null;
   return (
     <div className="cfgo-group">
       <div className="cfgo-label">{label}</div>
       {help && <p className="cfgo-help">{help}</p>}
+      {note && <p className="cfgo-help">{note}</p>}
       <div className="cfgo-seg" role="radiogroup" aria-label={label}>
         {options.map((o) => (
           <button
@@ -127,6 +128,16 @@ export default function Options({
 
   const rows = adds || size.adds || [];
 
+  // How many bays carry a width of their own. Counted from the choices rather
+  // than from the built run, because this panel is deliberately given the
+  // choices and nothing else - it holds no state and asks the engine nothing.
+  // Clamped to the bays that exist, since an override for bay 4 of a two-bay
+  // run is inert and saying "3 bays set" about a two-bay product would be
+  // worse than saying nothing.
+  const setSeparately = Object.entries(choices.widths || {})
+    .filter(([bay, id]) => Number(bay) < choices.bays && id && id !== choices.sizeId)
+    .length;
+
   // What the engine could not place, by KIND, so a stepper can say so next to
   // itself rather than in a list somewhere else on the page. Keyed on the part
   // number it used to name the stepper; now the stepper is a kind, so both are
@@ -159,8 +170,18 @@ export default function Options({
         onChange={(id) => set({ variantId: id })}
       />
 
+      {/* SAYING WHY THE CONTROL LOOKS WRONG. It shows the RUN's width, which
+          is what it sets - "all of them" - and a bay set from its own line in
+          the view is an override on top. With three bays at 1200, 900 and 450
+          this control still reads 900, and without a line of explanation that
+          is indistinguishable from a control that has stopped working. Setting
+          it clears the overrides, which is what the sentence has to warn
+          about. */}
       <Choice
         label="Width"
+        note={setSeparately > 0
+          ? `${setSeparately} bay${setSeparately === 1 ? '' : 's'} set from the view. Choosing here sets them all.`
+          : null}
         options={variant.sizes.map((s) => ({ id: s.id, label: s.label }))}
         value={size.id}
         onChange={(id) => set({ sizeId: id })}
