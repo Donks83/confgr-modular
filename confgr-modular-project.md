@@ -3278,22 +3278,74 @@ Two things that fell out:
   will set them all. It does: changing the run's width clears the overrides, the
   same rule the Height control has followed since per-ladder types arrived.
 
+#### The colour, decided by Matt rather than adjusted by me
+
+The metallic fix made the steel measurably lighter and not enough, and
+rgb(27,27,27) is a 10% grey — there is nowhere further for it to go without
+moving the colour. There is a test whose only job is to stop that happening
+quietly, so the colour moved by being **asked**: 27, 45 and 68 rendered against
+the product, and **45** came back.
+
+It stays below the YouboXx plastic at 50, which is what *"slightly lighter grey
+for the plastic items (youboxX)"* asked for — but the gap is five points now
+rather than twenty-three, so there is a test saying the relation out loud.
+Raise the steel again and the plastic has to come with it.
+
+#### The starter shelf, which could not move because it was not a slot
+
+**"the bay does need a shelf but i have just noticed ... i cant select what
+height i want the starter shelf to be, its always on the bottom."**
+
+The second half of the sentence that began this section. The span was placed,
+the run was built on top of it, and nothing recorded where it went **because
+there was nothing to record**. `moveCandidates` then refused it by name — "that
+is a shelf holding the run together, change the width or the number of bays
+instead" — which was a true sentence about a thing nobody had made movable, not
+a fact about the product. That is the second time in this file a refusal has
+turned out to be a description of a gap.
+
+`span#<bay>`, keyed by POSITION for the same reason a frame is: changing that
+bay's width changes the PART, and it is still that bay's shelf. The recorded
+point is a rung of the **ladder**, so a 900 bay narrowed to 450 keeps the height
+it was put at.
+
+What stays refused is **deletion** — a bay with nothing joining its ladders is
+not a bay — and that lives in the panel's `canDelete`, alongside the same
+refusal for a ladder.
+
+Two things the probe found, and only one was in the code just written:
+
+- **`normaliseChoices` dropped every span record on the way IN.** `span#0` fell
+  through to the accessory rule, where the count of a kind called "span" is
+  zero. So the move was accepted, the rebuild reported neither a refusal nor a
+  drop, and the shelf was back on the bottom rung. Entirely silent, and the
+  reason the probe printed world positions rather than asserting on a return
+  value.
+- **The ladders hang off the span**, so lifting it lifts the next ladder —
+  unless levelling puts it back. It does: the frame has no recorded height of
+  its own, and auto-placement is already scored on being level with its kin. A
+  three-bay run with its first shelf at 455 mm keeps all four ladders on the
+  floor. Pinned now, because a run standing 455 mm in the air looks almost right
+  in a screenshot.
+
+The panel titles it "Bay 1 shelf" rather than "Metal shelf 900 mm": in a
+three-bay run that part number names three different shelves, and the panel is
+about to offer to move one of them.
+
 #### Verified in a real browser, not only in tests
 
 Three bays set to 1200, 900 and 450 from their own lines; the bill of materials
 listing 008564, 008563 and 008561 one each; the overall width reading 2640 mm;
-the shelf steppers offering 26 dots and placing by kind. Then deployed, and the
-same product opened from `confgr-youk.netlify.app`.
+the shelf steppers offering 26 dots and placing by kind. Then the bay's own
+shelf tapped and moved to 810 mm, with both ladders still on the floor and the
+bill of materials unchanged. Then deployed, and the same product opened from
+`confgr-youk.netlify.app`.
 
 **Still unconfirmed, and it is the same item as in §5.20, §5.23 and §5.25:**
 whether Quick Look and Scene Viewer accept these files on a real handset.
 
-**Still open from Matt's own list:** the starter shelf is pinned to the bottom
-rung and has no height control. That is the second half of the sentence that
-began this section, and it is the next piece.
-
-**812 tests** across 44 files (24 of them new this session: 19 in
-`tests/widths.test.js`, 9 in `tests/spacingPanel.test.jsx`, 6 in
+**823 tests** across 45 files (35 of them new this session: 19 in
+`tests/widths.test.js`, 10 in `tests/starterShelf.test.js`, 9 in `tests/spacingPanel.test.jsx`, 6 in
 `tests/spacing.test.js`, and the rest added to `tests/options.test.jsx`,
 `tests/availability.test.js` and `tests/materials.test.js`).
 
@@ -3673,11 +3725,16 @@ by tuning lights.
   the other greyed out a control the product can use. Both were silent.
 - **The width control looked broken** once bays differed, since it still showed
   the run's width. It now says how many bays were set from the view.
+- **"i cant select what height i want the starter shelf to be, its always on
+  the bottom"** — it was not a slot at all, so there was nothing to record and a
+  refusal in its place. `span#<bay>` now, keyed by position, and the ladders
+  stay on the floor when it moves because levelling was already doing that job.
+- **The steel colour came back from Matt**, not from me. Three renders, and 45
+  chose itself.
 
-Seven commits, 812 tests across 44 files, deployed to
-`confgr-youk.netlify.app`. Still unconfirmed: whether a real handset accepts the
-AR files. Still open from Matt's own sentence: the starter shelf is pinned to
-the bottom rung.
+Nine commits, 823 tests across 45 files, deployed to `confgr-youk.netlify.app`.
+Still unconfirmed, and it is now the only thing on Matt's original list that is:
+whether a real handset accepts the AR files.
 
 ### Session 8 — 10 September 2026
 
