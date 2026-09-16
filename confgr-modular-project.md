@@ -3350,6 +3350,118 @@ whether Quick Look and Scene Viewer accept these files on a real handset.
 `tests/availability.test.js` and `tests/materials.test.js`).
 
 
+### 5.27 Normals, and a confident note that was wrong twice
+
+**"parts of the model are fading to fully transparent when viewing in AR mode.
+and the model is still looking very flat there is no definition on edges or
+creases."** — Matt, on Android.
+
+Two complaints, one fault, and the fault had a note in the codebase explaining
+why it was not one.
+
+#### What was actually wrong
+
+Every part converted from STEP carries POSITION and indices and **no NORMAL**.
+Scene Viewer renders through Filament, which builds a tangent frame per vertex;
+a frame built from no normals is degenerate, and a degenerate frame in a PBR
+shader is a `normalize()` of a zero vector. Some of the range shades flat and
+some of it has no defined colour at all. Both of Matt's sentences are that.
+
+The two AR files were pulled apart before anything was changed, which is what
+made this quick: the **USDZ was already correct** — flat normals present,
+`subdivisionScheme = "none"`, `opacity = 1` — because `export-usdz.mjs` adds its
+own. Only the GLB had nothing. One question to Matt ("which phone?") turned a
+guess into a diagnosis.
+
+#### The note that argued against it, and both ways it was wrong
+
+`export-glb.mjs` carried a long, measured, confident explanation of why writing
+normals would be a mistake. It is quoted in full in its replacement, because
+this is the most useful kind of wrong.
+
+> *The glTF spec requires a viewer to compute flat normals when NORMAL is
+> absent, so writing them hands Scene Viewer something it is obliged to work out
+> for itself.*
+
+The specification does say that. **What a renderer ought to do and what one does
+are different claims**, and only the second was ever evidence. A phone was
+available the whole time; §5.20, §5.23 and §5.25 all end with the same admission
+that nothing had been tried on one.
+
+> *It triples the file.* — 7,466 vertices to 22,485 on one ladder.
+
+Measured correctly and generalised wrongly. That 3× is an artefact of the
+METHOD: `normals()` unwelds every triangle, because that is how flat normals are
+written. Splitting by **angle** instead costs **4%** more vertices across the
+whole range, because a CAD tessellation is already split at most of its hard
+edges — which nobody had looked at.
+
+#### How it splits
+
+`tools/add-normals.mjs` groups the faces meeting at a vertex when they agree to
+within 35 degrees, weights each by the angle it subtends at that vertex, and
+emits one vertex per group. So:
+
+- a 90-degree fold in pressed steel keeps a hard edge — two groups, two normals,
+  a visible crease;
+- the 36 facets round a tube stay one group and shade as a cylinder;
+- a vertex in the middle of a flat plate is not split at all.
+
+The grouping is a **union-find**, not a comparison against a representative. A
+ring of facets adds up to 360 degrees; no two neighbours differ by much, and
+only a transitive relation closes the ring. Compared pairwise against a
+representative it would break somewhere arbitrary and leave a seam a person can
+see.
+
+Angle-weighted rather than area-weighted: where a tessellator has cut one quad
+into a fat triangle and a thin one, the pair together votes like the quad did.
+
+#### It made the range smaller
+
+|                | before | after | |
+|---|---|---|---|
+| range          | 7,223,628 B | 9,206,996 B | +27% |
+| AR glb         | 433,800 B | 531,600 B | +23% |
+| AR usdz        | 4,576,400 B | 1,667,900 B | **−64%** |
+| whole bundle   | 9,308 kB | 7,416 kB | **−20%** |
+
+The USDZ fell by two thirds because `export-usdz.mjs` no longer has to unweld to
+invent its own — it skips any geometry that already has normals, and now every
+part arrives with them. **Doing it properly and doing it once was cheaper than
+not doing it at all**, which is the opposite of what the note predicted.
+
+#### Three faults on the way, two of them in this commit's own code
+
+- **7.2 MB to 18.2 MB on the first run.** Replacing an accessor leaves the old
+  one in the document, and glTF-Transform writes what the document holds rather
+  than what the scene reaches. The comment saying the old accessors were gone
+  was written before the `prune()` that removes them — the same class of mistake
+  as the comment in §5.24 that had described an intention for weeks.
+- **Every index written as Uint32.** The splitting works in `Uint32Array`
+  because it has to, before it knows how many vertices it will emit. At a 4%
+  split a part that indexed in 16 bits still does; writing them wide doubled
+  every index buffer in the range.
+- **The test tube was wound inside-out** and every normal pointed at the axis.
+  That is the tool being *right*: a normal's direction IS the winding, and one
+  that "corrected" it would be guessing which side of a surface somebody meant.
+  It stays as a test of its own rather than a quietly fixed fixture — and it is
+  the first thing to reach for if a part ever renders inside-out.
+
+#### Regenerating the range needs `declare` after `snap`
+
+Worth writing down because it cost a red test run: `add-snaps.py` rebuilds
+`<id>.glb` from `<id>.converted.glb`, which **drops the socket/plug roles**. Its
+own output says "Next: npm run declare youk", and skipping it turned 62 tests
+red at once with nothing obviously wrong in any of them. The order is
+convert → snap → declare → normals → materials.
+
+**12 new tests** in `tests/normals.test.js`, on a cube and a tessellated tube.
+835 in all.
+
+**Not yet confirmed on the phone that reported it**, which is the only thing
+that settles it — and the whole lesson of this section.
+
+
 ---
 
 ## 6. Roadmap
@@ -3732,9 +3844,17 @@ by tuning lights.
 - **The steel colour came back from Matt**, not from me. Three renders, and 45
   chose itself.
 
-Nine commits, 823 tests across 45 files, deployed to `confgr-youk.netlify.app`.
-Still unconfirmed, and it is now the only thing on Matt's original list that is:
-whether a real handset accepts the AR files.
+- **"parts of the model are fading to fully transparent ... no definition on
+  edges or creases"** — on Android, and it was one fault: no NORMAL attribute
+  anywhere in the range. Filament builds a tangent frame per vertex and a frame
+  built from nothing is a normalize() of a zero vector. `export-glb.mjs` had a
+  long note explaining why writing normals would be a mistake; it was wrong
+  twice, and doing it properly made the bundle 20% SMALLER. See §5.27.
+
+Eleven commits, 835 tests across 46 files, deployed to
+`confgr-youk.netlify.app`. Still unconfirmed, and §5.27 is the reason it now
+matters more than it did: nothing in this project has ever been tried on a real
+handset, and the one fault a handset found had been argued away in a comment.
 
 ### Session 8 — 10 September 2026
 

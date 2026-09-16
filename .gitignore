@@ -72,3 +72,5 @@ youk/officeclamp.png
 youk/officeclamptilt.png
 youk/officefeet.png
 .netlify/ 
+*.tmp.*  
+*.tmp.txt  
