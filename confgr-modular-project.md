@@ -3097,6 +3097,207 @@ itself is not.
 `tests/ladders.test.js`, 19 in `tests/gesture.test.js`, 14 in `tests/dots.test.js`,
 11 in `tests/sync.test.js`, 9 in `tests/touch.test.js`, 7 in
 `tests/availability.test.js`, and the rest across the engine, bundle and AR suites).
+### 5.26 Materials, a light room, and a bay that is its own width
+
+Matt used the deployed configurator on a phone and came back with a list. Two
+items were about how it looks, three about what it can do, and every one of them
+turned out to be a defect underneath rather than a preference.
+
+#### 80 of 80 parts had no material at all
+
+**"when i load it in AR is very bright and over exposed."**
+
+Kesseböhmer's STEP files carry no materials, and a glTF primitive with no
+material gets the format's **default** material: white, fully metallic, fully
+rough. So the whole range rendered as white chrome. In the app that reads as
+pale and flat. In AR, where the viewer supplies its own bright environment and a
+fully metallic surface answers with reflections of it, it blows out completely.
+That is one line of the glTF specification, not anything about the lighting, and
+no amount of tuning lights would have fixed it.
+
+`youk/material-spec.json` is now the authority, and `tools/add-materials.mjs`
+applies it: dark grey rgb(27,27,27) for steel, rgb(50,50,50) for the YouboXx
+plastic, and the colour `make-timber.py` already wrote for the boards. Matt's
+figures, in sRGB, the way a person reads them off a colour picker.
+
+**`baseColorFactor` is LINEAR**, which is the trap. 27/255 is 0.1059 as a
+fraction and **0.01096** once linearised — write the sRGB number straight in and
+the part comes out nearly ten times too bright, for a colour chosen precisely
+because everything was too bright. There is a test on the conversion, and it
+caught me writing 0.0111 where the real figure is 0.01096.
+
+No bump map, and not by choice: the converted meshes carry POSITION and nothing
+else, so there are no UVs to put a texture on. Generating UVs for 45 CAD parts
+is its own job. Roughness does the work instead.
+
+#### The steel then looked black, and the second reason was worse than the first
+
+In the app the metal went from white chrome to near-black. The environment was
+the first half: a metallic surface with **no environment map reflects the void**,
+so `scene.environment` is now a PMREM of three's own `RoomEnvironment`. That
+helped, and it was not enough.
+
+The second half is that **powder coat is not metal**. The spec said metallic
+0.85, which tells the renderer to answer light with reflections rather than to
+take it as shading — and a Kesseböhmer shelf is a dielectric with a thin dark
+paint film on it. At metallic 0.15 the key light lands on it and the part has
+visible form. The test that used to pin metallic between 0.5 and 1.0 was written
+for the first half of the same mistake; it now bounds the other side, with the
+physics in the comment rather than a number in an assertion.
+
+rgb(27,27,27) is **untouched**, because that is the figure Matt gave and there is
+a test whose whole job is to stop it being replaced with one I liked better. It
+may still not be light enough for him. That is a question about the colour, and
+the colour is his.
+
+#### A light build space, and the light coming from the other side
+
+**"is it possible to have the build space background light rather than in dark
+mode (not the menus just the 3d space background)"** and, earlier, **"the light
+direction definitely needs rotating 180 degrees"**.
+
+The background is `#efece7`, the grid two greys against it, the hemisphere
+ground warmer than the sky, and the key light moved from +x/+z to −x/−z. The
+menus are untouched: the request was specifically about the 3D space.
+
+#### The width control changed every bay, because there was one size for the run
+
+**"i can change the width but it changes the width of all bays and i cant select
+what height i want the starter shelf to be, its always on the bottom."**
+
+`choices.widths` now holds a size per bay index — the same shape as
+`choices.frames`, and for the same reason §5.25 gave: **the first bay is the
+first bay whatever parts happen to be in it**, so widening bay 2 does not move a
+shelf somebody hung in bay 1. `choices.sizeId` remains the run's width and the
+default for any bay nobody has touched, which keeps the Width control meaning
+what it has always meant: all of them.
+
+#### Which breaks what an "add" is called
+
+"008563-shelf-900mm" is a **900 bay's** shelf. In a run of mixed widths the
+button has to mean "a metal shelf" and let the bay decide the part number —
+which is exactly what Matt asked for: *"when we add a shelf (timber or metal)
+its automatically the correct length (it is also the correct version that is
+added to the bill of materials)"*.
+
+So every span and add in `youk/guided.json` now carries a **kind**. Seven of
+them: `metal-shelf`, `timber-shelf`, `clothes-rail` and `hook-strip-full` are
+width-dependent; `side-rack`, `hook-strip` and `youboxx` are one part whatever
+the bay. `tools/add-kinds.mjs` derives them and **refuses to run if one kind is
+described two different ways**. Links written with the old part-number keys
+still open: `normaliseChoices` migrates them.
+
+**The length is chosen by the geometry, not by bookkeeping.** Rather than work
+out which bay a point belongs to and then look a part up, the engine tries the
+candidates widest-first and lets the snaps answer. A 900 shelf does not reach
+across a 600 bay, so the joint checking that has refused bad placements since
+week one picks the length for nothing.
+
+#### Three faults the tests caught, and none of them were the ones I expected
+
+- **Defaulting kinds.** A schema with no kind at all lost every accessory: the
+  lookup returned null, the count was discarded, and the build came back as bare
+  ladders. Eleven guided tests went red at once. `parseGuided` now falls back to
+  `kind = componentId`.
+- **`widthOfComponent` called the side rack a 450 mm part.** It returned the
+  first size that offered a part, and the side rack is offered by all four
+  widths because it hangs off a ladder rather than spanning a bay. Not wrong by a
+  little — a category error, and it would have sorted the candidate list by a
+  number that means nothing. It now returns 0 unless exactly one size offers it.
+- **Two of my own test assumptions.** A regex meant to count ladders matched
+  `008563-shelf-900mm-for-ladder-depth-320mm` and found seven. And a test assumed
+  two spare shelves would spread across two bays when auto-placement fills the
+  wider bay twice — rewritten to assert the narrower, truer claim: a shelf put in
+  the 600 bay is a 600 shelf.
+
+#### `built.size` stopped describing the product, and two callers did not notice
+
+The subtler half. Once bays can differ, `built.size` is the Width control's
+answer and nothing more — and two functions were still reading `built.size.adds`
+as though it described the run.
+
+`moveCandidates` looked the tapped part up there to find out whether it must be
+held at both ends. A 600 mm shelf is in no 900 size's add list, so the lookup
+returned null, `mustBeHeld` went false, and the move list offered positions
+holding the shelf at one end. `buildGuided` then refuses those on the rebuild —
+**so the part springs back**, which is a failure `guided.js` already carries a
+comment about from the first time it happened.
+
+`addAvailability` had the matching fault in reverse: keyed on a part number, it
+greyed out a control the product can use. A clothes rail in a run of a 900 bay
+and a 450 one is available — in the 900 — and a kind is unavailable only when
+**every** length it can be is.
+
+`buildGuided` now returns `sizes` (one per bay) and `adds` (the union of every
+kind any bay can take), so nothing downstream recomputes them and gets a
+different answer.
+
+#### The line between two ladders
+
+**"can we have a marker similar to the hot spot dots that is a line connecting
+two neighbouring ladders that you can click to choose the spacing between those
+ladders (i cant remember the different distances they do but I know we have
+discussed it in the past)"**
+
+He should not have to remember them. The widths come off the variant — the same
+list the Width control draws from — so there is no second table of spacings
+anywhere, and there must never be one.
+
+**Why a line rather than another control in the panel.** A width control in a
+sheet has to say which bay it means, and in a run of four that is a number
+somebody has to map onto the product in front of them. A line drawn between the
+two ladders it governs **is** the bay, and tapping it is unambiguous even when
+three bays are already different widths.
+
+`baySpacings` reads the ladders' own **oriented** boxes and hangs the line along
+the top, on the front face, using `productFront` — so a run turned round in AR
+keeps its lines where somebody can see them. It reports `centresMm` **measured**,
+and that is not the size's label: a YouK 900 bay stands its ladders **920 mm**
+apart because the shelf overhangs the stiles. The panel shows both, because
+somebody planning a run against a wall needs the number that is true of the
+product rather than the one on the box.
+
+Drawn as a thin cylinder, not a `THREE.Line`: `linewidth` is ignored by every
+WebGL renderer that matters, so a Line is always one pixel — invisible on a phone
+and impossible to aim at. Its own group, because the lines change when the run
+changes and the dots change on every pointer gesture. The whole line is an
+invisible hit box, so it is the easiest thing on the product to hit.
+
+**The lines are hidden while a part is being placed or moved.** A person
+answering "where does this shelf go" should see only answers to that. It also
+means no drag can end on a line — `Viewer`'s `onDrop` guards that anyway, for the
+day somebody relaxes it.
+
+Two things that fell out:
+
+- `hoverMarker` set all three scales from `baseRadius`. A spacing line's scale
+  **is** its length, so hovering one would have collapsed it to a bead.
+- The Width control shows the run's width, so with bays at 1200, 900 and 450 it
+  still reads 900 — indistinguishable from a control that has stopped working.
+  It now says how many bays were set from the view, and warns that choosing here
+  will set them all. It does: changing the run's width clears the overrides, the
+  same rule the Height control has followed since per-ladder types arrived.
+
+#### Verified in a real browser, not only in tests
+
+Three bays set to 1200, 900 and 450 from their own lines; the bill of materials
+listing 008564, 008563 and 008561 one each; the overall width reading 2640 mm;
+the shelf steppers offering 26 dots and placing by kind. Then deployed, and the
+same product opened from `confgr-youk.netlify.app`.
+
+**Still unconfirmed, and it is the same item as in §5.20, §5.23 and §5.25:**
+whether Quick Look and Scene Viewer accept these files on a real handset.
+
+**Still open from Matt's own list:** the starter shelf is pinned to the bottom
+rung and has no height control. That is the second half of the sentence that
+began this section, and it is the next piece.
+
+**812 tests** across 44 files (24 of them new this session: 19 in
+`tests/widths.test.js`, 9 in `tests/spacingPanel.test.jsx`, 6 in
+`tests/spacing.test.js`, and the rest added to `tests/options.test.jsx`,
+`tests/availability.test.js` and `tests/materials.test.js`).
+
+
 ---
 
 ## 6. Roadmap
@@ -3444,6 +3645,39 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 9 — 15 September 2026
+
+**Matt was the loop again, and the two items that sounded like taste were both
+defects.** "Too bright and over exposed" in AR was 80 of 80 parts carrying no
+material at all, so the glTF default — white, fully metallic — was doing the
+rendering. "Too dark" afterwards was metallic 0.85 on a powder-coated shelf,
+which tells the renderer to answer with reflections of an environment that is
+mostly empty. Neither was a lighting problem and neither would have been fixed
+by tuning lights.
+
+- **"i can change the width but it changes the width of all bays"** — one size
+  described the whole run. `choices.widths` is now per bay, keyed by position,
+  the same shape the ladder types have used since §5.25.
+- **"when we add a shelf (timber or metal) its automatically the correct
+  length"** — which means a count of shelves can no longer name a part number.
+  Adds are counted by **kind**, seven of them, and the length is settled by the
+  joint checking that has refused bad placements since week one.
+- **"can we have a marker ... a line connecting two neighbouring ladders that
+  you can click to choose the spacing"** — `baySpacings` plus a marker layer of
+  its own. It reports the **measured** 920 mm centres of a 900 bay as well as
+  the label, because those are different numbers and only one of them was
+  measured.
+- **Two callers were still reading `built.size.adds`** as though one size
+  described the product. One would have let a shelf spring back after a move;
+  the other greyed out a control the product can use. Both were silent.
+- **The width control looked broken** once bays differed, since it still showed
+  the run's width. It now says how many bays were set from the view.
+
+Seven commits, 812 tests across 44 files, deployed to
+`confgr-youk.netlify.app`. Still unconfirmed: whether a real handset accepts the
+AR files. Still open from Matt's own sentence: the starter shelf is pinned to
+the bottom rung.
 
 ### Session 8 — 10 September 2026
 
