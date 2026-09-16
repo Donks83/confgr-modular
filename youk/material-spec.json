@@ -23,10 +23,10 @@
   "classes": {
     "metal": {
       "label": "Kesseboehmer steel, dark grey",
-      "srgb": [27, 27, 27],
+      "srgb": [45, 45, 45],
       "metallic": 0.15,
       "roughness": 0.5,
-      "note": "Matt's colour. POWDER COAT IS NOT METAL: a coated shelf is a dielectric with a thin dark paint film on it, and metallic 0.85 told the renderer to answer with reflections of an environment that is mostly empty - which is why it came out near-black however bright the lights were. At 0.15 the key light lands on it as diffuse shading and it reads as dark grey with visible form."
+      "note": "Matt's figure, revised. He gave 27,27,27 unseen and then said 'too dark' once it was rendering; shown 27, 45 and 68 side by side he chose 45. It stays below the YouboXx plastic at 50, which is what 'slightly lighter grey for the plastic items' asked for. POWDER COAT IS NOT METAL: a coated shelf is a dielectric with a thin dark paint film on it, and metallic 0.85 told the renderer to answer with reflections of an environment that is mostly empty - which is why it came out near-black however bright the lights were. At 0.15 the key light lands on it as diffuse shading and it reads as dark grey with visible form."
     },
     "plastic": {
       "label": "YouboXx, lighter grey",

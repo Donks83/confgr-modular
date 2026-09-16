@@ -64,8 +64,21 @@ describe.runIf(has)('which part is made of what', () => {
 
 describe.runIf(has)('the materials themselves', () => {
   it('uses the greys Matt gave, not ones chosen here', () => {
-    expect(spec.classes.metal.srgb).toEqual([27, 27, 27]);
+    // 27,27,27 was chosen unseen. With the range rendering he said it was too
+    // dark, was shown 27, 45 and 68 against the product, and picked 45. The
+    // point of this test is unchanged and it is the reason the figure moved
+    // by being ASKED rather than by being adjusted: three renders went to Matt
+    // and the number came back from him.
+    expect(spec.classes.metal.srgb).toEqual([45, 45, 45]);
     expect(spec.classes.plastic.srgb).toEqual([50, 50, 50]);
+  });
+
+  it('keeps the YouboXx plastic lighter than the steel', () => {
+    // "slightly lighter grey for the plastic items (youboxX)". It is the
+    // relation that was asked for, not the two numbers - and the gap is now
+    // five points rather than twenty-three, so raising the steel again means
+    // raising the plastic with it.
+    expect(spec.classes.plastic.srgb[0]).toBeGreaterThan(spec.classes.metal.srgb[0]);
   });
 
   it('does not leave plastic claiming to be metal', () => {
