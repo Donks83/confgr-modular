@@ -21,6 +21,7 @@
     "youk:snap": "tools\\.venv-step\\Scripts\\python tools/add-snaps.py youk --spec youk/snap-spec.json",
     "youk:sheet": "tools\\.venv-step\\Scripts\\python tools/contact-sheet.py youk -o youk/contact-sheet.png",
     "youk:bay": "powershell -ExecutionPolicy Bypass -File tools/probe-bay.ps1",
+    "youk:normals": "node tools/add-normals.mjs youk",
     "youk:catalogue": "node tools/make-catalogue.mjs youk",
     "youk:describe": "node tools/describe-glb.mjs youk",
     "youk:export": "node tools/export-glb.mjs youk",

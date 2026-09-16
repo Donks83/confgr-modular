@@ -212,29 +212,39 @@ export async function exportConfiguration(id, folder, outPath, { raw = false } =
   if (!raw) await out.transform(dedup(), prune());
   await out.transform(unpartition());
 
-  // NORMALS ARE DELIBERATELY NOT WRITTEN HERE, and it took a measurement to
-  // know that, because the range does not have any: all 80 YouK GLBs ship with
-  // no NORMAL attribute at all (`step-to-glb.py` and `make-timber.py` never
-  // wrote one; every synthetic test asset does).
+  // NORMALS ARE NOT WRITTEN HERE, and the reason has changed: they arrive
+  // already written. `tools/add-normals.mjs` puts them in at SOURCE, which is
+  // where the last note (kept below, because being wrong in public is the
+  // point) said they belonged all along.
   //
-  // The obvious fix is `normals()` in this chain, and it is wrong. Measured on
-  // one ladder:
+  // WHAT THAT NOTE GOT WRONG. It argued that writing normals was handing a
+  // viewer something the glTF specification obliges it to work out - flat face
+  // normals when NORMAL is absent - at three times the file size:
   //
   //     before   7,466 vertices   7,495 triangles   182,984 bytes
   //     after   22,485 vertices   7,495 triangles   544,428 bytes
   //
-  // 22,485 is 7,495 x 3 exactly - it UNWELDS, giving every triangle its own
-  // three vertices, which is how you write FLAT normals. And flat normals are
-  // precisely what the glTF spec already requires a viewer to compute when
-  // NORMAL is absent. So it triples the file to hand Scene Viewer something it
-  // would have worked out for itself, on a budget stated in megabytes.
+  // Both halves were wrong, and a phone settled it. Matt on Android: "parts of
+  // the model are fading to fully transparent ... there is no definition on
+  // edges or creases." Scene Viewer renders through Filament, which builds a
+  // tangent frame per vertex, and a frame built from no normals is degenerate -
+  // a normalize() of a zero vector. Some of it shades flat and some of it
+  // vanishes. What a renderer OUGHT to do and what one DOES are different
+  // claims, and only the second was ever evidence.
   //
-  // USDZ is the one consumer that does not fill them in - three's exporter
-  // warns "Normals missing" and omits them - so that is where the work belongs,
-  // in `export-usdz.mjs`, paid for once by the file that needs it.
+  // The 3x was an artefact of the method, not of normals. `normals()` unwelds
+  // every triangle because that is how you write FLAT ones. Splitting by ANGLE
+  // instead costs 4% more vertices across the whole range, because a CAD
+  // tessellation is already split at most of its hard edges. Measured:
   //
-  // The pipeline should still write normals at source; `inspect-model.mjs` says
-  // so on every part now.
+  //     range      7,223,628 -> 9,206,996 bytes   (+27%, normals included)
+  //     AR glb       433,800 ->   531,600 bytes   (+23%)
+  //     AR usdz    4,576,400 -> 1,667,900 bytes   (-64%)
+  //
+  // The USDZ got SMALLER by two thirds, because `export-usdz.mjs` no longer has
+  // to unweld to invent its own. The whole bundle came down from 9,308 kB to
+  // 7,416 kB. Doing it properly and doing it once was cheaper than not doing it
+  // at all.
 
   const bytes = await io.writeBinary(out);
   writeFileSync(outPath, Buffer.from(bytes));

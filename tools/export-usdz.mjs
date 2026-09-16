@@ -84,6 +84,14 @@ async function sceneFromGlb(bytes) {
  * only a real iPhone can settle it. If Quick Look turns out to render an
  * un-normaled mesh badly, `--normals` is the fix and the cost is known.
  *
+ * SINCE `tools/add-normals.mjs` THIS DOES NOTHING on the YouK range, and that
+ * is the best outcome available: it skips any geometry that already has a
+ * normal attribute, and every part now arrives with one. The USDZ went from
+ * 4,576 kB to 1,668 kB on the demo bay for exactly that reason - the source
+ * normals are angle-split rather than unwelded, so there are 4% more vertices
+ * instead of 300%. It stays as the fallback for a GLB that comes from
+ * somewhere else, which is what the tool has always accepted.
+ *
  * FLAT, not smooth, and the order of the two calls is the point.
  * `computeVertexNormals()` on INDEXED geometry averages the faces meeting at
  * each vertex, which rounds off every hard edge — on pressed steel that turns a
