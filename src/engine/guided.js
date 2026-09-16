@@ -488,6 +488,19 @@ export function normaliseChoices(schema, choices = {}) {
       continue;
     }
 
+    // A SPAN SLOT is a bay, so it is bounded by the bay count too. Without this
+    // branch it fell through to the accessory rule below, where the count of a
+    // kind called "span" is zero and every record was dropped on the way in -
+    // silently, which is how a move can be recorded, accepted, and have no
+    // effect at all. That is exactly what happened the first time this was
+    // wired up: the shelf went back to the bottom rung with nothing reported.
+    if (isSpanSlot(key)) {
+      const bay = spanBayOf(key);
+      if (!Number.isInteger(bay) || bay < 0 || bay >= bays) continue;
+      at[key] = kept;
+      continue;
+    }
+
     const hash = key.lastIndexOf('#');
     if (hash < 0) continue;
     const index = Number(key.slice(hash + 1));
@@ -550,21 +563,29 @@ export function moveCandidates(built, components, instanceId) {
   //
   //   an accessory  - move it, remove it
   //   a ladder      - change its type, change the height it hangs at
-  //   a span        - neither; it IS the bay, and taking one out would leave a
-  //                   run with a hole in it
+  //   a span        - move it; it IS the bay, so it cannot be removed
   //
   // Frames used to fall in with the spans and say "that is part of the frame,
   // change the size or the number of bays instead". Matt asked for the thing
-  // that answer refused, so a frame is now its own kind.
-  const kind = isFrameSlot(slot) ? 'frame' : (slot ? 'add' : 'span');
+  // that answer refused, so a frame is now its own kind - and then he asked for
+  // it again about the shelf: "i cant select what height i want the starter
+  // shelf to be, its always on the bottom".
+  //
+  // So a span MOVES like anything else and is refused only where the refusal is
+  // true: it cannot be removed, because a bay with nothing joining its ladders
+  // is not a bay. `canDelete` in the panel is what carries that, and the third
+  // branch here is a part with no slot at all - something on the product that
+  // no choice produced, which should not happen and is not a thing to offer
+  // moves for if it does.
+  const kind = isFrameSlot(slot) ? 'frame' : (isSpanSlot(slot) ? 'span' : (slot ? 'add' : null));
 
-  if (kind === 'span') {
+  if (!kind) {
     return {
       ok: false,
       slot: null,
-      kind,
+      kind: 'unknown',
       structural: true,
-      reason: 'That is a shelf holding the run together. Change the width or the number of bays instead.',
+      reason: 'That part is not one this product knows how to change.',
       candidates: [],
     };
   }
@@ -903,6 +924,30 @@ export const isFrameSlot = (slot) => typeof slot === 'string' && slot.startsWith
 
 /** Which position in the run, or null. */
 export const frameIndexOf = (slot) => (isFrameSlot(slot) ? Number(slot.slice('frame#'.length)) : null);
+
+/**
+ * The slot for the SHELF THAT MAKES a bay - the one joining its two ladders.
+ *
+ * Matt: "the bay does need a shelf but ... i cant select what height i want the
+ * starter shelf to be, its always on the bottom".
+ *
+ * It was not a slot at all before, which is why it could not move: it was
+ * placed, the run was built on top of it, and nothing recorded where it went
+ * because there was nothing to record. Keyed by POSITION for the same reason a
+ * frame is - changing the bay's width changes the PART, and it is still that
+ * bay's shelf, so keying it by component would lose the height every time the
+ * spacing changed.
+ *
+ * It is not an accessory slot either, and the difference is deletion: a bay
+ * with nothing joining its ladders is not a bay. See `moveCandidates`.
+ */
+export const spanSlotFor = (bay) => `span#${bay}`;
+
+/** Is this slot the shelf that makes a bay? */
+export const isSpanSlot = (slot) => typeof slot === 'string' && slot.startsWith('span#');
+
+/** Which bay's span, or null. */
+export const spanBayOf = (slot) => (isSpanSlot(slot) ? Number(slot.slice('span#'.length)) : null);
 
 /**
  * The builder's name for a part that was drawn from a configuration id.
@@ -1327,9 +1372,32 @@ export function buildGuided(schema, choices, components) {
     // that joins two ladders, so the part number chosen here is what sets the
     // spacing, and every later part in that bay has to match it.
     const baySize = sizeAt(variant, c, bay);
-    const span = autoAttach(assembly, components, baySize.span.componentId, {
+
+    // AND ITS OWN HEIGHT. Matt: "i cant select what height i want the starter
+    // shelf to be, its always on the bottom". It is a slot now, and the same
+    // two-step every other slot follows: honour what was recorded, and if the
+    // product has changed so much that the point is gone, put it back where the
+    // policy would have put it and SAY SO.
+    const spanKey = spanSlotFor(bay);
+    const spanRemembered = c.at?.[spanKey] || null;
+    const spanOpts = {
       instanceId: nextId(), catalogue, prefer: growingFrom, policy: PLACE.EXTEND,
-    });
+    };
+    let span = spanRemembered
+      ? autoAttach(assembly, components, baySize.span.componentId, {
+        ...spanOpts, at: spanRemembered,
+      })
+      : null;
+    if (span && !span.ok) {
+      dropped.push({
+        slot: spanKey, componentId: baySize.span.componentId, label: baySize.span.label, reason: span.reason,
+      });
+      span = null;
+    }
+    if (!span) {
+      span = autoAttach(assembly, components, baySize.span.componentId, spanOpts);
+    }
+
     if (!span.ok) {
       refused.push({
         componentId: baySize.span.componentId, label: baySize.span.label, reason: span.reason,
@@ -1338,6 +1406,12 @@ export function buildGuided(schema, choices, components) {
     }
     assembly = span.assembly;
     const spanId = assembly.instances[assembly.instances.length - 1].instanceId;
+    slots[spanId] = spanKey;
+    slotAt[spanKey] = {
+      instanceId: span.point.instanceId,
+      snapId: span.point.snapId,
+      mountSnapId: span.placement?.mountSnapId || null,
+    };
 
     const index = bay + 1;
     const frameId = frameIdAt(index);

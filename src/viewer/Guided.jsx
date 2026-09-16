@@ -29,7 +29,7 @@ import './options.css';
 import {
   buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent,
   moveCandidates, movePoints, addPoints, baySpacings,
-  slotKeyFor, frameIndexOf, builderIdOf, addAvailability, GuidedError,
+  slotKeyFor, frameIndexOf, spanBayOf, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
 import { pointKey } from '../engine/attach.js';
 import { MOUNTING } from '../engine/ar.js';
@@ -287,10 +287,16 @@ export default function Guided({
     // mostly-900 run called it by the 900 shelf's name, which is the same class
     // of mistake as the width control changing every bay: one size standing in
     // for a product that no longer has one.
-    const spanSize = (built.sizes || [])
+    const bay = spanBayOf(built.slots?.[picked]);
+    const spanSize = bay != null ? built.sizes?.[bay] : (built.sizes || [])
       .find((s) => s.span?.componentId === componentId) || size;
-    const label = r.kind === 'span' ? (spanSize?.span?.label || 'Shelf') : (add?.label || componentId);
-    return { ...r, componentId, label, types: [] };
+    // WHICH BAY'S SHELF, because in a three-bay run "Metal shelf 900 mm" is
+    // three different parts and the panel is about to offer to move one of
+    // them. Counted from one, the same as the ladders the spacing panel names.
+    const label = r.kind === 'span'
+      ? `Bay ${(bay ?? 0) + 1} shelf`
+      : (add?.label || componentId);
+    return { ...r, componentId, label, typeLabel: spanSize?.span?.label || null, types: [] };
   }, [picked, built, components, size, variant]);
 
   // WHICH LADDER STANDS HERE. Recorded against the POSITION rather than against
@@ -639,11 +645,12 @@ export default function Guided({
           types={move.types || []}
           reason={move.reason}
           structural={!!move.structural}
-          // A ladder is a POSITION in the run, not a copy of something, so it
-          // cannot be removed one at a time - the bay count is what decides how
-          // many there are. Offering "remove this one" would either take a bay
-          // out from the middle or do nothing.
-          canDelete={!!move.slot && move.kind !== 'frame'}
+          // A ladder is a POSITION in the run and a span IS the bay, so
+          // neither can be removed one at a time - the bay count is what
+          // decides how many there are. Offering "remove this one" would take
+          // a bay out from the middle, or leave two ladders with nothing
+          // joining them.
+          canDelete={!!move.slot && move.kind !== 'frame' && move.kind !== 'span'}
           onMove={applyMove}
           onType={applyType}
           onDelete={applyDelete}

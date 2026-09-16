@@ -202,17 +202,32 @@ describe('where a placed part can go instead', () => {
     expect(movePoints(built, components, frameId)).toEqual([]);
   });
 
-  // A span is the one thing that is still nobody's to move: it IS the bay, and
-  // taking it out would leave a run with a hole in it.
-  it('offers nothing for a span, and says what to change instead', () => {
+  // A span used to be the one thing nobody could move. Matt: "the bay does
+  // need a shelf but ... i cant select what height i want the starter shelf to
+  // be, its always on the bottom" - which is a request to move it, not to
+  // remove it. It moves now; what stays refused is DELETION, because a bay
+  // with nothing joining its ladders is not a bay, and that refusal lives in
+  // the panel's `canDelete` rather than here.
+  it('offers a span somewhere else to go, and still calls it a span', () => {
     const built = build();
     const span = built.assembly.instances
       .find((i) => i.componentId === built.size.span.componentId);
     const r = moveCandidates(built, components, span.instanceId);
-    expect(r.ok).toBe(false);
+    expect(r.ok).toBe(true);
     expect(r.kind).toBe('span');
-    expect(r.structural).toBe(true);
-    expect(r.reason).toMatch(/width|bays/i);
+    expect(r.slot).toBe('span#0');
+    expect(r.candidates.length).toBeGreaterThan(0);
+  });
+
+  // Every one of them, because a span is the thing that HOLDS the bay: an
+  // offered position where only one end is caught is a position `buildGuided`
+  // refuses on the rebuild, and the shelf springs back.
+  it('only offers a span positions where both ends are held', () => {
+    const built = build();
+    const span = built.assembly.instances
+      .find((i) => i.componentId === built.size.span.componentId);
+    const r = moveCandidates(built, components, span.instanceId);
+    for (const c of r.candidates) expect(c.held).toBe(c.heldOf);
   });
 
   it('offers nothing for a part that is not on the product', () => {
