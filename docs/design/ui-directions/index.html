@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three directions</title>
+<style>
+  :root { --ink: #1d1d1b; --ink-2: #5b5b57; --line: #e2e0db; --bg: #f7f6f3; --accent: #17705b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 "Roboto", "Segoe UI", system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  header { padding: 28px 32px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-weight: 300; font-size: 30px; }
+  header p { margin: 0 0 14px; color: var(--ink-2); max-width: 900px; }
+  .themes { display: inline-flex; border: 1px solid var(--line); background: #fff; }
+  .themes button { border: 0; background: none; padding: 10px 16px; font: inherit; cursor: pointer; }
+  .themes button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  section { max-width: 1500px; margin: 24px auto; padding: 24px 32px; background: #fff; border: 1px solid var(--line); }
+  section h2 { margin: 0; font-size: 22px; font-weight: 500; }
+  section h2 span { color: var(--accent); margin-right: 8px; }
+  .lede { color: var(--ink-2); margin: 4px 0 16px; max-width: 980px; }
+  .frames { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .frame { position: relative; overflow: hidden; border: 1px solid var(--line); background: #fff; flex: none; }
+  .frame iframe { border: 0; transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+  .desk { width: 768px; height: 480px; }   /* 1280 x 800 at 0.6 */
+  .desk iframe { width: 1280px; height: 800px; transform: scale(.6); }
+  .phone { width: 234px; height: 506px; border-radius: 22px; border: 6px solid #222; }  /* 390 x 844 at 0.6 */
+  .phone iframe { width: 390px; height: 844px; transform: scale(.6); }
+  .cap { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px; font-size: 14px; }
+  .notes h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-weight: 500; }
+  .notes ul { margin: 0; padding-left: 18px; }
+  a.open { color: var(--accent); }
+  footer { max-width: 1500px; margin: 0 auto 40px; padding: 0 32px; color: var(--ink-2); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Three directions for the customer configurator</h1>
+  <p>Each one is clickable. Change the size, add a shelf, press <b>Place…</b> to see the snap dots, tap the product to select a part, try undo (Ctrl+Z). Adding a <b>side rack</b> shows the "draft, not orderable" state you chose.
+     The product image is a real render of our own export, on the light build space. All three run on the same design tokens, so each can wear either theme:</p>
+  <div class="themes" role="group" aria-label="Theme">
+    <button data-theme="youk" aria-pressed="true">YouK-flavoured</button>
+    <button data-theme="confgr" aria-pressed="false">Neutral confgr</button>
+  </div>
+</header>
+
+<section>
+  <h2><span>A</span>Studio — product left, options right, a quiet catalogue page</h2>
+  <p class="lede">The closest to Kesseböhmer's own pages: square edges, light Roboto headings, a deep pine ink, generous white. Options are one scrolling column in the order you asked for (size → bays → shelves &amp; storage → accessories → mounting), with the price, the validity state and the call to action always pinned at the foot. On a phone the product stays pinned at the top and the options scroll under it.</p>
+  <div class="frames">
+    <div><div class="frame desk"><iframe data-d="a" title="Direction A, desktop"></iframe></div><div class="cap">Desktop 1280 × 800 · <a class="open" data-open="a" href="#">open full size</a></div></div>
+    <div><div class="frame phone"><iframe data-d="a" title="Direction A, phone"></iframe></div><div class="cap">Phone 390 × 844</div></div>
+  </div>
+  <div class="notes">
+    <div><h3>For</h3><ul><li>Everything visible at once; nothing hidden behind tabs</li><li>Price and validity can't be lost</li><li>Reads like a premium product page, not an app</li></ul></div>
+    <div><h3>Against</h3><ul><li>The stage loses 420 px on desktop</li><li>A long column once cabinets and desks are added</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <h2><span>B</span>Floating — the product is the whole screen</h2>
+  <p class="lede">Full-bleed stage; options in a floating card with one tab per group; price, validity, parts list and the call to action in one bar at the bottom. The parts list slides in from the right. On a phone the options become a bottom sheet over the stage, with the bar beneath — the shape the runtime has today, done properly.</p>
+  <div class="frames">
+    <div><div class="frame desk"><iframe data-d="b" title="Direction B, desktop"></iframe></div><div class="cap">Desktop 1280 × 800 · <a class="open" data-open="b" href="#">open full size</a></div></div>
+    <div><div class="frame phone"><iframe data-d="b" title="Direction B, phone"></iframe></div><div class="cap">Phone 390 × 844</div></div>
+  </div>
+  <div class="notes">
+    <div><h3>For</h3><ul><li>The biggest product view; best for AR and photos</li><li>Closest to today's runtime, so least to relearn</li><li>Scales to more groups as tabs</li></ul></div>
+    <div><h3>Against</h3><ul><li>Tabs hide groups — you can't scan everything at once</li><li>Floating panels compete with the product on small laptops</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <h2><span>C</span>Guided steps — one decision at a time, on a dark rail</h2>
+  <p class="lede">A step bar across the top (Size → Bays → Shelves &amp; storage → Accessories → Mounting → Review). The rail holds only the current step, with Back / Next; the review step is the parts list and the call to action. The rail is dark (pine in the YouK theme, today's charcoal in the neutral one), so the light build space reads as the hero.</p>
+  <div class="frames">
+    <div><div class="frame desk"><iframe data-d="c" title="Direction C, desktop"></iframe></div><div class="cap">Desktop 1280 × 800 · <a class="open" data-open="c" href="#">open full size</a></div></div>
+    <div><div class="frame phone"><iframe data-d="c" title="Direction C, phone"></iframe></div><div class="cap">Phone 390 × 844</div></div>
+  </div>
+  <div class="notes">
+    <div><h3>For</h3><ul><li>Easiest for a first-time customer; can't get lost</li><li>A natural review step before the quote</li><li>Fits a sales demo walked through on a call</li></ul></div>
+    <div><h3>Against</h3><ul><li>Slower for someone who knows what they want</li><li>Going back to change the size is a step away</li></ul></div>
+  </div>
+</section>
+
+<footer>Mockups only: no engine, a still render, made-up interactions. The decisions they should settle are layout, hierarchy and tone. Everything else (the snap dots, drag, the spacing lines, AR, the QR code) carries over whichever you pick. No Kesseböhmer logo or assets are used; the YouK theme borrows only a typeface family, square edges and a deep green ink.</footer>
+
+<script>
+  let theme = 'youk';
+  const load = () => document.querySelectorAll('iframe[data-d]').forEach((f) => { f.src = `direction.html?d=${f.dataset.d}&theme=${theme}`; });
+  document.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => {
+    theme = b.dataset.theme;
+    document.querySelectorAll('[data-theme]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    load();
+  }));
+  document.querySelectorAll('[data-open]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); window.open(`direction.html?d=${a.dataset.open}&theme=${theme}`, '_blank'); }));
+  load();
+</script>
+</body>
+</html>

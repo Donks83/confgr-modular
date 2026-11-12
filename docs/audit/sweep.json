@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-12T16:12:32.183Z",
+ "generated": "2026-11-12T16:55:16.234Z",
  "models": "D:\\Claude\\confgr-modular\\youk",
  "structures": 480,
  "counts": {
@@ -10,7 +10,7 @@
   "removes": 300,
   "stability": 360
  },
- "seconds": 484,
+ "seconds": 387,
  "findings": [
   {
    "oracle": "I1-panel-move-springs-back",
@@ -845,6 +845,165 @@
     "footHeightMm": 100
    },
    "ctx": "bare structure"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008561-shelf-450mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-450mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 337,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJzaWRlLXJhY2siOjIsImhvb2stc3RyaXAiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008562-shelf-600mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-600mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w600 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2",
+   "occurrences": 205,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MiwiaG9vay1zdHJpcCI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w600",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008563-shelf-900mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-900mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
+   "occurrences": 199,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "youboxx": 2,
+     "hook-strip-full": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008564-shelf-1200mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-1200mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2",
+   "occurrences": 199,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwiY2xvdGhlcy1yYWlsIjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w1200",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008531-clothes-rail-900mm (clothes-rail#0) and 008540-hook-strip-for-ladder-width-900mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
+   "occurrences": 83,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "youboxx": 2,
+     "hook-strip-full": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008532-clothes-rail-1200mm (clothes-rail#0) and 008541-hook-strip-for-ladder-width-1200mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2",
+   "occurrences": 59,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwiY2xvdGhlcy1yYWlsIjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w1200",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
   },
   {
    "oracle": "O6-dropped",

@@ -191,6 +191,39 @@ function checkProduct(built, choices, ctx = '') {
     }
   }
 
+  // O11 two parts in the same place. Found by rendering, not by any oracle: a
+  // metal and a timber shelf at the same rung of the same bay. Two coincident
+  // boards measure as a LAP (escape depth == the thinner board), so O5 and the
+  // engine's own survey both pass them. Compared by the space each occupies.
+  // Frames are left out: a ladder's box is a hollow rectangle, and a hook strip
+  // hung on a rung legitimately sits inside it.
+  const placed = assembly.instances.filter((i) => !frames.has(i.componentId))
+    .map((i) => ({ i, b: boxesFor(components.get(i.componentId), transforms.get(i.instanceId))[0] }))
+    .filter((p) => p.b);
+  for (let a = 0; a < placed.length; a += 1) {
+    for (let b = a + 1; b < placed.length; b += 1) {
+      const A = placed[a].b; const B = placed[b].b;
+      // World AABB of each oriented box, then the shared volume as a share of the
+      // smaller part. Parts here are only ever yawed, so the AABB is tight. Laps
+      // at a joint share a sliver; two shelves on one rung share most of the board.
+      const ext = (X) => [0, 1, 2].map((k) => X.axes.reduce((s, ax, i) => s + Math.abs(ax[k]) * X.half[i], 0));
+      const ea = ext(A); const eb = ext(B);
+      let shared = 1;
+      for (let k = 0; k < 3; k += 1) {
+        const lo = Math.max(A.centre[k] - ea[k], B.centre[k] - eb[k]);
+        const hi = Math.min(A.centre[k] + ea[k], B.centre[k] + eb[k]);
+        shared *= Math.max(0, hi - lo);
+      }
+      const vol = (e) => 8 * e[0] * e[1] * e[2];
+      if (shared / Math.min(vol(ea), vol(eb)) > 0.5) {
+        report('O11-two-parts-one-place', choices, {
+          key: `${placed[a].i.componentId}|${placed[b].i.componentId}`,
+          message: `${placed[a].i.componentId} (${slotOf(placed[a].i.instanceId)}) and ${placed[b].i.componentId} (${slotOf(placed[b].i.instanceId)}) occupy the same space at y ${mm(A.centre[1] - floorY)} mm — both on the bill of materials`,
+        }, { ctx });
+      }
+    }
+  }
+
   // O6 a choice that could not be honoured says so in words
   for (const r of built.refused || []) {
     report(r.reason ? 'O6-refused' : 'O6-refused-silently', choices, {

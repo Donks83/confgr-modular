@@ -201,6 +201,7 @@ of `metal-shelf#0` by its rung 1", not "from g6".
 | F04 d200 on feet | `mountingNeeds` on the frame family. The mounting control greys "Feet" for 200 mm with the reason; the d200 default becomes the floor (data fix) |
 | F05 quote while invalid | `quote.status` from the judge: a draft with its reasons |
 | F06 delete leaves cantilevers | contacts + supported-from-the-ground (§2) |
+| F23 two shelves on one rung | contacts again: a rung under a shelf's far end is **occupied**, because occupancy is read from contacts rather than from recorded joints. Plus the `notTwiceInOnePlace` rule widened from "same part" to "same space" |
 | F07 ladder springs back | addresses + dependency order (§4), and the property test |
 | F08, F09 dots that lie | dots filtered by the judge |
 | F10 parts jump on remove | auto-placed addresses recorded (§4) |
