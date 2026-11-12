@@ -96,7 +96,7 @@ export function impliedParts(assembly, components, options = {}) {
       i.instanceId, { translation: [0, 0, 0], rotation: [0, 0, 0, 1] },
     ]),
   );
-  const snaps = worldSnaps(assembly || { instances: [], connections: [] }, components, identity);
+  const snaps = worldSnaps(assembly || { instances: [], connections: [] }, components, identity, { byContact: false });
 
   // ---- The foot -----------------------------------------------------------
   //

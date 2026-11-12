@@ -339,7 +339,7 @@ export function resolveTransforms(assembly, components) {
  * nobody has chosen yet. Validity for a specific part comes from
  * placementsFor in grid.js.
  */
-export function worldSnaps(assembly, components, transforms) {
+export function worldSnaps(assembly, components, transforms, { byContact = true } = {}) {
   const spanOf = (instanceId, snapId) => {
     const instance = (assembly.instances || []).find((i) => i.instanceId === instanceId);
     const component = instance && components.get(instance.componentId);
@@ -450,7 +450,52 @@ export function worldSnaps(assembly, components, transforms) {
     }
   }
 
+  // OCCUPIED BY CONTACT, NOT ONLY BY A RECORDED JOINT (A1 F23, A2 §2).
+  //
+  // The connection graph is a tree, so a shelf spanning two ladders records the
+  // joint at ONE of them. The rung under its other end used to come out free -
+  // and the next shelf asked for took it, landing in exactly the same space as
+  // the first: a metal and a timber shelf on one rung, both on the bill of
+  // materials, in 1,082 of the audit's builds. Nothing else objected, because two
+  // coincident boards measure as a lap rather than a pass-through.
+  //
+  // So a socket and a plug that are actually touching - the same test
+  // supportedByGeometry has always used for "is there metal under this corner" -
+  // fill each other exactly as a recorded joint would, side and all.
+  //
+  // `byContact: false` is for callers that pass IDENTITY transforms on purpose
+  // (implied.js counts packers without resolving anything): with every part at
+  // the origin, everything would appear to touch everything.
+  if (byContact) {
+    const real = out.filter((s) => !s.isGridCell && s.role);
+    for (let i = 0; i < real.length; i += 1) {
+      const a = real[i];
+      if (a.role !== 'socket') continue;
+      for (let j = 0; j < real.length; j += 1) {
+        const b = real[j];
+        if (b.role !== 'plug' || b.instanceId === a.instanceId || !inContact(a, b)) continue;
+        const sideForA = sideFilledBy(b.instanceId, b.snapId);
+        const sideForB = sideFilledBy(a.instanceId, a.snapId);
+        for (const [s, side] of [[a, sideForA], [b, sideForB]]) {
+          if (!s.occupiedSides.includes(side)) s.occupiedSides.push(side);
+          s.occupied = true;
+        }
+      }
+    }
+  }
+
   return out;
+}
+
+/** Do two world snaps touch: same mask, opposite roles, within 1 mm, facing each other. */
+export function inContact(a, b) {
+  if (a.mask !== b.mask || a.role === b.role) return false;
+  const d = Math.hypot(
+    a.worldPosition[0] - b.worldPosition[0],
+    a.worldPosition[1] - b.worldPosition[1],
+    a.worldPosition[2] - b.worldPosition[2],
+  );
+  return d <= SUPPORT_TOLERANCE_M && dot(a.worldFacing, b.worldFacing) < -0.95;
 }
 
 /**
@@ -462,7 +507,7 @@ export function worldSnaps(assembly, components, transforms) {
 export function occupiedCellsFor(assembly, components, instanceId, gridId) {
   const all = worldSnaps(assembly, components, new Map(
     (assembly.instances || []).map((i) => [i.instanceId, IDENTITY]),
-  ));
+  ), { byContact: false });
 
   const set = new Set();
   for (const p of all) {
