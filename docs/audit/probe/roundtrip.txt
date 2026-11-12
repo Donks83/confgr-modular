@@ -1,0 +1,86 @@
+﻿node.exe : (node:92500) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() 
+instead.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:92500) [D...sign() instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[0] 
+[0]   VITE v5.4.21  ready in 385 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5174/
+[0]   ➜  Network: use --host to expose
+[1] 
+[1] [renderer:log] [vite] connecting... (client:495)
+[1] [renderer:log] [vite] connected. (client:618)
+[1] [renderer:warn] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold (chunk-NGODP64W.js?v=1a918c16:21551)
+[1] [renderer:error] %cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security
+[1]   Policy set or a policy with "unsafe-eval" enabled. This exposes users of
+[1]   this app to unnecessary security risks.
+[1] 
+[1] For more information and help, consult
+[1] https://electronjs.org/docs/tutorial/security.
+[1] This warning will not show up
+[1] once the app is packaged. (sandbox_bundle:2)
+[1] [click] part:008563 -> clicked part 008563-shelf-900mm-for-ladder-depth-320mm
+[1] [click] marker:0 -> clicked marker 0 of 8 at 985,681
+[1] [click] part:236758 -> clicked part 236758-ladder-depth-320mm
+[1] [click] marker:0 -> clicked marker 0 of 1 at 1130,745
+[1] [click] choose:0 -> chose md-snap.youk-d320.rung-1-left
+[1] [click] mount:feet -> mounting set to feet
+[1] [click] layout -> 5 instances
+[1] i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0  wall +z
+[1] i2 008563-shelf-900mm-for-ladder-depth-320mm @ 460.1,100.0,-0.0  wall +z
+[1] i3 236758-ladder-depth-320mm @ 920.1,0.0,-0.0  wall +z
+[1] implied:foot:i1:0 237023-adjustable-foot-100mm @ 0.0,-99.8,-100.0  wall +z
+[1] implied:foot:i3:0 237023-adjustable-foot-100mm @ 920.1,-99.8,-100.0  wall +z
+[1] 2 connections
+[1] i1:md-snap.youk-d320.rung-1-right -> i2:md-snap.youk-d320.mount-left
+[1] i2:md-snap.youk-d320.mount-right -> i3:md-snap.youk-d320.rung-1-left
+[1] [click] id -> be75bef0 eyJ2IjoxLCJtIjoiZmVldCIsImYiOjEwMCwiYyI6WyIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTYzLXNoZWxmLTkwMG1tLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iXSwicyI6WyJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH1dLCJuIjpbWzAsMCwxLDFdLFsxLDIsMiwzXV19
+[1] [click] reload -> round trip via be75bef0: loaded 3 parts, mounting feet
+[1] [click] layout -> 5 instances
+[1] p0 236758-ladder-depth-320mm @ 0.0,0.0,0.0  wall +z
+[1] p1 008563-shelf-900mm-for-ladder-depth-320mm @ 460.1,100.0,-0.0  wall +z
+[1] p2 236758-ladder-depth-320mm @ 920.1,0.0,-0.0  wall +z
+[1] implied:foot:p0:0 237023-adjustable-foot-100mm @ 0.0,-99.8,-100.0  wall +z
+[1] implied:foot:p2:0 237023-adjustable-foot-100mm @ 920.1,-99.8,-100.0  wall +z
+[1] 2 connections
+[1] p0:md-snap.youk-d320.rung-1-right -> p1:md-snap.youk-d320.mount-left
+[1] p1:md-snap.youk-d320.mount-right -> p2:md-snap.youk-d320.rung-1-left
+[1] [click] ground -> mounting=feet grid=true floor=true clearance=100mm floorY=-100mm ar=floor tris=34106 ready=true warnings=[]
+[1] [click] quote -> Bill of materials — 5 parts, 3 lines, priced at Retailer
+[1] Art.    Description                                Qty      Each     Total
+[1] 008563  YouK shelf 900 mm for ladder depth 320 mm    1         —         —
+[1] 236758  YouK ladder depth 320 mm, height 1500 mm     2         —         —
+[1] 
+[1] Included — not chosen:
+[1] 237023  YouK adjustable foot 100 mm                  2         —         —
+[1]         One adjustable foot per ladder, at the front — mounting instructions Foot.pdf.
+[1] 
+[1] Net: — (nothing on this list has a price on file)
+[1] 
+[1] 3 line(s) NOT PRICED — this quote is incomplete:
+[1]   1 x YouK shelf 900 mm for ladder depth 320 mm (no-price-on-file)
+[1]   2 x YouK ladder depth 320 mm, height 1500 mm (no-price-on-file)
+[1]   2 x YouK adjustable foot 100 mm (no-price-on-file)
+[1] 
+[1] To install — no part number on file, not in the total:
+[1]   4 wall fixings — Kesseböhmer's sheet specifies 8 × 50 plugs and a cover cap for each. Not supplied as a part number here; the installer chooses the fixing to suit the wall.
+[1] [click] collisions -> 2 overlapping pairs
+[1] 0 THROUGH — deeper than the thinner part is thick, so one did not stop at the other:
+[1]   (none)
+[1] 0 lapping, not joined — a span part over a frame it is not wired to, or a packer:
+[1]   (none)
+[1] 2 at a joint — expected, two parts bolted through each other:
+[1]   30.0 mm into 30.0 mm  p0 236758-ladder-depth-320mm
+[1]                             p1 008563-shelf-900mm-for-ladder-depth-320mm
+[1]   30.0 mm into 30.0 mm  p1 008563-shelf-900mm-for-ladder-depth-320mm
+[1]                             p2 236758-ladder-depth-320mm
+[1] [capture] canvas readback -> D:\Claude\confgr-modular\youk\roundtrip.png
+[1] wait-on tcp:5174 && electron . exited with code 0
+--> Sending SIGTERM to other processes..
+[0] vite exited with code 1
+

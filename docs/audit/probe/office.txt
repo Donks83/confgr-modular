@@ -1,0 +1,83 @@
+﻿node.exe : (node:43676) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() 
+instead.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:43676) [D...sign() instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[0] 
+[0]   VITE v5.4.21  ready in 385 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5174/
+[0]   ➜  Network: use --host to expose
+[1] 
+[1] [renderer:log] [vite] connecting... (client:495)
+[1] [renderer:log] [vite] connected. (client:618)
+[1] [renderer:warn] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold (chunk-NGODP64W.js?v=1a918c16:21551)
+[1] [renderer:error] %cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security
+[1]   Policy set or a policy with "unsafe-eval" enabled. This exposes users of
+[1]   this app to unnecessary security risks.
+[1] 
+[1] For more information and help, consult
+[1] https://electronjs.org/docs/tutorial/security.
+[1] This warning will not show up
+[1] once the app is packaged. (sandbox_bundle:2)
+[1] [click] part:008563 -> clicked part 008563-shelf-900mm-for-ladder-depth-320mm
+[1] [click] marker:0 -> clicked marker 0 of 8 at 985,681
+[1] [click] part:236758 -> clicked part 236758-ladder-depth-320mm
+[1] [click] marker:0 -> clicked marker 0 of 1 at 1130,745
+[1] [click] choose:0 -> chose md-snap.youk-d320.rung-1-left
+[1] [click] part:008551-base-brackets -> clicked part 008551-base-brackets-for-office-solution
+[1] [click] marker:0 -> clicked marker 0 of 8 at 849,401
+[1] [click] part:008551-base-brackets -> clicked part 008551-base-brackets-for-office-solution
+[1] [click] marker:4 -> clicked marker 4 of 7 at 1134,489
+[1] [click] part:008551-shelf-supports -> clicked part 008551-shelf-supports-for-office-solution
+[1] [click] marker:0 -> clicked marker 0 of 4 at 887,460
+[1] [click] choose:0 -> chose md-snap.youk-office-arm.bolt-flat
+[1] [click] part:008551-shelf-supports -> clicked part 008551-shelf-supports-for-office-solution
+[1] [click] marker:1 -> clicked marker 1 of 3 at 1094,590
+[1] [click] choose:0 -> chose md-snap.youk-office-arm.bolt-flat
+[1] [click] dump -> Anchored product. Click a marker to add a part, or pick a part and see where it fits. Both orders work. Drag a part onto another marker to move it — it can only land on a marker, never in open space. | Drag the background to orbit · right-drag or two fingers to pan · scroll to zoom | 7 parts, 6 joints, 24 open points | 4 wall fixings — Kesseböhmer's sheet specifies 8 × 50 plugs and a cover cap for each. Not supplied as a part number here; the installer chooses the fixing to suit the wall. | 34,226 triangles across 7 parts · in AR this goes on the floor | No prices on file yet | Not a quote yet — 4 lines with no price on file: YouK base brackets for office solution, YouK Shelf supports for office solution, YouK shelf 900 mm for ladder depth 320 mm, YouK ladder depth 320 mm, height 1500 mm. | Added 008551-shelf-supports-for-office-solution.
+[1] [click] part:pws-timber-desktop-900mm-d600mm -> clicked part pws-timber-desktop-900mm-d600mm
+[1] [click] marker:0 -> clicked marker 0 of 2 at 859,459
+[1] [click] choices -> 2 choices: md-snap.youk-desktop-d320.rest-left (running to the right), md-snap.youk-desktop-d320.rest-right (running to the left)
+[1] [click] choose:0 -> chose md-snap.youk-desktop-d320.rest-left
+[1] [click] dump -> Anchored product. Click a marker to add a part, or pick a part and see where it fits. Both orders work. Drag a part onto another marker to move it — it can only land on a marker, never in open space. | Drag the background to orbit · right-drag or two fingers to pan · scroll to zoom | 8 parts, 7 joints, 24 open points | 4 wall fixings — Kesseböhmer's sheet specifies 8 × 50 plugs and a cover cap for each. Not supplied as a part number here; the installer chooses the fixing to suit the wall. | 1 × 1.5 mm packer — 0 where a rung carries two parts bolted together, 1 between a bracket and what is laid on it. Supplied with the part in Kesseböhmer's kits; listed here so an installer can check they are there. | 34,246 triangles across 8 parts · in AR this goes on the floor | No prices on file yet | Not a quote yet — 5 lines with no price on file: YouK base brackets for office solution, YouK Shelf supports for office solution, YouK shelf 900 mm for ladder depth 320 mm, YouK ladder depth 320 mm, height 1500 mm, Timber office desktop 900 mm, 600 mm deep, 25 mm. | Added pws-timber-desktop-900mm-d600mm.
+[1] [click] layout -> 8 instances
+[1] i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0  wall +z
+[1] i2 008563-shelf-900mm-for-ladder-depth-320mm @ 460.1,100.0,-0.0  wall +z
+[1] i3 236758-ladder-depth-320mm @ 920.1,0.0,-0.0  wall +z
+[1] i4 008551-base-brackets-for-office-solution @ 3.6,511.5,-0.0  wall +z
+[1] i5 008551-base-brackets-for-office-solution @ 916.5,511.5,-0.0  wall -z
+[1] i6 008551-shelf-supports-for-office-solution @ 42.2,575.0,5.0  wall +z
+[1] i7 008551-shelf-supports-for-office-solution @ 877.9,575.0,-5.0  wall -z
+[1] i8 pws-timber-desktop-900mm-d600mm @ 460.1,626.5,-140.0  wall +z
+[1] 7 connections
+[1] i1:md-snap.youk-d320.rung-1-right -> i2:md-snap.youk-d320.mount-left
+[1] i2:md-snap.youk-d320.mount-right -> i3:md-snap.youk-d320.rung-1-left
+[1] i1:md-snap.youk-d320.rung-3-right -> i4:md-snap.youk-d320.mount
+[1] i3:md-snap.youk-d320.rung-3-left -> i5:md-snap.youk-d320.mount
+[1] i4:md-snap.youk-office-arm.arm-650 -> i6:md-snap.youk-office-arm.bolt-flat
+[1] i5:md-snap.youk-office-arm.arm-650 -> i7:md-snap.youk-office-arm.bolt-flat
+[1] i6:md-snap.youk-desktop-d320.carries -> i8:md-snap.youk-desktop-d320.rest-left
+[1] [click] collisions -> 4 overlapping pairs
+[1] 0 THROUGH — deeper than the thinner part is thick, so one did not stop at the other:
+[1]   (none)
+[1] 0 lapping, not joined — a span part over a frame it is not wired to, or a packer:
+[1]   (none)
+[1] 4 at a joint — expected, two parts bolted through each other:
+[1]   30.0 mm into 30.0 mm  i1 236758-ladder-depth-320mm
+[1]                             i2 008563-shelf-900mm-for-ladder-depth-320mm
+[1]   30.0 mm into 30.0 mm  i2 008563-shelf-900mm-for-ladder-depth-320mm
+[1]                             i3 236758-ladder-depth-320mm
+[1]   25.0 mm into 27.3 mm  i1 236758-ladder-depth-320mm
+[1]                             i4 008551-base-brackets-for-office-solution
+[1]   25.0 mm into 27.3 mm  i3 236758-ladder-depth-320mm
+[1]                             i5 008551-base-brackets-for-office-solution
+[1] [capture] canvas readback -> D:\Claude\confgr-modular\youk\office.png
+[1] wait-on tcp:5174 && electron . exited with code 0
+--> Sending SIGTERM to other processes..
+[0] vite exited with code 1
+
