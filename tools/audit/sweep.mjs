@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { loadFolder } from '../export-glb.mjs';
 import {
   parseGuided, defaultChoices, normaliseChoices, buildGuided,
-  moveOptions, moveCandidates, addPoints, addAvailability,
+  moveOptions, moveCandidates, addPoints, addAvailability, pinPositions,
 } from '../../src/engine/guided.js';
 import { resolveTransforms, snapSupport, validateAssembly } from '../../src/engine/assembly.js';
 import { overlaps, boxesFor } from '../../src/engine/collision.js';
@@ -54,6 +54,13 @@ if (failures.length) console.warn(`${failures.length} models failed to load:`, f
 const schema = parseGuided(JSON.parse(readFileSync(join(MODELS, 'guided.json'), 'utf8')));
 let catalogue = null;
 try { catalogue = JSON.parse(readFileSync(join(MODELS, 'catalogue.json'), 'utf8')); } catch { /* quote optional */ }
+// The range's rules, loaded the way the runtime loads them (A3). Without a rules
+// file the build still applies the physical defaults.
+let rules;
+try {
+  const { parseRules } = await import('../../src/engine/rules.js');
+  rules = parseRules(JSON.parse(readFileSync(join(MODELS, 'rules.json'), 'utf8')), { catalogue });
+} catch (err) { if (err.code !== 'ENOENT') throw err; }
 
 const findings = [];
 const counts = { builds: 0, moves: 0, dots: 0, adds: 0, removes: 0, stability: 0 };
@@ -240,7 +247,7 @@ function checkProduct(built, choices, ctx = '') {
 
   // O7 the configuration id gives back the same product
   try {
-    const r = resolveConfiguration(built.configurationId, components, { catalogue });
+    const r = resolveConfiguration(built.configurationId, components, { catalogue, rules });
     for (const [k, inst] of assembly.instances.entries()) {
       const a = transforms.get(inst.instanceId).translation;
       const b = r.transforms.get(r.assembly.instances[k]?.instanceId)?.translation;
@@ -258,7 +265,7 @@ function checkProduct(built, choices, ctx = '') {
       }, { ctx });
     }
     // O9 a quote is produced for an invalid product (Matt: it must be a draft)
-    if (r.quote && (!r.validity.isValid || (imp.refusals || []).length)) {
+    if (r.quote && r.quote.status !== 'draft' && (!r.validity.isValid || (imp.refusals || []).length || (r.judgement?.reasons || []).length)) {
       report('O9-quote-while-invalid', choices, {
         key: `${variant.id}|${!r.validity.isValid}|${(imp.refusals || []).length > 0}`,
         message: 'a full quote is produced for a product the engine knows is invalid or unbuildable',
@@ -286,7 +293,7 @@ function checkProduct(built, choices, ctx = '') {
 
 const build = (choices) => {
   counts.builds += 1;
-  return buildGuided(schema, choices, components);
+  return buildGuided(schema, choices, components, rules ? { rules } : {});
 };
 const instanceForSlot = (built, slot) => Object.entries(built.slots || {}).find(([, s]) => s === slot)?.[0];
 const posOf = (built, slot) => {
@@ -324,7 +331,8 @@ function sweepInteractions(built) {
     for (const [key, ghost] of ghostAt) {
       if (ghost.current) continue;
       counts.dots += 1;
-      const at = { instanceId: ghost.point.instanceId, snapId: ghost.point.snapId };
+      // What the runtime records since A3: the placement the ghost showed.
+      const at = ghost.at || { instanceId: ghost.point.instanceId, snapId: ghost.point.snapId };
       const choices = { ...base, at: { ...base.at, [slot]: at } };
       const after = build(choices);
       const p = posOf(after, slot);
@@ -374,7 +382,8 @@ function sweepRemovals(built) {
   for (const [kind, n] of Object.entries(base.adds || {})) {
     for (let i = 0; i < n; i += 1) {
       counts.removes += 1;
-      const choices = removeSlot(base, kind, i);
+      // As the runtime does since A3: pin everything else, then remove.
+      const choices = removeSlot(pinPositions ? pinPositions(built) : base, kind, i);
       const after = build(choices);
       checkProduct(after, choices, `after removing ${kind}#${i}`);
       // every OTHER add slot should keep its position (shifted index above the hole)

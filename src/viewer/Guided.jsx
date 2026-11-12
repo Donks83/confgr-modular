@@ -27,7 +27,7 @@ import MovePanel from './MovePanel.jsx';
 import SpacingPanel from './SpacingPanel.jsx';
 import './options.css';
 import {
-  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent,
+  buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent, pinPositions,
   moveCandidates, movePoints, addPoints, baySpacings,
   slotKeyFor, frameIndexOf, spanBayOf, builderIdOf, addAvailability, GuidedError,
 } from '../engine/guided.js';
@@ -50,8 +50,18 @@ export function removeSlot(choices, componentId, index) {
   const count = choices.adds?.[componentId] || 0;
   if (index < 0 || index >= count) return choices;
 
+  // A record may also NAME a slot of this kind as what it hangs from (A2 §4) -
+  // a ladder hung off the third shelf. Those names shift with the keys; one that
+  // named the removed slot is kept as written and the rebuild reports it dropped.
+  const shifted = (slot) => {
+    if (typeof slot !== 'string') return slot;
+    const h = slot.lastIndexOf('#');
+    const i = Number(slot.slice(h + 1));
+    return slot.slice(0, h) === componentId && i > index ? slotKeyFor(componentId, i - 1) : slot;
+  };
   const at = {};
-  for (const [key, ref] of Object.entries(choices.at || {})) {
+  for (const [key, raw] of Object.entries(choices.at || {})) {
+    const ref = raw?.slot ? { ...raw, slot: shifted(raw.slot) } : raw;
     const hash = key.lastIndexOf('#');
     const owner = key.slice(0, hash);
     const i = Number(key.slice(hash + 1));
@@ -118,6 +128,7 @@ export default function Guided({
   schema,
   components,
   catalogue = null,
+  rules = undefined,
   tierId = null,
   title = null,
   ar = null,
@@ -158,7 +169,7 @@ export default function Guided({
 
   const built = useMemo(() => {
     try {
-      return { ...buildGuided(schema, choices, components), error: null };
+      return { ...buildGuided(schema, choices, components, rules ? { rules } : {}), error: null };
     } catch (err) {
       // A schema naming parts that are not here is the one failure this cannot
       // work around, and it is named rather than swallowed: the alternative is
@@ -167,7 +178,7 @@ export default function Guided({
         error: err instanceof GuidedError ? err.message : `Could not build this: ${err.message}`,
       };
     }
-  }, [schema, choices, components]);
+  }, [schema, choices, components, rules]);
 
   const variant = useMemo(() => {
     try { return variantOf(schema, choices); } catch { return null; }
@@ -322,8 +333,10 @@ export default function Guided({
   const applyDelete = useCallback(() => {
     if (!move?.slot) return;
     const hash = move.slot.lastIndexOf('#');
+    // Pin everything else where it is first (A1 F10): otherwise the rebuild
+    // re-places parts nobody moved, and removing one shelf moved another.
     change(removeSlot(
-      built.choices,
+      pinPositions(built),
       move.slot.slice(0, hash),
       Number(move.slot.slice(hash + 1)),
     ));
@@ -453,7 +466,9 @@ export default function Guided({
       // `n`, counting from zero.
       at: {
         ...built.choices.at,
-        [slotKeyFor(kind, index)]: { instanceId: point.instanceId, snapId: point.snapId },
+        // The SLOT the dot belongs to as well as the instance (A2 §4), so the
+        // record survives a rebuild that numbers instances differently.
+        [slotKeyFor(kind, index)]: { instanceId: point.instanceId, slot: built.slots?.[point.instanceId] || null, snapId: point.snapId },
       },
     });
   }, [placing, built, change]);
@@ -462,14 +477,20 @@ export default function Guided({
   const moveTo = useCallback((point) => {
     const slot = built.slots?.[picked];
     if (!slot || !point) return;
+    // RECORD WHAT THE GHOST SHOWED (A1 I2). A point is not always a position: a
+    // ladder offered at a shelf's free end can mate by any of its rungs, and the
+    // ghost drew ONE of them. Recording only {instanceId, snapId} let the rebuild
+    // choose a different rung, so the part landed somewhere other than where it
+    // was previewed. The candidate carries the rung (mountSnapId) - record it.
+    const shown = candidates.get(pointKey(point));
     change({
       ...built.choices,
       at: {
         ...built.choices.at,
-        [slot]: { instanceId: point.instanceId, snapId: point.snapId },
+        [slot]: shown?.at || { instanceId: point.instanceId, snapId: point.snapId },
       },
     });
-  }, [picked, built, change]);
+  }, [picked, built, change, candidates]);
 
   const interaction = useMemo(() => {
     if (!dots) return null;

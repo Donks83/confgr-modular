@@ -32,17 +32,31 @@ import { loadFolder } from '../tools/export-glb.mjs';
 const YOUK = join(process.cwd(), 'youk');
 
 let schema;
+let faulty;
 let components;
 
 beforeAll(() => {
-  schema = parseGuided(JSON.parse(readFileSync(join(YOUK, 'guided.json'), 'utf8')));
+  const raw = JSON.parse(readFileSync(join(YOUK, 'guided.json'), 'utf8'));
+  schema = parseGuided(raw);
+  // THE FAULT THIS FILE IS ABOUT, kept as a fixture. A3 took the two 320 mm parts
+  // out of the real schema's 200 mm sizes (A1 F13), which is the fix for YouK -
+  // but the next range's schema will make the same mistake, and the mechanism
+  // that greys such a control with a reason must keep working. So these tests
+  // put the faulty listing back, in a copy, rather than lose what they prove.
+  const copy = JSON.parse(JSON.stringify(raw));
+  const d320w900 = copy.variants.find((v) => v.id === 'd320').sizes.find((x) => x.id === 'w900');
+  const d200w900 = copy.variants.find((v) => v.id === 'd200').sizes.find((x) => x.id === 'w900');
+  for (const kind of ['clothes-rail', 'hook-strip-full']) {
+    if (!d200w900.adds.some((a) => a.kind === kind)) d200w900.adds.push(d320w900.adds.find((a) => a.kind === kind));
+  }
+  faulty = parseGuided(copy);
   ({ components } = loadFolder(YOUK));
 });
 
-const build = (patch) => {
-  const variant = schema.variants.find((v) => v.id === (patch.variantId ?? 'd320'));
+const build = (patch, using = schema) => {
+  const variant = using.variants.find((v) => v.id === (patch.variantId ?? 'd320'));
   const frame = variant.frames.find((f) => f.default) || variant.frames[0];
-  return buildGuided(schema, {
+  return buildGuided(using, {
     ...defaultChoices(schema),
     frameId: frame.componentId,
     bays: 1,
@@ -60,7 +74,7 @@ describe('what a frame can take', () => {
   });
 
   it('reports the clothes rail as never available on 200 mm frames', () => {
-    const built = build({ variantId: 'd200', sizeId: 'w900' });
+    const built = build({ variantId: 'd200', sizeId: 'w900' }, faulty);
     const avail = addAvailability(built, components);
     const rail = avail['clothes-rail'];
     expect(rail.ok).toBe(false);
@@ -71,7 +85,7 @@ describe('what a frame can take', () => {
   // is exactly what the first version of this said, because the engine's
   // explanation is a string and was being read as an object.
   it('phrases it against the frame rather than against the product', () => {
-    const built = build({ variantId: 'd200', sizeId: 'w900' });
+    const built = build({ variantId: 'd200', sizeId: 'w900' }, faulty);
     const avail = addAvailability(built, components);
     const rail = avail['clothes-rail'];
     expect(rail.reason).toMatch(/200 mm deep/);
@@ -79,7 +93,7 @@ describe('what a frame can take', () => {
   });
 
   it('finds both of the parts the sweep found, and no others', () => {
-    const built = build({ variantId: 'd200', sizeId: 'w900' });
+    const built = build({ variantId: 'd200', sizeId: 'w900' }, faulty);
     const avail = addAvailability(built, components);
     const bad = Object.entries(avail).filter(([, a]) => !a.ok).map(([id]) => id).sort();
     // AS KINDS, and the count is the same two: on a 200 mm ladder neither the
@@ -120,6 +134,17 @@ describe('what a frame can take', () => {
   it('says nothing at all rather than greying everything when it cannot ask', () => {
     const avail = addAvailability({ size: { adds: [{ componentId: 'x' }] }, assembly: null }, components);
     expect(avail).toEqual({});
+  });
+
+  // A1 F13: the real schema offers nothing that can never be placed.
+  it('offers no control in the real schema that can never be used', () => {
+    for (const variant of schema.variants) {
+      for (const size of variant.sizes) {
+        const avail = addAvailability(build({ variantId: variant.id, sizeId: size.id }), components);
+        const never = Object.entries(avail).filter(([, a]) => a.kind === 'never').map(([k]) => `${variant.id}/${size.id}/${k}`);
+        expect(never).toEqual([]);
+      }
+    }
   });
 
   it('answers for every variant and size without throwing', () => {

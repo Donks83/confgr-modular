@@ -32,6 +32,8 @@
 // It is also what makes this reusable. The next client's range gets its own
 // schema; nothing in this file mentions YouK.
 
+import { judge, introduced } from './judge.js';
+import { DEFAULT_RULES } from './rules.js';
 import {
   attachMatrix, pointsForComponent, placementsAt, distinctPlacements,
   livePoints, pointKey,
@@ -443,7 +445,13 @@ export function normaliseChoices(schema, choices = {}) {
     if (n > 0) adds[kind] = Math.max(adds[kind] || 0, n);
   }
 
-  const mounting = isMounting(choices.mounting) ? choices.mounting : MOUNTING.FLOOR;
+  // A mounting the variant does not offer is read as its default (A1 F04): a
+  // link asking for 200 mm ladders on feet opens standing on the floor, because
+  // those ladders have no fixing for a foot.
+  const mountingAsked = isMounting(choices.mounting) ? choices.mounting : MOUNTING.FLOOR;
+  const offered = variant.mountings?.length ? variant.mountings : null;
+  const mounting = !offered || offered.includes(mountingAsked)
+    ? mountingAsked : (offered.includes(variant.defaultMounting) ? variant.defaultMounting : offered[0]);
   const footHeightMm = FOOT.heightsMm.includes(choices.footHeightMm)
     ? choices.footHeightMm : FOOT.heightsMm[0];
 
@@ -476,6 +484,10 @@ export function normaliseChoices(schema, choices = {}) {
     // Which of the part's own snaps mates. Optional, because most parts have
     // one sensible mount and every record written before it existed omits it.
     if (ref.mountSnapId) kept.mountSnapId = String(ref.mountSnapId);
+    // The SLOT the record hangs from (A2 §4). Kept here or the whole of the
+    // address fix is undone on the way in - the same silent drop §5.26 found
+    // for span records.
+    if (ref.slot && /^[\w.-]+#\d+$/.test(String(ref.slot))) kept.slot = String(ref.slot);
 
     // A FRAME SLOT is a position in the run, not a copy of a component, so it
     // is bounded by the bay count rather than by an accessory's count. Position
@@ -653,6 +665,8 @@ export function moveCandidates(built, components, instanceId) {
     if (!s) continue;
     if (mustBeHeld && s.met < s.total) continue;
     if (floorY !== null && s.worldY < floorY - FLOOR_TOLERANCE_M) continue;
+    // The same judge the build used, so an offered move is one the rebuild keeps.
+    if (built.judgeMove && built.judgeMove(built.assembly, moved).length) continue;
 
     const t = s.transforms.get(instanceId);
     candidates.push({
@@ -664,6 +678,9 @@ export function moveCandidates(built, components, instanceId) {
       pose: t,
       at: {
         instanceId: placement.point.instanceId,
+        // The SLOT it hangs from, so the record survives a rebuild that numbers
+        // instances differently (A2 §4).
+        slot: built.slots?.[placement.point.instanceId] || null,
         snapId: placement.point.snapId,
         // Two candidates can share a point and differ only by which of the
         // part's own snaps mates - which for a ladder is the difference between
@@ -777,7 +794,20 @@ export function addPoints(built, components, kind) {
     for (const id of catalogue) {
       for (const p of pointsForComponent(matrix, id)) allowed.add(p.pointKey);
     }
-    return livePoints(matrix).filter((p) => allowed.has(pointKey(p)));
+    // A DOT IS A PROMISE (A1 F08, F09). The matrix says what could JOIN here;
+    // the rebuild also asks whether it is held, clashes, or breaks a rule - and
+    // when it said no, the part went somewhere else and the dot had lied. So a
+    // dot is offered only where placing this kind there is what the rebuild
+    // would actually keep: the same tryCandidates, narrowed to the point, with
+    // the same judge.
+    const add = (built.adds || []).find((a) => a.kind === kind);
+    return livePoints(matrix).filter((p) => {
+      if (!allowed.has(pointKey(p))) return false;
+      const r = tryCandidates(built.assembly, components, catalogue, {
+        instanceId: '__dot', catalogue, policy: PLACE.FILL, requireFullyHeld: !!add?.spans, judge: built.judge, at: p,
+      });
+      return r.ok && r.point.instanceId === p.instanceId && r.point.snapId === p.snapId;
+    });
   } catch {
     return [];
   }
@@ -1107,6 +1137,7 @@ export const PLACE = { EXTEND: 'extend', FILL: 'fill' };
 export function autoAttach(assembly, components, componentId, {
   instanceId, catalogue = null, prefer = null, policy = PLACE.FILL,
   requireFullyHeld = false, explain = false, at = null, kin = null,
+  judge = null, order = 'lowest', avoid = null,
 } = {}) {
   const list = catalogue || [componentId];
 
@@ -1136,6 +1167,13 @@ export function autoAttach(assembly, components, componentId, {
   // Refused rather than silently auto-placed if the point has gone - reducing
   // the bays can remove the frame a rail was hung on - because the caller has
   // to know its record is stale in order to drop it.
+  // POINTS A MOVED PART IS WAITING FOR (A3, sweep I5). A part the customer put
+  // somewhere wins over one the policy is placing, so auto-placement goes round
+  // the points recorded parts still have to take, rather than taking one first
+  // and leaving the moved part to be dropped.
+  if (!at && avoid?.size) {
+    points = points.filter((p) => !avoid.has(`${p.point.instanceId}::${p.point.snapId}`));
+  }
   if (at) {
     points = points.filter(
       (p) => p.point.instanceId === at.instanceId && p.point.snapId === at.snapId,
@@ -1201,6 +1239,7 @@ export function autoAttach(assembly, components, componentId, {
   })();
 
   let tried = 0;
+  let judged = null;
   const scored = [];
 
   for (const point of points) {
@@ -1225,6 +1264,13 @@ export function autoAttach(assembly, components, componentId, {
       // set - are exactly the parts the schema does not mark, and they keep
       // working because the requirement is per part rather than global.
       if (requireFullyHeld && s.met < s.total) continue;
+      // THE JUDGE (A2 §3): does putting THIS here break a rule - under the floor,
+      // a span held at one end, two parts in one space. Asked of the hypothetical
+      // product, so the reason is about this placement and nothing else.
+      if (judge) {
+        const why = judge(next, instanceId);
+        if (why.length) { judged = judged || why[0]; continue; }
+      }
       scored.push({
         assembly: next,
         placement,
@@ -1239,6 +1285,11 @@ export function autoAttach(assembly, components, componentId, {
     }
   }
 
+  if (!scored.length && judged) {
+    // Every place it could go breaks a rule - and the rule's own sentence says
+    // which, rather than "every position is taken" when none of them is.
+    return { ok: false, reason: judged.says, judged };
+  }
   if (!scored.length) {
     return {
       ok: false,
@@ -1262,7 +1313,9 @@ export function autoAttach(assembly, components, componentId, {
   scored.sort((a, b) => (b.preferred - a.preferred)
     || (sign * (a.held - b.held))
     || (a.levelDelta - b.levelDelta)
-    || (a.worldY - b.worldY));
+    // Lowest first stacks repeats upward, which is right for shelves. A range
+    // may prefer the highest for a kind (YouK: the clothes rail, Matt 12 Nov 2026).
+    || (order === 'highest' ? b.worldY - a.worldY : a.worldY - b.worldY));
 
   const best = scored[0];
   return {
@@ -1300,8 +1353,64 @@ export function autoAttach(assembly, components, componentId, {
  * configurator that quietly ignores a control is indistinguishable from one
  * that is broken - the same rule the quote follows with a missing price.
  */
-export function buildGuided(schema, choices, components) {
+/**
+ * Re-hang a part already in the product at a recorded point, carrying whatever
+ * hangs from it - exactly the move the panel offered (see moveCandidates).
+ */
+function rehang(assembly, components, instanceId, at, judgeMove) {
+  const instance = assembly.instances.find((i) => i.instanceId === instanceId);
+  if (!instance || !canMove(assembly, instanceId).ok) return { ok: false, reason: 'That part cannot be moved.' };
+  const { transforms } = resolveTransforms(assembly, components);
+  const { placements } = moveTargets(assembly, components, transforms, instanceId, {});
+  const here = placements.filter((p) => p.componentId === instance.componentId
+    && p.point.instanceId === at.instanceId && p.point.snapId === at.snapId
+    && (!at.mountSnapId || p.mountSnapId === at.mountSnapId));
+  let why = null;
+  for (const placement of distinctPlacements(assembly, components, here)) {
+    let next;
+    try { next = moveTo(assembly, instanceId, placement); } catch { continue; }
+    if (!survey(next, components, instanceId, instance.componentId)) continue;
+    const reasons = judgeMove(assembly, next);
+    if (reasons.length) { why = why || reasons[0].says; continue; }
+    return { ok: true, assembly: next, placement };
+  }
+  return { ok: false, reason: why || 'That position is no longer part of this product.' };
+}
+
+/**
+ * The choices, with every part's CURRENT position written down.
+ *
+ * A1 F10: removing one accessory used to move others - the timber shelf jumped
+ * from bay 2 to bay 1 - because parts nobody had moved were re-placed by the
+ * policy on the rebuild, and the policy saw a different product. Removing a part
+ * therefore pins everything else first (Guided's remove), so the only thing that
+ * changes is the thing the customer removed.
+ */
+export function pinPositions(built) {
+  const at = { ...(built.choices?.at || {}) };
+  for (const [slot, rec] of Object.entries(built.slotAt || {})) {
+    if (slot === frameSlotFor(0) || at[slot]) continue;
+    at[slot] = { instanceId: rec.instanceId, slot: rec.slot || null, snapId: rec.snapId, mountSnapId: rec.mountSnapId || null };
+  }
+  return { ...built.choices, at };
+}
+
+export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES } = {}) {
   const c = normaliseChoices(schema, choices);
+  // ONE JUDGE for everything this build places (A2 §3), and handed on in the
+  // result so the move list and the dots ask exactly the same question.
+  const judgeAt = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId });
+  // While the bays themselves are laid out, a shelf is held at one end until the
+  // next ladder hangs from the other. So the STRUCTURE is placed against the
+  // physical rules only (floor, through, one space); accessories, moves, dots and
+  // the finished product get the whole judge.
+  // A MOVE is judged on the whole product, before against after: what it does to
+  // the parts around it is the point (moving a ladder can strand a shelf).
+  const judgeMove = (before, after) => introduced(
+    judge(before, components, rules, { mounting: c.mounting }),
+    judge(after, components, rules, { mounting: c.mounting }),
+  );
+  const judgeStructure = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId, skip: ['held', 'mountingNeeds'] });
   const variant = variantOf(schema, c);
   const size = sizeOf(variant, c);
 
@@ -1363,6 +1472,35 @@ export function buildGuided(schema, choices, components) {
   // `canMove` refuses it by name.
   slots[assembly.instances[0].instanceId] = frameSlotFor(0);
 
+  // ADDRESSES, NOT BUILD ORDER (A2 §4; A1 F07, F10). A recorded position used to
+  // name the instance it hangs from - `g6` - and instance ids come from build
+  // order. So a ladder moved onto an extra shelf recorded a part the rebuild had
+  // not placed yet (frames go first), the record was dropped, and the ladder
+  // sprang back to the floor: 341 times in the audit.
+  //
+  // A record now carries the SLOT of what it hangs from (`metal-shelf#0`), read
+  // back to whatever instance that slot is in this build. One that names a slot
+  // not built YET is deferred, and re-hung once the whole product exists - by the
+  // same move the panel previewed (moveTo), so what was offered is what is kept.
+  // A record with no slot is a link written before this and is read as before.
+  const slotIndex = () => new Map(Object.entries(slots).map(([id, sl]) => [sl, id]));
+  const exists = (id) => assembly.instances.some((i) => i.instanceId === id);
+  const resolveAt = (at) => {
+    if (!at) return null;
+    if (at.slot) {
+      const id = slotIndex().get(at.slot);
+      return id ? { ...at, instanceId: id } : { ...at, pending: true };
+    }
+    return exists(at.instanceId) ? at : { ...at, pending: true };
+  };
+  const deferred = [];
+  const recordOf = (r) => ({
+    instanceId: r.point.instanceId,
+    slot: slots[r.point.instanceId] || null,
+    snapId: r.point.snapId,
+    mountSnapId: r.placement?.mountSnapId || null,
+  });
+
   // The frame the run is currently growing from. Not the root - the far end.
   let growingFrom = assembly.instances[0].instanceId;
 
@@ -1379,9 +1517,10 @@ export function buildGuided(schema, choices, components) {
     // product has changed so much that the point is gone, put it back where the
     // policy would have put it and SAY SO.
     const spanKey = spanSlotFor(bay);
-    const spanRemembered = c.at?.[spanKey] || null;
+    let spanRemembered = resolveAt(c.at?.[spanKey]);
+    if (spanRemembered?.pending) { deferred.push({ key: spanKey, at: c.at[spanKey], label: baySize.span.label }); spanRemembered = null; }
     const spanOpts = {
-      instanceId: nextId(), catalogue, prefer: growingFrom, policy: PLACE.EXTEND,
+      instanceId: nextId(), catalogue, prefer: growingFrom, policy: PLACE.EXTEND, judge: judgeStructure,
     };
     let span = spanRemembered
       ? autoAttach(assembly, components, baySize.span.componentId, {
@@ -1407,19 +1546,16 @@ export function buildGuided(schema, choices, components) {
     assembly = span.assembly;
     const spanId = assembly.instances[assembly.instances.length - 1].instanceId;
     slots[spanId] = spanKey;
-    slotAt[spanKey] = {
-      instanceId: span.point.instanceId,
-      snapId: span.point.snapId,
-      mountSnapId: span.placement?.mountSnapId || null,
-    };
+    slotAt[spanKey] = recordOf(span);
 
     const index = bay + 1;
     const frameId = frameIdAt(index);
     const key = frameSlotFor(index);
-    const remembered = c.at?.[key] || null;
+    let remembered = resolveAt(c.at?.[key]);
+    if (remembered?.pending) { deferred.push({ key, at: c.at[key], label: 'Ladder' }); remembered = null; }
     const id = nextId();
     const opts = {
-      instanceId: id, catalogue, prefer: spanId, policy: PLACE.EXTEND, kin: frameKin,
+      instanceId: id, catalogue, prefer: spanId, policy: PLACE.EXTEND, kin: frameKin, judge: judgeStructure,
     };
 
     // Same two-step as an accessory: honour a recorded height, and if the
@@ -1441,14 +1577,10 @@ export function buildGuided(schema, choices, components) {
     }
     assembly = r.assembly;
     slots[id] = key;
-    slotAt[key] = {
-      instanceId: r.point.instanceId,
-      snapId: r.point.snapId,
-      // WHICH OF ITS OWN RUNGS. Every rung of this frame is offered at the same
-      // point on the span, so without this the record cannot tell the floor
-      // from halfway up.
-      mountSnapId: r.placement?.mountSnapId || null,
-    };
+    // WHICH OF ITS OWN RUNGS, in the record (mountSnapId). Every rung of this
+    // frame is offered at the same point on the span, so without it the record
+    // cannot tell the floor from halfway up.
+    slotAt[key] = recordOf(r);
     growingFrom = id;
   }
 
@@ -1463,6 +1595,16 @@ export function buildGuided(schema, choices, components) {
   const addKinds = [];
   for (const s of sizesInRun(variant, c, c.bays)) {
     for (const a of s.adds || []) if (!addKinds.some((k) => k.kind === a.kind)) addKinds.push(a);
+  }
+
+  // Every point a recorded accessory is still to take, so nothing auto-placed
+  // before it gets there first. Cleared as each one is placed.
+  const reserved = new Set();
+  for (const add of addKinds) {
+    for (let i = 0; i < (c.adds[add.kind] || 0); i += 1) {
+      const rec = resolveAt(c.at?.[slotKeyFor(add.kind, i)]);
+      if (rec && !rec.pending) reserved.add(`${rec.instanceId}::${rec.snapId}`);
+    }
   }
 
   for (const add of addKinds) {
@@ -1487,11 +1629,19 @@ export function buildGuided(schema, choices, components) {
 
     for (let i = 0; i < wanted; i += 1) {
       const key = slotKeyFor(add.kind, i);
-      const remembered = c.at?.[key] || null;
+      let remembered = resolveAt(c.at?.[key]);
+      if (remembered?.pending) { deferred.push({ key, at: c.at[key], label: add.label }); remembered = null; }
       const id = nextId();
       const opts = {
-        instanceId: id, catalogue, policy: PLACE.FILL, requireFullyHeld: !!add.spans,
+        instanceId: id,
+        catalogue,
+        policy: PLACE.FILL,
+        requireFullyHeld: !!add.spans,
+        judge: judgeAt,
+        order: rules.preferences?.byKind?.[add.kind] || rules.preferences?.default || 'lowest',
+        avoid: reserved,
       };
+      if (remembered) reserved.delete(`${remembered.instanceId}::${remembered.snapId}`);
 
       // A remembered position first; auto-placement if it will no longer take.
       // Dropping it rather than refusing the part is the kinder failure: the
@@ -1529,7 +1679,25 @@ export function buildGuided(schema, choices, components) {
       // Which slot this instance IS, so a person tapping the part in the scene
       // can be turned back into the choice that produced it.
       slots[id] = key;
-      slotAt[key] = { instanceId: r.point.instanceId, snapId: r.point.snapId };
+      slotAt[key] = recordOf(r);
+    }
+  }
+
+  // THE DEFERRED RECORDS, now that every slot they could name exists. Re-hung by
+  // moveTo - the editor's and the move panel's own mechanism, carrying whatever
+  // hangs from the part - and kept only if the judge agrees, so the product is
+  // exactly the one the panel previewed when the move was made.
+  for (const d of deferred) {
+    const at = resolveAt(d.at);
+    const instanceId = slotIndex().get(d.key);
+    const moved = !at || at.pending || !instanceId
+      ? { ok: false, reason: 'That position is no longer part of this product.' }
+      : rehang(assembly, components, instanceId, at, judgeMove);
+    if (moved.ok) {
+      assembly = moved.assembly;
+      slotAt[d.key] = { ...at, slot: slots[at.instanceId] || at.slot || null, pending: undefined };
+    } else {
+      dropped.push({ slot: d.key, label: d.label, reason: moved.reason });
     }
   }
 
@@ -1550,6 +1718,9 @@ export function buildGuided(schema, choices, components) {
     dropped,
     slots,
     slotAt,
+    rules,
+    judge: judgeAt,
+    judgeMove,
     configurationId: encodeConfiguration(assembly, {
       mounting: c.mounting,
       footHeightMm: c.footHeightMm,

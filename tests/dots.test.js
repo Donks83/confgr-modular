@@ -109,8 +109,9 @@ describe('a dot that was pressed', () => {
     expect(after.refused).toEqual([]);
     expect(after.dropped).toEqual([]);
 
-    // The slot landed on the point that was asked for.
-    expect(after.slotAt[slotKeyFor(SHELF_KIND, 0)]).toEqual({
+    // The slot landed on the point that was asked for. (toMatchObject: since A3 the
+    // record also names the slot it hangs from and the mount it used - A2 §4.)
+    expect(after.slotAt[slotKeyFor(SHELF_KIND, 0)]).toMatchObject({
       instanceId: target.instanceId,
       snapId: target.snapId,
     });

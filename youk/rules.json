@@ -1,0 +1,51 @@
+{
+  "_": "How YouK parts are allowed to meet, as data (docs/design/A2-rule-model.md). Read and checked by src/engine/rules.js: an unknown key, family, rule or placeholder stops the load by name. Which part is in which family comes from catalogue.json (carried there from snap-spec.json by make-catalogue), so membership is never listed twice. Every refusal carries the sentence a customer sees and where the rule came from.",
+  "range": "youk",
+  "version": 1,
+
+  "families": {
+    "frames": {
+      "hollow": true,
+      "_hollow": "A ladder's bounding box is a frame around empty space; a hook strip hung on a rung sits inside it legitimately.",
+      "rules": [
+        {
+          "rule": "mountingNeeds",
+          "mounting": "feet",
+          "socketLabel": "foot",
+          "says": "The {label} has no fixing for a foot. Stand it on the floor, or hang it on the wall.",
+          "source": "MA 405462; FINDINGS 'Foot': only the 320 mm frames have the two holes in their underside"
+        }
+      ]
+    },
+    "span": {
+      "held": "every-end",
+      "says": "The {label} must rest on a ladder at both ends.",
+      "source": "MA 406215 (shelf), MA 406208 (coat rail): every spanning part is fixed at both ladders"
+    },
+    "carcase": {
+      "held": "every-end",
+      "says": "The {label} sits across two brackets; one end has nothing under it.",
+      "source": "MA 406214 step 3"
+    },
+    "bolted": { "held": "any-end", "says": "The {label} must be bolted to the part that carries it.", "source": "Office solution sheet steps 4 and 7", "_held": "any-end, not every-end: the office arm carries two ALTERNATIVE bolt plugs at one hole (flat, or tilted 9 degrees) and uses one." },
+    "hang":   { "held": "any-end",   "says": "The {label} must hang on a ladder.", "source": "MA 406209" },
+    "wall":   { "held": "none" }
+  },
+
+  "product": [
+    { "rule": "notBelowFloor", "when": "grounded", "toleranceMm": 1,
+      "says": "That would put the {label} {mm} mm below the floor.",
+      "source": "Matt, 12 November 2026 (A1 F01-F03)" },
+    { "rule": "noPassThrough",
+      "says": "The {label} would pass through the {other}." },
+    { "rule": "notTwiceInOnePlace",
+      "says": "The {label} would take the space the {other} is already in.",
+      "source": "A1 F23" }
+  ],
+
+  "preferences": {
+    "default": "lowest",
+    "byKind": { "clothes-rail": "highest" },
+    "_byKind": "Matt, 12 November 2026: a clothes rail goes on the highest rung that takes it (A1 F11). Lowest-first stays right for shelves, which then stack upward."
+  }
+}

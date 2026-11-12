@@ -22,6 +22,7 @@ import Guided from './Guided.jsx';
 import { loadComponentFromPath, loadComponentFromUrl } from '../three/loadGlb.js';
 import { MANIFEST_NAME, parseManifest, modelUrl } from './manifest.js';
 import { parseGuided } from '../engine/guided.js';
+import { parseRules } from '../engine/rules.js';
 
 /** In the desktop app: everything in the models folder, because we can. */
 async function partsFromDesktop() {
@@ -120,6 +121,7 @@ export default function ViewerHost({ configurationId = null }) {
     return (
       <Guided
         schema={parseGuided(state.manifest.guided)}
+        rules={state.manifest.rules ? parseRules(state.manifest.rules, { catalogue: state.catalogue }) : undefined}
         components={state.components}
         catalogue={state.catalogue}
         title={state.manifest.title}

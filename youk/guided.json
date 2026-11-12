@@ -40,7 +40,8 @@
     "",
     "`spans: true` means the part bridges two frames and must be held at both",
     "ends. Without it a fourth shelf asked for in a bay with three free rungs",
-    "was cantilevered off the outside of the run rather than refused."
+    "was cantilevered off the outside of the run rather than refused.",
+    "A3, 12 November 2026 (docs/audit/A1-failures.md): the 200 mm range defaults to the FLOOR and offers floor or wall only - its ladders have no fixing for a foot (F04); the 900 mm clothes rail and full-width hook strip are no longer listed for 200 mm deep, because both are 320 mm parts that can never attach there (F13); and a clothes rail is one PER BAY, so a three-bay wardrobe can have three (F12, Matt)."
   ],
   "version": 1,
   "title": "YouK shelving",
@@ -142,7 +143,8 @@
               "label": "Clothes rail",
               "max": 1,
               "spans": true,
-              "kind": "clothes-rail"
+              "kind": "clothes-rail",
+              "perBay": true
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
@@ -187,7 +189,8 @@
               "label": "Clothes rail",
               "max": 1,
               "spans": true,
-              "kind": "clothes-rail"
+              "kind": "clothes-rail",
+              "perBay": true
             },
             {
               "componentId": "008547-youboxx-set-4",
@@ -244,7 +247,8 @@
               "label": "Clothes rail",
               "max": 1,
               "spans": true,
-              "kind": "clothes-rail"
+              "kind": "clothes-rail",
+              "perBay": true
             },
             {
               "componentId": "008541-hook-strip-for-ladder-width-1200mm",
@@ -269,7 +273,7 @@
       "help": "The shallow range, for a hallway. Timber shelves only — Kesseböhmer make no metal shelf at this depth.",
       "defaultBays": 1,
       "maxBays": 3,
-      "defaultMounting": "feet",
+      "defaultMounting": "floor",
       "frames": [
         {
           "componentId": "236746-leiterregal-ladder-depth-200mm",
@@ -332,20 +336,6 @@
               "kind": "timber-shelf"
             },
             {
-              "componentId": "008531-clothes-rail-900mm",
-              "label": "Clothes rail",
-              "max": 1,
-              "spans": true,
-              "kind": "clothes-rail"
-            },
-            {
-              "componentId": "008540-hook-strip-for-ladder-width-900mm",
-              "label": "Hook strip, full width",
-              "max": 1,
-              "spans": true,
-              "kind": "hook-strip-full"
-            },
-            {
               "componentId": "008542-rack-for-ladder-depth-200mm",
               "label": "Side rack",
               "max": 2,
@@ -359,6 +349,10 @@
             }
           ]
         }
+      ],
+      "mountings": [
+        "floor",
+        "wall"
       ]
     }
   ]

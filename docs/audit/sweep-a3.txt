@@ -1,0 +1,33 @@
+
+480 structures, {"builds":13837,"moves":694,"dots":3053,"adds":2728,"removes":288,"stability":348}, 404 s
+┌────────────┬──────────┬─────────────┐
+│ (index)    │ distinct │ occurrences │
+├────────────┼──────────┼─────────────┤
+│ O6-refused │ 12       │ 1845        │
+└────────────┴──────────┴─────────────┘
+[O6-refused] ×324  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×324  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×228  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×216  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×204  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w450 · frames 550/1500 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×192  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w450 · frames 550/1500 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×156  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w450 · frames 550/905 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×132  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w450 · frames 550/905 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×48  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (8 tried).
+      e.g. d200 · 1 bay w450 · frames 668/904.5 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×18  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (6 tried).
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×2  asked for 2 × side-rack, placed 0: That would put the YouK rack for ladder depth 320 mm 59 mm below the floor.
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×1  asked for 2 × hook-strip, placed 1: Something already hangs from this rung.
+      e.g. d320 · 1 bay w900 · frames 550/550 · wall · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
+
+written D:\Claude\confgr-modular\docs\audit\sweep-a3.json
