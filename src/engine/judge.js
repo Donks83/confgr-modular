@@ -168,6 +168,23 @@ export function introduced(before, after) {
 }
 
 /**
+ * Remove a part AND everything that would then be left without the support its
+ * family needs, repeatedly, so nothing is left hanging (the editor's "remove
+ * them too", after it has said what they are).
+ */
+export function removeCascade(assembly, components, rules, instanceId, detach, opts = {}) {
+  let { after, leftUnheld, removed } = removalConsequences(assembly, components, rules, instanceId, detach, opts);
+  removed = [...removed];
+  for (let guard = 0; leftUnheld.length && guard < 50; guard += 1) {
+    const next = removalConsequences(after, components, rules, leftUnheld[0].instanceId, detach, opts);
+    after = next.after;
+    removed.push(...next.removed);
+    leftUnheld = judge(after, components, rules, opts).filter((r) => r.rule === 'held');
+  }
+  return { assembly: after, removed };
+}
+
+/**
  * What removing a part does to the rest of the product (A2 §2; Matt, 12 Nov 2026:
  * "refused with reason or alert the user the consequences").
  *

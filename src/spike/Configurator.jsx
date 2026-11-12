@@ -56,6 +56,8 @@ import {
   impliedParts, impliedBom, withImplied, impliedComponentIds,
 } from '../engine/implied.js';
 import { overlaps, formatOverlaps } from '../engine/collision.js';
+import { parseRules, DEFAULT_RULES } from '../engine/rules.js';
+import { removalConsequences, removeCascade } from '../engine/judge.js';
 import {
   encodeConfiguration, decodeConfiguration, configurationDigest,
 } from '../engine/configuration.js';
@@ -97,6 +99,11 @@ export default function Configurator() {
   // customer places it in AR, so a height here would be a number nothing reads.
   // What this DOES decide is whether the AR handoff offers vertical surfaces.
   const [mounting, setMounting] = useState(MOUNTING.FLOOR);
+  // The range's rules (A2) and a delete waiting for the person to confirm what
+  // else it takes with it (A1 F06; Matt: "refused with reason or alert the user
+  // the consequences").
+  const [rulesRaw, setRulesRaw] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   // Which of the two foot SKUs, not a free height. Only read when mounting is
   // FEET; kept across a switch away and back so the choice is not lost.
   const [footHeightMm, setFootHeightMm] = useState(FOOT.heightsMm[0]);
@@ -510,6 +517,8 @@ export default function Configurator() {
       if (!window.confgr?.app?.catalogue) return;
       const res = await window.confgr.app.catalogue();
       if (cancelled) return;
+      const rr = await window.confgr.app.rules?.();
+      if (!cancelled && rr?.ok) setRulesRaw(rr.rules);
       if (res.ok) {
         setPriceBook(res.catalogue);
         setTierId(res.catalogue.tiers?.[0]?.id || null);
@@ -893,14 +902,43 @@ export default function Configurator() {
     }));
   };
 
+  const rules = useMemo(() => {
+    if (!rulesRaw) return DEFAULT_RULES;
+    try { return parseRules(rulesRaw, { catalogue: priceBook }); } catch (err) { setStatus(`Rules not loaded: ${err.message}`); return DEFAULT_RULES; }
+  }, [rulesRaw, priceBook]);
+
+  const labelOf = (id) => {
+    const inst = assembly.instances.find((i) => i.instanceId === id);
+    return inst ? rules.labelOf(inst.componentId) : id;
+  };
+
   const removeSelected = () => {
     if (!selectedId || selectedId === rootId) return;
-    const result = detach(assembly, selectedId);
+    // ASK THE JUDGE FIRST (A1 F06). detach removes the part and what is RECORDED
+    // as hanging from it - but the graph is a tree, so a shelf whose far end
+    // rested on this ladder was left behind, cantilevered, and called valid. 19
+    // times in 19 in the audit. Now: if anything would be left unheld, say what,
+    // and let the person choose.
+    const cons = removalConsequences(assembly, components, rules, selectedId, detach, { mounting });
+    if (cons.leftUnheld.length) {
+      setPendingDelete({ instanceId: selectedId, cons });
+      return;
+    }
+    const result = cons.after;
     setAssembly({ instances: result.instances, connections: result.connections });
     setSelectedId(null);
     setStatus(result.removed.length > 1
       ? `Removed ${result.removed.length} parts — the others were attached to it.`
       : 'Removed.');
+  };
+
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    const r = removeCascade(assembly, components, rules, pendingDelete.instanceId, detach, { mounting });
+    setAssembly({ instances: r.assembly.instances, connections: r.assembly.connections });
+    setSelectedId(null);
+    setPendingDelete(null);
+    setStatus(`Removed ${r.removed.length} parts, including the ones it was holding up.`);
   };
 
   const reset = () => {
@@ -1163,7 +1201,15 @@ export default function Configurator() {
               </div>
             ))}
             {selectedId !== rootId && (
-              <button onClick={removeSelected}>Remove this part</button>
+              pendingDelete ? (
+                <div className="cfg-invalid" role="alertdialog" aria-label="Remove this part?">
+                  <p>Removing the {labelOf(pendingDelete.instanceId)} would leave
+                    {' '}{pendingDelete.cons.leftUnheld.length === 1 ? 'this part' : `these ${pendingDelete.cons.leftUnheld.length} parts`} with nothing holding them:</p>
+                  <ul>{pendingDelete.cons.leftUnheld.map((u) => <li key={u.instanceId}>{u.says}</li>)}</ul>
+                  <button onClick={confirmDelete}>Remove them too</button>{' '}
+                  <button onClick={() => setPendingDelete(null)}>Keep everything</button>
+                </div>
+              ) : <button onClick={removeSelected}>Remove this part</button>
             )}
           </>
         )}
