@@ -1,0 +1,5 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0;display:flex;gap:24px;padding:16px;background:#ddd;font:14px sans-serif}figure{margin:0}iframe{width:390px;height:844px;border:0;background:#fff;display:block}figcaption{padding:6px 0}</style>
+<body><script>
+const t = new URLSearchParams(location.search).get('theme') || 'youk';
+for (const d of ['a','b','c']) document.write(`<figure><iframe src="../direction.html?d=${d}&theme=${t}"></iframe><figcaption>${d.toUpperCase()} · ${t} · 390 × 844</figcaption></figure>`);
+</script></body>

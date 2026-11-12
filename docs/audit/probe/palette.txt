@@ -1,0 +1,109 @@
+﻿node.exe : (node:40428) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() 
+instead.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:40428) [D...sign() instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[0] 
+[0]   VITE v5.4.21  ready in 376 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5174/
+[0]   ➜  Network: use --host to expose
+[1] 
+[1] [renderer:log] [vite] connecting... (client:495)
+[1] [renderer:log] [vite] connected. (client:618)
+[1] [renderer:warn] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold (chunk-NGODP64W.js?v=1a918c16:21551)
+[1] [renderer:error] %cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security
+[1]   Policy set or a policy with "unsafe-eval" enabled. This exposes users of
+[1]   this app to unnecessary security risks.
+[1] 
+[1] For more information and help, consult
+[1] https://electronjs.org/docs/tutorial/security.
+[1] This warning will not show up
+[1] once the app is packaged. (sandbox_bundle:2)
+[1] [click] palette:77 -> 008530-clothes-rail-600mm  =>  YouK clothes rail 600 mm
+[1] 008531-clothes-rail-900mm  =>  YouK clothes rail 900 mm
+[1] 008532-clothes-rail-1200mm  =>  YouK clothes rail 1200 mm
+[1] 008536-hook-strip-for-ladder-depth-200mm  =>  YouK hook strip for ladder depth 200 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008537-hook-strip-for-ladder-depth-320mm  =>  YouK hook strip for ladder depth 320 mm
+[1] 008538-hook-strip-for-ladder-width-450mm  =>  YouK hook strip for ladder width 450 mm
+[1] 008539-hook-strip-for-ladder-width-600mm  =>  YouK hook strip for ladder width 600 mm
+[1] 008540-hook-strip-for-ladder-width-900mm  =>  YouK hook strip for ladder width 900 mm
+[1] 008541-hook-strip-for-ladder-width-1200mm  =>  YouK hook strip for ladder width 1200 mm
+[1] 008542-rack-for-ladder-depth-200mm  =>  YouK rack for ladder depth 200 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008543-rack-for-ladder-depth-320mm  =>  YouK rack for ladder depth 320 mm
+[1] 008545-youboxx-set-2  =>  YouK YouboXx Set 2  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008546-youboxx-set-3  =>  YouK YouboXx Set 3
+[1] 008547-youboxx-set-4  =>  YouK YouboXx Set 4
+[1] 008548-youboxx-set-5  =>  YouK YouboXx Set 5
+[1] 008549-newspaper-towel-rack-set-fpr-ladder-depth-200mm  =>  YouK newspaper & towel rack set, for ladder depth 200 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008551-base-brackets-for-office-solution  =>  YouK base brackets for office solution
+[1] 008551-clamping-angles-for-office-solution  =>  YouK clamping angles for office solution  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008551-shelf-supports-for-office-solution  =>  YouK Shelf supports for office solution  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008553-shoe-rack-450mm  =>  YouK shoe rack 450 mm, Schuhablage 450 mm
+[1] 008554-shoe-rack-600mm  =>  YouK shoe rack 600 mm, Schuhablage 600 mm
+[1] 008555-shoe-rack-900mm  =>  YouK shoe rack 900 mm, Schuhablage 900 mm
+[1] 008556-shoe-rack-1200mm  =>  YouK shoe rack 1200 mm, Schuhablage 1200 mm
+[1] 008557-outer-cabinet-bracket-for-ladder-depth-200mm  =>  YouK outer cabinet bracket for ladder depth 200 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008558-outer-cabinet-bracket-for-ladder-depth-320mm  =>  YouK outer cabinet bracket for ladder depth 320 mm
+[1] 008559-cabinet-bracket-for-ladder-depth-200mm  =>  YouK cabinet bracket for ladder depth 200 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 008560-cabinet-bracket-for-ladder-depth-320mm  =>  YouK cabinet bracket for ladder depth 320 mm
+[1] 008561-shelf-450mm-for-ladder-depth-320mm  =>  YouK shelf 450 mm for ladder depth 320 mm
+[1] 008562-shelf-600mm-for-ladder-depth-320mm  =>  YouK shelf 600 mm for ladder depth 320 mm
+[1] 008563-shelf-900mm-for-ladder-depth-320mm  =>  YouK shelf 900 mm for ladder depth 320 mm
+[1] 008564-shelf-1200mm-for-ladder-depth-320mm  =>  YouK shelf 1200 mm for ladder depth 320 mm
+[1] 008565-lower-umbrella-stand  =>  YouK lower umbrella stand
+[1] 008565-upper-umbrella-stand  =>  YouK upper umbrella stand
+[1] 236746-leiterregal-ladder-depth-200mm  =>  YouK ladder frame, depth 200 mm, height 668 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 236748-ladder-depth-2000mm  =>  YouK ladder frame, depth 200 mm, height 905 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 236750-ladder-depth-320mm  =>  YouK ladder depth 320 mm, height 550 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 236754-ladder-depth-320mm  =>  YouK ladder depth 320 mm, height 905 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 236758-ladder-depth-320mm  =>  YouK ladder depth 320 mm, height 1500 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 236762-ladder-depth-320mm  =>  YouK ladder frame, depth 320 mm, height 2210 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] 237023-adjustable-foot-100mm  =>  YouK adjustable foot 100 mm  [DISABLED: no reason given]
+[1] corner-connector  =>  corner-connector  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] molle-panel  =>  molle-panel  [DISABLED: no reason given]
+[1] pouch-2x3  =>  pouch-2x3  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pouch-3x2  =>  pouch-3x2  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-200mm  =>  Timber cabinet 1200 mm, 200 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-320mm  =>  Timber cabinet 1200 mm, 200 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-200mm  =>  Timber cabinet 1200 mm, 300 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-320mm  =>  Timber cabinet 1200 mm, 300 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-200mm  =>  Timber cabinet 1200 mm, 450 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-320mm  =>  Timber cabinet 1200 mm, 450 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h200mm-for-ladder-depth-200mm  =>  Timber cabinet 450 mm, 200 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm  =>  Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h300mm-for-ladder-depth-200mm  =>  Timber cabinet 450 mm, 300 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h300mm-for-ladder-depth-320mm  =>  Timber cabinet 450 mm, 300 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h450mm-for-ladder-depth-200mm  =>  Timber cabinet 450 mm, 450 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-450mm-h450mm-for-ladder-depth-320mm  =>  Timber cabinet 450 mm, 450 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h200mm-for-ladder-depth-200mm  =>  Timber cabinet 600 mm, 200 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h200mm-for-ladder-depth-320mm  =>  Timber cabinet 600 mm, 200 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h300mm-for-ladder-depth-200mm  =>  Timber cabinet 600 mm, 300 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h300mm-for-ladder-depth-320mm  =>  Timber cabinet 600 mm, 300 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h450mm-for-ladder-depth-200mm  =>  Timber cabinet 600 mm, 450 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-600mm-h450mm-for-ladder-depth-320mm  =>  Timber cabinet 600 mm, 450 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h200mm-for-ladder-depth-200mm  =>  Timber cabinet 900 mm, 200 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h200mm-for-ladder-depth-320mm  =>  Timber cabinet 900 mm, 200 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h300mm-for-ladder-depth-200mm  =>  Timber cabinet 900 mm, 300 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h300mm-for-ladder-depth-320mm  =>  Timber cabinet 900 mm, 300 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h450mm-for-ladder-depth-200mm  =>  Timber cabinet 900 mm, 450 mm high, for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm  =>  Timber cabinet 900 mm, 450 mm high, for ladder depth 320 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-1200mm-d600mm  =>  Timber office desktop 1200 mm, 600 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-1200mm-d700mm  =>  Timber office desktop 1200 mm, 700 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-450mm-d600mm  =>  Timber office desktop 450 mm, 600 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-450mm-d700mm  =>  Timber office desktop 450 mm, 700 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-600mm-d600mm  =>  Timber office desktop 600 mm, 600 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-600mm-d700mm  =>  Timber office desktop 600 mm, 700 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-900mm-d600mm  =>  Timber office desktop 900 mm, 600 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-desktop-900mm-d700mm  =>  Timber office desktop 900 mm, 700 mm deep, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] pws-timber-shelf-1200mm-for-ladder-depth-200mm  =>  Timber shelf 1200 mm for ladder depth 200 mm, 25 mm  [DISABLED: These are different kinds of joint and do not fit together.]
+[1] [click] collisions -> no two parts share space
+[1] [capture] canvas readback -> D:\Claude\confgr-modular\youk\palette.png
+[1] wait-on tcp:5174 && electron . exited with code 0
+--> Sending SIGTERM to other processes..
+[0] vite exited with code 1
+

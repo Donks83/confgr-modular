@@ -1,0 +1,1774 @@
+{
+ "generated": "2026-11-12T16:55:16.234Z",
+ "models": "D:\\Claude\\confgr-modular\\youk",
+ "structures": 480,
+ "counts": {
+  "builds": 16531,
+  "moves": 1139,
+  "dots": 3890,
+  "adds": 4056,
+  "removes": 300,
+  "stability": 360
+ },
+ "seconds": 387,
+ "findings": [
+  {
+   "oracle": "I1-panel-move-springs-back",
+   "message": "move panel offered frame#1 at 355 mm; after rebuild it is at 0 mm (dropped: That position is no longer part of this product.)",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1",
+   "occurrences": 100,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJmcmFtZSMxIjp7Imluc3RhbmNlSWQiOiJnNiIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibW91bnRTbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "frame#1": {
+      "instanceId": "g6",
+      "snapId": "md-snap.youk-d320.mount-right",
+      "mountSnapId": "md-snap.youk-d320.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I1-panel-move-springs-back",
+   "message": "move panel offered frame#1 at 237 mm; after rebuild it is at 0 mm (dropped: That position is no longer part of this product.)",
+   "product": "d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1",
+   "occurrences": 28,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7ImZyYW1lIzEiOnsiaW5zdGFuY2VJZCI6Imc2Iiwic25hcElkIjoibWQtc25hcC55b3VrLWQyMDAubW91bnQtcmlnaHQiLCJtb3VudFNuYXBJZCI6Im1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1sZWZ0In19LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "frame#1": {
+      "instanceId": "g6",
+      "snapId": "md-snap.youk-d200.mount-right",
+      "mountSnapId": "md-snap.youk-d200.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I2-drag-lands-elsewhere",
+   "message": "drag/dot preview showed frame#1 at y 355 mm; it landed at y 0 mm (record dropped - springs back)",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1",
+   "occurrences": 181,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJmcmFtZSMxIjp7Imluc3RhbmNlSWQiOiJnNiIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0In19LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "frame#1": {
+      "instanceId": "g6",
+      "snapId": "md-snap.youk-d320.mount-right"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "point": "g6::md-snap.youk-d320.mount-right"
+  },
+  {
+   "oracle": "I2-drag-lands-elsewhere",
+   "message": "drag/dot preview showed frame#1 at y 236.5 mm; it landed at y 0 mm (record dropped - springs back)",
+   "product": "d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1",
+   "occurrences": 32,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7ImZyYW1lIzEiOnsiaW5zdGFuY2VJZCI6Imc2Iiwic25hcElkIjoibWQtc25hcC55b3VrLWQyMDAubW91bnQtcmlnaHQifX0sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "frame#1": {
+      "instanceId": "g6",
+      "snapId": "md-snap.youk-d200.mount-right"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "point": "g6::md-snap.youk-d200.mount-right"
+  },
+  {
+   "oracle": "I3-add-dot-lands-elsewhere",
+   "message": "tapped a dot for metal-shelf at g1::rung-1-left; placed at g3::rung-2-right instead",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×2 timber-shelf×1 side-rack×1 hook-strip×1 · moved: metal-shelf#1",
+   "occurrences": 408,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MiwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJtZXRhbC1zaGVsZiMxIjp7Imluc3RhbmNlSWQiOiJnMSIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1sZWZ0In19LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 2,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "metal-shelf#1": {
+      "instanceId": "g1",
+      "snapId": "md-snap.youk-d320.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I3-add-dot-lands-elsewhere",
+   "message": "tapped a dot for timber-shelf at g1::rung-1-left; placed at g3::rung-2-left instead",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×2 side-rack×1 hook-strip×1 · moved: timber-shelf#1",
+   "occurrences": 408,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoyLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJ0aW1iZXItc2hlbGYjMSI6eyJpbnN0YW5jZUlkIjoiZzEiLCJzbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 2,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "timber-shelf#1": {
+      "instanceId": "g1",
+      "snapId": "md-snap.youk-d320.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I3-add-dot-lands-elsewhere",
+   "message": "tapped a dot for timber-shelf at g1::rung-1-left; placed at g3::rung-2-right instead",
+   "product": "d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×2 side-rack×1 hook-strip×1 · moved: timber-shelf#1",
+   "occurrences": 96,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjIsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7InRpbWJlci1zaGVsZiMxIjp7Imluc3RhbmNlSWQiOiJnMSIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1sZWZ0In19LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 2,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "timber-shelf#1": {
+      "instanceId": "g1",
+      "snapId": "md-snap.youk-d200.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I3-add-dot-lands-elsewhere",
+   "message": "tapped a dot for hook-strip at g3::rung-1-left; placed at g5::rung-1-right instead",
+   "product": "d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 side-rack×1 hook-strip×2 · moved: hook-strip#1",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6Mn0sImF0Ijp7Imhvb2stc3RyaXAjMSI6eyJpbnN0YW5jZUlkIjoiZzMiLCJzbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w600",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "side-rack": 1,
+     "hook-strip": 2
+    },
+    "at": {
+     "hook-strip#1": {
+      "instanceId": "g3",
+      "snapId": "md-snap.youk-d320.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing metal-shelf#0 moved timber-shelf#0 from (x 705.2, y 455) to (x 235.1, y 455) mm",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · timber-shelf×1 side-rack×1 hook-strip×1",
+   "occurrences": 48,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing side-rack#0 moved hook-strip#0 from (x -11.9, y 51.5) to (x 11.9, y 51.5) mm",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 hook-strip×1",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing clothes-rail#0 moved side-rack#0 from (x -57.8, y -58.5) to (x 57.8, y -58.5) mm",
+   "product": "d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w600",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing clothes-rail#0 moved hook-strip#0 from (x 632, y 51.5) to (x -11.9, y 51.5) mm",
+   "product": "d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w600",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing clothes-rail#0 moved youboxx#0 from (x -62.4, y -12.3) to (x 62.4, y -12.3) mm",
+   "product": "d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 youboxx×1 hook-strip-full×1 side-rack×1 hook-strip×1",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJ5b3Vib3h4IjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "youboxx": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing youboxx#0 moved side-rack#0 from (x 862.3, y -58.5) to (x -57.8, y -58.5) mm",
+   "product": "d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing hook-strip-full#0 moved side-rack#0 from (x 862.3, y -58.5) to (x 978, y -58.5) mm",
+   "product": "d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 youboxx×1 side-rack×1 hook-strip×1",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "youboxx": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing clothes-rail#0 moved hook-strip-full#0 from (x 1830.2, y 51.5) to (x 610.1, y 51.5) mm",
+   "product": "d320 · 2 bays w1200/w1200 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 hook-strip-full×1 side-rack×1",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjIsImFkZHMiOnsibWV0YWwtc2hlbGYiOjEsInRpbWJlci1zaGVsZiI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w1200",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjIsImFkZHMiOnsibWV0YWwtc2hlbGYiOjEsInRpbWJlci1zaGVsZiI6MSwiY2xvdGhlcy1yYWlsIjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing side-rack#0 moved hook-strip#0 from (x -11.7, y 51.5) to (x 11.7, y 51.5) mm",
+   "product": "d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 hook-strip×1",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing timber-shelf#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJjbG90aGVzLXJhaWwiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing timber-shelf#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJjbG90aGVzLXJhaWwiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing clothes-rail#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 hook-strip-full×1 side-rack×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing hook-strip-full#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 side-rack×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwic2lkZS1yYWNrIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing side-rack#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing side-rack#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 hook-strip×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJob29rLXN0cmlwIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "hook-strip": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing hook-strip#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "I4-remove-moves-others",
+   "message": "removing hook-strip#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm",
+   "product": "d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1",
+   "occurrences": 6,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 1,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "before": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0"
+  },
+  {
+   "oracle": "O1-below-floor",
+   "message": "008543-rack-for-ladder-depth-320mm (side-rack#0) reaches -58.5 mm below the floor on a floor-standing product",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · side-rack×1",
+   "occurrences": 3550,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "side-rack": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "1 × side-rack",
+   "at": [
+    57.8,
+    -58.5,
+    0
+   ]
+  },
+  {
+   "oracle": "O1-below-floor",
+   "message": "008547-youboxx-set-4 (youboxx#0) reaches -12.3 mm below the floor on a floor-standing product",
+   "product": "d320 · 1 bay w900 · frames 550/550 · floor · youboxx×1",
+   "occurrences": 988,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJ5b3Vib3h4IjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "youboxx": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "1 × youboxx",
+   "at": [
+    62.4,
+    -12.3,
+    0
+   ]
+  },
+  {
+   "oracle": "O1-below-floor",
+   "message": "008542-rack-for-ladder-depth-200mm (side-rack#0) reaches -58.5 mm below the floor on a floor-standing product",
+   "product": "d200 · 1 bay w450 · frames 668/668 · floor · side-rack×1",
+   "occurrences": 912,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "side-rack": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "1 × side-rack",
+   "at": [
+    57.8,
+    -58.5,
+    0
+   ]
+  },
+  {
+   "oracle": "O10-dead-control",
+   "message": "\"clothes-rail\" is offered by size w900 of d200 and can never be placed: not available on 200 mm deep frames",
+   "product": "d200 · 1 bay w900 · frames 668/668 · floor",
+   "occurrences": 234,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {},
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  },
+  {
+   "oracle": "O10-dead-control",
+   "message": "\"hook-strip-full\" is offered by size w900 of d200 and can never be placed: not available on 200 mm deep frames",
+   "product": "d200 · 1 bay w900 · frames 668/668 · floor",
+   "occurrences": 234,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {},
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  },
+  {
+   "oracle": "O10-dead-control",
+   "message": "\"clothes-rail\" is offered by size w450 of d200 and can never be placed: not available on 200 mm deep frames",
+   "product": "d200 · 2 bays w450/w900 · frames 668/668/668 · floor",
+   "occurrences": 54,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7IjEiOiJ3OTAwIn0sImJheXMiOjIsImFkZHMiOnt9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {
+     "1": "w900"
+    },
+    "bays": 2,
+    "adds": {},
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  },
+  {
+   "oracle": "O10-dead-control",
+   "message": "\"hook-strip-full\" is offered by size w450 of d200 and can never be placed: not available on 200 mm deep frames",
+   "product": "d200 · 2 bays w450/w900 · frames 668/668/668 · floor",
+   "occurrences": 54,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7IjEiOiJ3OTAwIn0sImJheXMiOjIsImFkZHMiOnt9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {
+     "1": "w900"
+    },
+    "bays": 2,
+    "adds": {},
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008561-shelf-450mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-450mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 337,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJzaWRlLXJhY2siOjIsImhvb2stc3RyaXAiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008562-shelf-600mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-600mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w600 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2",
+   "occurrences": 205,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MiwiaG9vay1zdHJpcCI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w600",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008563-shelf-900mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-900mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
+   "occurrences": 199,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "youboxx": 2,
+     "hook-strip-full": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008564-shelf-1200mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-1200mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2",
+   "occurrences": 199,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwiY2xvdGhlcy1yYWlsIjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w1200",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008531-clothes-rail-900mm (clothes-rail#0) and 008540-hook-strip-for-ladder-width-900mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
+   "occurrences": 83,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "youboxx": 2,
+     "hook-strip-full": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O11-two-parts-one-place",
+   "message": "008532-clothes-rail-1200mm (clothes-rail#0) and 008541-hook-strip-for-ladder-width-1200mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials",
+   "product": "d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2",
+   "occurrences": 59,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzEyMDAiLCJmcmFtZUlkIjoiMjM2NzUwLWxhZGRlci1kZXB0aC0zMjBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwiY2xvdGhlcy1yYWlsIjoxLCJob29rLXN0cmlwLWZ1bGwiOjEsInNpZGUtcmFjayI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w1200",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "hook-strip-full": 1,
+     "side-rack": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-dropped",
+   "message": "recorded position for frame#1 dropped: That position is no longer part of this product.",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1",
+   "occurrences": 128,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJmcmFtZSMxIjp7Imluc3RhbmNlSWQiOiJnNiIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibW91bnRTbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 1,
+     "timber-shelf": 1,
+     "side-rack": 1,
+     "hook-strip": 1
+    },
+    "at": {
+     "frame#1": {
+      "instanceId": "g6",
+      "snapId": "md-snap.youk-d320.mount-right",
+      "mountSnapId": "md-snap.youk-d320.rung-1-left"
+     }
+    },
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "after panel move of frame#1"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 1 × clothes-rail, placed 0: These are different kinds of joint and do not fit together.",
+   "product": "d200 · 1 bay w900 · frames 668/668 · floor · clothes-rail×1",
+   "occurrences": 450,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJjbG90aGVzLXJhaWwiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "clothes-rail": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "1 × clothes-rail"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 1 × hook-strip-full, placed 0: These are different kinds of joint and do not fit together.",
+   "product": "d200 · 1 bay w900 · frames 668/668 · floor · hook-strip-full×1",
+   "occurrences": 450,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJob29rLXN0cmlwLWZ1bGwiOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w900",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "hook-strip-full": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "1 × hook-strip-full"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (6 tried).",
+   "product": "d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×3",
+   "occurrences": 252,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6M30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 2,
+    "adds": {
+     "metal-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (6 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/905 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 204,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236754-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (7 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/905 · floor · metal-shelf×2",
+   "occurrences": 120,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236754-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (4 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 108,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJzaWRlLXJhY2siOjIsImhvb2stc3RyaXAiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (9 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/1500 · floor · metal-shelf×2",
+   "occurrences": 96,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236758-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (13 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×2",
+   "occurrences": 96,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (7 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/905 · floor · timber-shelf×2",
+   "occurrences": 84,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236754-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (8 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/1500 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 84,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236758-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (9 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/1500 · floor · timber-shelf×2",
+   "occurrences": 72,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236758-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (13 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/2210 · floor · timber-shelf×2",
+   "occurrences": 72,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (12 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2",
+   "occurrences": 72,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjQsInRpbWJlci1zaGVsZiI6NCwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (10 tried).",
+   "product": "d320 · 1 bay w450 · frames 905/1500 · floor · metal-shelf×3",
+   "occurrences": 72,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjN9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236754-ladder-depth-320mm",
+    "frames": {
+     "1": "236758-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (14 tried).",
+   "product": "d320 · 1 bay w450 · frames 905/2210 · floor · metal-shelf×3",
+   "occurrences": 72,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjN9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236754-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (5 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×2",
+   "occurrences": 48,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6Mn0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (10 tried).",
+   "product": "d320 · 1 bay w450 · frames 905/1500 · floor · timber-shelf×3",
+   "occurrences": 48,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjozfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236754-ladder-depth-320mm",
+    "frames": {
+     "1": "236758-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (14 tried).",
+   "product": "d320 · 1 bay w450 · frames 905/2210 · floor · timber-shelf×3",
+   "occurrences": 48,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjozfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236754-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × metal-shelf, placed 3: Every position for that part is already taken (15 tried).",
+   "product": "d320 · 1 bay w450 · frames 1500/2210 · floor · metal-shelf×4",
+   "occurrences": 48,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsibWV0YWwtc2hlbGYiOjR9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236758-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "4 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (5 tried).",
+   "product": "d320 · 1 bay w450 · frames 550/550 · floor · timber-shelf×2",
+   "occurrences": 36,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjJ9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 2
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "2 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (8 tried).",
+   "product": "d320 · 1 bay w450 · frames 905/905 · floor · metal-shelf×3",
+   "occurrences": 36,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6M30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236754-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (10 tried).",
+   "product": "d200 · 1 bay w450 · frames 668/904.5 · floor · timber-shelf×3",
+   "occurrences": 36,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NDgtbGFkZGVyLWRlcHRoLTIwMDBtbSJ9LCJ3aWR0aHMiOnt9LCJiYXlzIjoxLCJhZGRzIjp7InRpbWJlci1zaGVsZiI6M30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {
+     "1": "236748-ladder-depth-2000mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × metal-shelf, placed 3: Every position for that part is already taken (11 tried).",
+   "product": "d320 · 1 bay w450 · frames 1500/1500 · floor · metal-shelf×4",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NH0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236758-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "4 × metal-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (15 tried).",
+   "product": "d320 · 1 bay w450 · frames 1500/2210 · floor · timber-shelf×4",
+   "occurrences": 24,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIn0sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjo0fSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236758-ladder-depth-320mm",
+    "frames": {
+     "1": "236762-ladder-depth-320mm"
+    },
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 4
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "4 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (8 tried).",
+   "product": "d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×3",
+   "occurrences": 18,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjN9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 3
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "3 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (11 tried).",
+   "product": "d320 · 1 bay w450 · frames 1500/1500 · floor · timber-shelf×4",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjR9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w450",
+    "frameId": "236758-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 4
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "4 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (11 tried).",
+   "product": "d200 · 1 bay w450 · frames 904.5/904.5 · floor · timber-shelf×4",
+   "occurrences": 12,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDgtbGFkZGVyLWRlcHRoLTIwMDBtbSIsImZyYW1lcyI6e30sIndpZHRocyI6e30sImJheXMiOjEsImFkZHMiOnsidGltYmVyLXNoZWxmIjo0fSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236748-ladder-depth-2000mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "timber-shelf": 4
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "4 × timber-shelf"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 1 × clothes-rail, placed 0: Something already hangs from this rung.",
+   "product": "d200 · 2 bays w450/w900 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 clothes-rail×1 hook-strip-full×1",
+   "occurrences": 3,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7IjEiOiJ3OTAwIn0sImJheXMiOjIsImFkZHMiOnsidGltYmVyLXNoZWxmIjo0LCJzaWRlLXJhY2siOjIsImhvb2stc3RyaXAiOjIsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {
+     "1": "w900"
+    },
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2,
+     "clothes-rail": 1,
+     "hook-strip-full": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
+   "message": "asked for 1 × hook-strip-full, placed 0: Something already hangs from this rung.",
+   "product": "d200 · 2 bays w450/w900 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 clothes-rail×1 hook-strip-full×1",
+   "occurrences": 3,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7IjEiOiJ3OTAwIn0sImJheXMiOjIsImFkZHMiOnsidGltYmVyLXNoZWxmIjo0LCJzaWRlLXJhY2siOjIsImhvb2stc3RyaXAiOjIsImNsb3RoZXMtcmFpbCI6MSwiaG9vay1zdHJpcC1mdWxsIjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {
+     "1": "w900"
+    },
+    "bays": 2,
+    "adds": {
+     "timber-shelf": 4,
+     "side-rack": 2,
+     "hook-strip": 2,
+     "clothes-rail": 1,
+     "hook-strip-full": 1
+    },
+    "at": {},
+    "mounting": "floor",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O8-mounting-refused",
+   "message": "feet: 2 ladders in this configuration have no fixing for a foot — the 200 mm frames do not have them. Stand it on the floor, or hang it on the wall.",
+   "product": "d200 · 1 bay w450 · frames 668/668 · feet",
+   "occurrences": 674,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmZWV0IiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {},
+    "at": {},
+    "mounting": "feet",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  },
+  {
+   "oracle": "O9-quote-while-invalid",
+   "message": "a full quote is produced for a product the engine knows is invalid or unbuildable",
+   "product": "d200 · 1 bay w450 · frames 668/668 · feet",
+   "occurrences": 674,
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmZWV0IiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "choices": {
+    "variantId": "d200",
+    "sizeId": "w450",
+    "frameId": "236746-leiterregal-ladder-depth-200mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {},
+    "at": {},
+    "mounting": "feet",
+    "footHeightMm": 100
+   },
+   "ctx": "bare structure"
+  }
+ ]
+}

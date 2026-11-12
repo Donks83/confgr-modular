@@ -86,7 +86,7 @@ export function partsNeededFor(configurationId, { guided = null } = {}) {
  */
 export function buildManifest({
   configuration, models, catalogue = null, title = null, generated = null, ar = null,
-  guided = null,
+  guided = null, rules = null,
 }) {
   if (!configuration) throw new ManifestError('A bundle needs a configuration id.');
   if (!models?.length) throw new ManifestError('A bundle needs at least one model.');
@@ -111,6 +111,10 @@ export function buildManifest({
     // product and one that configures it, which is why the runtime switches on
     // this field rather than on a flag somebody could set wrongly.
     guided: guided || null,
+    // The range's connection rules (A2), inline for the same reason as the
+    // schema. Absent means the physical defaults only - nothing under the floor,
+    // nothing through anything - never no rules at all.
+    rules: rules || null,
   };
 }
 

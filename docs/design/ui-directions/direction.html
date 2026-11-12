@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Configurator direction</title>
+<!--
+  A clickable MOCKUP of the customer runtime, for choosing a direction (B, checkpoint 3).
+  Not product code: no engine, a still render on the stage, static data. What it is
+  meant to settle is layout, hierarchy, tone and how the interactions read.
+
+    direction.html?d=a|b|c&theme=youk|confgr
+
+  Everything visual is a token on :root, and a theme is one block of token values -
+  which is how the real runtime will carry "YouK-flavoured" and "neutral confgr".
+-->
+<style>
+  /* ---------------------------------------------------------------- tokens */
+  :root {
+    --stage: #efece7;              /* Matt's light build space - not a theme choice */
+    --font: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    --font-head-weight: 300;
+    --font-strong: 700;
+
+    --ink: #12302b;                /* text, primary surfaces */
+    --ink-2: #4a5a56;              /* secondary text */
+    --ink-3: #7b8784;              /* tertiary, disabled text */
+    --accent: #17705b;             /* actions, selection */
+    --accent-ink: #ffffff;
+    --accent-soft: #e3efe9;
+    --surface: #ffffff;
+    --surface-2: #f6f7f5;
+    --tint: #eef3ef;               /* section bands */
+    --line: #dbe2de;
+    --ok: #1f7a4d;
+    --warn: #a0521a;
+    --warn-soft: #fbefe4;
+    --radius: 0px;
+    --radius-lg: 0px;
+    --shadow: 0 1px 2px rgba(10, 30, 25, .06), 0 8px 24px rgba(10, 30, 25, .08);
+    --focus: 0 0 0 3px #ffffff, 0 0 0 5px var(--accent);
+    --panel-ink: var(--ink);       /* direction C's dark rail overrides these */
+    --panel-bg: var(--surface);
+  }
+  :root[data-theme="confgr"] {
+    --font: "Inter", "Segoe UI", system-ui, sans-serif;
+    --font-head-weight: 600;
+    --ink: #1d1b18;
+    --ink-2: #5a544c;
+    --ink-3: #8e877d;
+    --accent: #a35f1f;             /* confgr amber, darkened to 5.0:1 so white text on it passes AA */
+    --accent-ink: #ffffff;
+    --accent-soft: #f7ecdf;
+    --surface: #ffffff;
+    --surface-2: #faf8f5;
+    --tint: #f3efe9;
+    --line: #e5dfd6;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 2px rgba(30, 20, 10, .06), 0 10px 30px rgba(30, 20, 10, .10);
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ---------------------------------------------------------------- base */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font: 15px/1.45 var(--font); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: none; box-shadow: var(--focus); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  h1, h2, h3 { margin: 0; }
+  .muted { color: var(--ink-2); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------------------------------------------------------------- stage */
+  .stage { position: relative; background: var(--stage); overflow: hidden; }
+  /* The picture box is exactly the image, so the dots and lines over it are placed in
+     the image's own percentages and stay on the ladders in every layout. */
+  .stage .pic { position: absolute; inset: 56px 0 24px 0; margin: auto; height: calc(100% - 80px); max-width: 100%; aspect-ratio: 4 / 3; }
+  .stage .pic img.product { display: block; width: 100%; height: 100%; }
+  .stage-tools { position: absolute; display: flex; gap: 8px; z-index: 3; }
+  .tool { height: 40px; min-width: 40px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+          background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); font-size: 14px; }
+  .tool:hover { border-color: var(--ink-3); }
+  .tool[disabled] { color: var(--ink-3); cursor: not-allowed; box-shadow: none; }
+  .tool.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .tool svg { width: 18px; height: 18px; }
+  .dims { position: absolute; left: 16px; bottom: 16px; z-index: 3; font-size: 13px; color: var(--ink-2);
+          background: color-mix(in srgb, var(--stage) 80%, transparent); padding: 4px 8px; border-radius: var(--radius); }
+
+  /* snap dots and the selected part, drawn over the still */
+  .dot { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; border: 0; padding: 0; z-index: 2;
+         background: transparent; display: grid; place-items: center; }
+  .dot::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px #fff, 0 2px 6px rgba(0,0,0,.25); transition: transform .12s; }
+  .dot:hover::after { transform: scale(1.35); }
+  .dot[aria-pressed="true"]::after { background: #fff; box-shadow: 0 0 0 4px var(--accent), 0 2px 6px rgba(0,0,0,.25); }
+  .dots[hidden] { display: none; }
+  .bayline { position: absolute; height: 4px; background: var(--accent); opacity: .55; z-index: 2; border: 0; padding: 0; }
+  .bayline:hover { opacity: 1; height: 6px; }
+  .hint { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); z-index: 3; background: var(--ink); color: #fff;
+          padding: 8px 14px; font-size: 14px; border-radius: var(--radius); box-shadow: var(--shadow); white-space: nowrap; }
+
+  /* ---------------------------------------------------------------- option groups */
+  .group { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+  .group-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .step-n { font-size: 12px; font-weight: var(--font-strong); color: var(--accent); letter-spacing: .06em; }
+  .group h3 { font-size: 17px; font-weight: var(--font-strong); }
+  .seg { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 6px; }
+  .opt { min-height: 44px; padding: 8px 6px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); font-size: 14px; text-align: center; }
+  .opt:hover { border-color: var(--ink-3); }
+  .opt[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); font-weight: var(--font-strong); }
+  .opt[aria-disabled="true"] { color: var(--ink-3); background: var(--surface-2); border-style: dashed; cursor: not-allowed; }
+  .opt small { display: block; font-size: 12px; color: var(--ink-2); font-weight: 400; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; }
+  .row .what { flex: 1; }
+  .row .what b { font-weight: 500; display: block; }
+  .row .why { font-size: 13px; color: var(--ink-2); }   /* informative, so AA: ink-3 is for disabled only */
+  .row.off .what b { color: var(--ink-3); }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: var(--radius); }
+  .stepper button { width: 44px; height: 44px; border: 0; background: none; font-size: 20px; }
+  .stepper button[disabled] { color: var(--ink-3); cursor: not-allowed; }
+  .stepper output { min-width: 28px; text-align: center; font-weight: var(--font-strong); }
+  .place { height: 44px; padding: 0 12px; border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: var(--radius); font-size: 14px; }
+
+  /* ---------------------------------------------------------------- summary, validity, bom */
+  .summary { display: flex; align-items: center; gap: 16px; }
+  .price { font-size: 22px; font-weight: var(--font-strong); }
+  .price small { display: block; font-size: 12px; font-weight: 400; color: var(--ink-2); }
+  .state { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 0; }
+  .state.ok { background: #e4f2ea; color: var(--ok); }
+  .state.draft { background: var(--warn-soft); color: var(--warn); }
+  .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .cta { height: 48px; padding: 0 22px; border: 0; background: var(--accent); color: var(--accent-ink); font-weight: var(--font-strong); border-radius: var(--radius); }
+  .cta[aria-disabled="true"] { background: var(--ink-3); cursor: not-allowed; }
+  .issues { margin: 10px 0 0; padding: 10px 12px; background: var(--warn-soft); color: var(--warn); font-size: 14px; border-radius: var(--radius); }
+  .issues button { border: 0; background: none; padding: 0; color: inherit; text-decoration: underline; }
+  table.bom { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .bom th { text-align: left; font-size: 12px; font-weight: 500; color: var(--ink-2); padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  .bom td { padding: 9px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .bom td.q { text-align: right; width: 40px; }
+  .bom .art { color: var(--ink-2); width: 70px; }
+  .bom tr.implied td { color: var(--ink-2); }
+  .bom caption { text-align: left; font-size: 13px; color: var(--ink-2); padding: 0 0 6px; }
+  .note { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+
+  .selpanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 14px 16px; z-index: 4; }
+  .selpanel h4 { margin: 0 0 2px; font-size: 16px; }
+  .selpanel .heights { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+  .selpanel .heights .opt { min-width: 64px; }
+  .selpanel .x { float: right; border: 0; background: none; font-size: 20px; width: 36px; height: 36px; margin: -8px -8px 0 0; }
+  .link-danger { border: 0; background: none; color: var(--warn); text-decoration: underline; padding: 6px 0; }
+
+  /* =============================================================== A: studio */
+  body.a { display: grid; grid-template-columns: 1fr 420px; grid-template-rows: 64px 1fr; height: 100vh; }
+  .a header.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+  .a header.top h1 { font-size: 20px; font-weight: var(--font-head-weight); }
+  .a header.top .sub { color: var(--ink-2); font-size: 14px; }
+  .a .stage { grid-row: 2; }
+  .a .stage-tools.left { top: 16px; left: 16px; }
+  .a .stage-tools.right { top: 16px; right: 16px; }
+  .a aside.panel { grid-row: 2; display: flex; flex-direction: column; border-left: 1px solid var(--line); min-height: 0; }
+  .a .scroll { overflow: auto; flex: 1; }
+  .a .group-head .step-n::after { content: ""; }
+  .a .foot { border-top: 1px solid var(--line); padding: 14px 20px; background: var(--surface); }
+  .a .foot .summary { justify-content: space-between; }
+  .a .bom-toggle { border: 0; background: none; color: var(--accent); padding: 8px 0 0; font-size: 14px; text-decoration: underline; }
+  .a .selpanel { position: absolute; right: 16px; bottom: 16px; width: 320px; }
+
+  /* =============================================================== B: floating */
+  body.b { height: 100vh; overflow: hidden; }
+  .b .stage { position: fixed; inset: 0; }
+  .b .brand { position: fixed; top: 16px; left: 16px; z-index: 5; background: var(--surface); padding: 10px 14px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .b .brand h1 { font-size: 16px; font-weight: var(--font-strong); }
+  .b .brand .sub { font-size: 13px; color: var(--ink-2); }
+  .b .stage-tools.right { top: 16px; right: 16px; }
+  .b .stage-tools.left { top: 16px; left: 50%; transform: translateX(-50%); }
+  .b .stage .pic { left: 392px; inset-block: 72px 96px; height: calc(100% - 168px); }
+  .b aside.panel { position: fixed; z-index: 5; top: 92px; left: 16px; bottom: 96px; width: 360px; background: color-mix(in srgb, var(--surface) 94%, transparent);
+                   backdrop-filter: blur(10px); border-radius: var(--radius-lg); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+  .b .tabs { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .b .tabs button { flex: 1; border: 0; background: none; padding: 12px 8px; font-size: 13px; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .b .tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); font-weight: var(--font-strong); }
+  .b .scroll { overflow: auto; flex: 1; }
+  .b .group[hidden] { display: none; }
+  .b .bar { position: fixed; z-index: 5; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px;
+            background: var(--surface); padding: 10px 10px 10px 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .b .bar .tool { box-shadow: none; }
+  .b .drawer { position: fixed; z-index: 6; top: 0; right: 0; bottom: 0; width: 420px; background: var(--surface); box-shadow: var(--shadow); padding: 20px; overflow: auto;
+               transform: translateX(100%); transition: transform .2s; }
+  .b .drawer.open { transform: none; }
+  .b .selpanel { position: fixed; right: 16px; bottom: 96px; width: 320px; }
+
+  /* =============================================================== C: guided steps, dark rail */
+  body.c { display: grid; grid-template-columns: 380px 1fr; grid-template-rows: 64px 1fr; height: 100vh;
+           --panel-bg: #1b1815; --panel-ink: #ece6dc; }
+  :root[data-theme="youk"] body.c { --panel-bg: #0f2a26; --panel-ink: #eef3ef; }
+  .c header.steps { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; padding: 0 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .c header.steps h1 { font-size: 16px; font-weight: var(--font-strong); margin-right: 20px; white-space: nowrap; }
+  .c .stepbtn { border: 0; background: none; padding: 8px 12px; font-size: 14px; color: var(--ink-2); white-space: nowrap; display: inline-flex; gap: 8px; align-items: center; }
+  .c .stepbtn i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; border: 1px solid var(--line); font-size: 12px; }
+  .c .stepbtn[aria-current="step"] { color: var(--ink); font-weight: var(--font-strong); }
+  .c .stepbtn[aria-current="step"] i { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .c .stepbtn.done i { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+  .c aside.panel { grid-row: 2; background: var(--panel-bg); color: var(--panel-ink); display: flex; flex-direction: column; min-height: 0;
+                   --line: rgba(255,255,255,.12); --ink-2: rgba(255,255,255,.66); --ink-3: rgba(255,255,255,.4); --surface: transparent; --surface-2: rgba(255,255,255,.04); --accent-soft: rgba(255,255,255,.08); }
+  .c aside.panel .opt[aria-checked="true"] { border-color: #fff; box-shadow: inset 0 0 0 1px #fff; }
+  .c aside.panel .step-n { color: var(--panel-ink); opacity: .75; }
+  .c .scroll { overflow: auto; flex: 1; }
+  .c .group[hidden] { display: none; }
+  .c .group { border-bottom: 0; }
+  .c .nav { display: flex; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--line); }
+  .c .nav button { flex: 1; height: 48px; border-radius: var(--radius); }
+  .c .nav .back { border: 1px solid var(--line); background: none; }
+  .c .nav .next { border: 0; background: var(--accent); color: #fff; font-weight: var(--font-strong); }
+  .c .stage { grid-row: 2; }
+  .c .stage-tools.right { top: 16px; right: 16px; }
+  .c .stage-tools.left { top: 16px; left: 16px; }
+  .c .sumcard { position: absolute; z-index: 3; right: 16px; bottom: 16px; width: 340px; background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 14px 16px; }
+  .c .selpanel { position: absolute; left: 16px; bottom: 16px; width: 320px; }
+  .c .review { padding: 18px 20px; }
+
+  /* =============================================================== phone (all three) */
+  @media (max-width: 720px) {
+    body.a, body.c { display: block; height: auto; }
+    .a header.top { padding: 10px 16px; height: auto; flex-wrap: wrap; gap: 2px 12px; }
+    .a header.top h1 { font-size: 17px; }
+    .a .stage, .c .stage { position: sticky; top: 0; height: 52vh; z-index: 1; }
+    .a aside.panel, .c aside.panel { border: 0; }
+    .a .foot, .c .nav { position: sticky; bottom: 0; z-index: 2; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+    .a .selpanel, .c .selpanel { left: 8px; right: 8px; width: auto; bottom: 8px; }
+    .c header.steps { padding: 0 8px; height: 52px; }
+    .c header.steps h1 { display: none; }
+    .c .sumcard { display: none; }
+    .tool .label { display: none; }
+    .tool.primary .label { display: inline; }
+    .b aside.panel { top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 46vh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding-bottom: 72px; }
+    .b aside.panel::before { content: ""; width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 8px auto 0; }
+    .b .bar { left: 0; right: 0; bottom: 0; transform: none; border-radius: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); justify-content: space-between; }
+    .b .brand { left: 8px; top: 8px; }
+    .b .stage { bottom: 46vh; }
+    .b .drawer { width: 100%; }
+    .b .selpanel { left: 8px; right: 8px; width: auto; bottom: calc(46vh + 8px); }
+    /* the picture is no longer beside a panel on a phone */
+    .stage .pic, .b .stage .pic { left: 0; inset-block: 56px 8px; height: calc(100% - 64px); }
+    /* undo / redo move to the stage's bottom-right, out of the way of the view tools */
+    .stage-tools.left, .a .stage-tools.left, .b .stage-tools.left, .c .stage-tools.left { top: auto; bottom: 12px; left: auto; right: 12px; transform: none; }
+    .stage-tools.right [aria-label^="Fit"] { display: none; }   /* a double-tap does it on a phone */
+    .c .nav { background: var(--panel-bg); }
+    .b .bar .price { white-space: nowrap; }
+    .b .bar .state { font-size: 0; padding: 6px; gap: 0; }   /* the dot alone; the words stay for screen readers via role=status */
+    .b .stage-tools.right { top: 8px; right: 8px; }
+    .b .brand { padding: 8px 10px; }
+    .b .brand .sub { display: none; }
+    .b .bar { gap: 8px; padding-left: 14px; }
+    .b .bar .price { font-size: 16px; }
+    .b .bar .price small { display: none; }
+    .b .bar .state { font-size: 12px; padding: 4px 8px; }
+    .b .bar .cta { padding: 0 14px; }
+    /* C: the product first, then the one step, then Back / Next */
+    body.c { display: flex; flex-direction: column; }
+    .c header.steps { order: 0; }
+    .c .stage { order: 1; }
+    .c aside.panel { order: 2; }
+  }
+</style>
+</head>
+<body>
+<script>
+// ------------------------------------------------------------------ data (static, mockup only)
+const q = new URLSearchParams(location.search);
+const D = (q.get('d') || 'a').toLowerCase();
+document.documentElement.dataset.theme = q.get('theme') || 'youk';
+document.body.className = D;
+
+const state = {
+  depth: 320, height: 1500, width: 900, bays: 2,
+  adds: { 'metal-shelf': 2, 'timber-shelf': 0, youboxx: 0, 'clothes-rail': 0, 'side-rack': 0, 'hook-strip': 0 },
+  mounting: 'feet', draft: false, step: 0, placing: null, selected: null, tab: 0, bomOpen: false,
+  history: [], future: [],
+};
+const STEPS = ['Size', 'Bays', 'Shelves & storage', 'Accessories', 'Mounting'];
+const ADDS = {
+  2: [
+    ['metal-shelf', 'Metal shelf', 'Fits the bay it goes in', 4],
+    ['timber-shelf', 'Timber shelf, 25 mm', 'Oak-look board', 4],
+    ['youboxx', 'YouboXx storage boxes', 'Set of 4, hangs on a ladder', 2],
+    ['cabinet', 'Cabinet', null, 0, 'Coming soon — not in this configurator yet'],
+  ],
+  3: [
+    ['clothes-rail', 'Clothes rail', 'One per bay', 1],
+    ['hook-strip', 'Hook strip', 'Hangs on a ladder', 2],
+    ['side-rack', 'Side rack', 'Hangs on a ladder', 2],
+    ['hook-strip-full', 'Full-width hook strip', null, 0, 'Not available on 200 mm deep ladders'],
+  ],
+};
+const bom = () => {
+  const s = state;
+  const lines = [
+    ['236758', `Ladder frame, ${s.depth} mm deep, ${s.height} mm tall`, s.bays + 1],
+    ['008563', `Metal shelf ${s.width} mm, ${s.depth} mm deep`, s.bays + s.adds['metal-shelf']],
+  ];
+  if (s.adds['timber-shelf']) lines.push(['—', `Timber shelf ${s.width} mm, 25 mm`, s.adds['timber-shelf']]);
+  if (s.adds.youboxx) lines.push(['008547', 'YouboXx set of 4', s.adds.youboxx]);
+  if (s.adds['clothes-rail']) lines.push(['008531', `Clothes rail ${s.width} mm`, s.adds['clothes-rail']]);
+  if (s.adds['side-rack']) lines.push(['008543', 'Side rack', s.adds['side-rack']]);
+  if (s.adds['hook-strip']) lines.push(['008537', 'Hook strip', s.adds['hook-strip']]);
+  return lines;
+};
+const dims = () => `${state.bays * (state.width + 20) + 30} × ${state.height + (state.mounting === 'feet' ? 100 : 0)} × ${state.depth} mm`;
+
+// ------------------------------------------------------------------ icons
+const I = {
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+  redo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>',
+  fit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+  ar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v7h16v-7M12 3v12M7 8l5-5 5 5"/></svg>',
+  list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+};
+
+// ------------------------------------------------------------------ pieces
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const seg = (name, values, cur, unit, disabled = {}) => `
+  <div class="seg" role="radiogroup" aria-label="${esc(name)}" style="--n:${values.length}">
+    ${values.map((v) => `<button class="opt" role="radio" data-set="${name}" data-v="${v}" aria-checked="${v === cur}"
+       ${disabled[v] ? `aria-disabled="true" title="${esc(disabled[v])}"` : ''}>${v}${unit ? ` <small>${unit}</small>` : ''}</button>`).join('')}
+  </div>`;
+
+function group(i) {
+  const s = state;
+  const head = (t) => `<div class="group-head"><span class="step-n">${String(i + 1).padStart(2, '0')}</span><h3>${t}</h3></div>`;
+  if (i === 0) return `<section class="group" data-step="0">${head('Size')}
+      <p class="muted" style="margin:0 0 6px;font-size:13px">Depth</p>${seg('depth', [200, 320], s.depth, 'mm deep')}
+      <p class="muted" style="margin:14px 0 6px;font-size:13px">Height</p>${seg('height', s.depth === 320 ? [550, 905, 1500, 2210] : [668, 905], s.height, 'mm')}
+      <p class="muted" style="margin:14px 0 6px;font-size:13px">Width of each bay</p>${seg('width', [450, 600, 900, 1200], s.width, 'mm', s.depth === 200 ? { 600: 'Not made for 200 mm deep', 1200: 'Not made for 200 mm deep' } : {})}
+      <p class="note">Or tap the line between two ladders to set one bay on its own.</p></section>`;
+  if (i === 1) return `<section class="group" data-step="1">${head('Bays')}
+      <div class="row"><div class="what"><b>Number of bays</b><span class="why">${dims()}</span></div>
+      <span class="stepper"><button data-bay="-1" aria-label="One bay fewer" ${s.bays <= 1 ? 'disabled' : ''}>−</button><output aria-live="polite">${s.bays}</output><button data-bay="1" aria-label="One bay more" ${s.bays >= 3 ? 'disabled' : ''}>+</button></span></div></section>`;
+  if (i === 2 || i === 3) return `<section class="group" data-step="${i}">${head(STEPS[i])}
+      ${ADDS[i].map(([k, label, why, max, off]) => off
+        ? `<div class="row off"><div class="what"><b>${label}</b><span class="why">${off}</span></div><span class="stepper" aria-hidden="true"><button disabled>−</button><output>0</output><button disabled>+</button></span></div>`
+        : `<div class="row"><div class="what"><b>${label}</b><span class="why">${why}</span></div>
+           <button class="place" data-place="${k}" ${s.adds[k] >= max ? 'disabled' : ''}>Place…</button>
+           <span class="stepper"><button data-add="${k}" data-by="-1" aria-label="One ${label} fewer" ${!s.adds[k] ? 'disabled' : ''}>−</button><output aria-live="polite">${s.adds[k]}</output><button data-add="${k}" data-by="1" aria-label="One ${label} more" ${s.adds[k] >= max ? 'disabled' : ''}>+</button></span></div>`).join('')}
+      </section>`;
+  return `<section class="group" data-step="4">${head('Mounting')}
+      ${seg('mounting', ['floor', 'feet', 'wall'], s.mounting, '', s.depth === 200 ? { feet: 'The 200 mm ladders have no fixing for a foot' } : {})}
+      ${s.depth === 200 ? '<p class="note">Feet are not offered: the 200 mm ladders have no fixing for one.</p>' : '<p class="note">Feet add 100 mm and level the run on an uneven floor.</p>'}
+      </section>`;
+}
+
+const validity = () => state.draft
+  ? `<span class="state draft" role="status">Draft · 1 issue</span>`
+  : `<span class="state ok" role="status">Ready to order</span>`;
+const issues = () => state.draft
+  ? `<div class="issues" role="alert">The side rack would sit 59 mm below the floor. <button data-fix>Show it</button> · <button data-fix>Move it up</button></div>` : '';
+const price = () => `<div class="price num">Price on request<small>Prices are not on file yet · ${bom().reduce((n, l) => n + l[2], 0)} parts</small></div>`;
+const cta = () => `<button class="cta" ${state.draft ? 'aria-disabled="true" title="Fix the issue first"' : ''}>${state.draft ? 'Draft quote' : 'Request quote'}</button>`;
+const bomTable = () => `<table class="bom"><caption>Parts list</caption><thead><tr><th>Art.</th><th>Part</th><th class="q">Qty</th></tr></thead><tbody>
+    ${bom().map(([a, d, n]) => `<tr><td class="art num">${a}</td><td>${esc(d)}</td><td class="q num">${n}</td></tr>`).join('')}
+    ${state.mounting === 'feet' ? `<tr class="implied"><td class="art num">237023</td><td>Adjustable foot, 100 mm <br><small>Included — one per ladder</small></td><td class="q num">${state.bays + 1}</td></tr>` : ''}
+  </tbody></table><p class="note">To install: ${2 * (state.bays + 1)} wall fixings (not supplied).</p>`;
+
+const tools = (side) => side === 'left'
+  ? `<button class="tool" data-undo aria-label="Undo" ${state.history.length ? '' : 'disabled'}>${I.undo}</button>
+     <button class="tool" data-redo aria-label="Redo" ${state.future.length ? '' : 'disabled'}>${I.redo}</button>`
+  : `<button class="tool" aria-label="Fit the product in view">${I.fit}</button>
+     <button class="tool" aria-label="Share this configuration">${I.share}<span class="label">Share</span></button>
+     <button class="tool primary">${I.ar}<span class="label">View in your room</span></button>`;
+
+const dots = () => `<div class="dots" ${state.placing ? '' : 'hidden'}>
+    ${[[24, 19], [50, 23], [81, 26.5]].map(([x, y], k) =>
+      `<button class="dot" style="left:${x}%;top:${y}%" data-dot="${k}" aria-label="Put the ${esc(state.placing || '')} here"></button>`).join('')}
+  </div>
+  ${state.placing ? `<div class="hint" role="status">Tap a dot to place the ${esc(state.placing.replace('-', ' '))} · <u data-cancel>cancel</u></div>` : ''}
+  <button class="bayline" style="left:24%;width:26.4%;top:13%;transform:rotate(6.8deg);transform-origin:left" aria-label="Bay 1 width: ${state.width} mm. Change it."></button>
+  <button class="bayline" style="left:50.5%;width:31%;top:17.4%;transform:rotate(4.8deg);transform-origin:left" aria-label="Bay 2 width: ${state.width} mm. Change it."></button>
+  <button class="dot part" style="left:36%;top:51%;opacity:${state.selected ? 1 : 0.0}" data-select aria-label="Select the bay 1 shelf"></button>`;
+
+const selpanel = () => state.selected ? `<div class="selpanel" role="dialog" aria-label="Bay 1 shelf">
+    <button class="x" data-unselect aria-label="Close">×</button>
+    <h4>Bay 1 shelf</h4><span class="muted" style="font-size:13px">Metal shelf 900 mm · drag it, or choose a height</span>
+    <div class="heights" role="radiogroup" aria-label="Height">${[100, 455, 810, 1405].map((h) => `<button class="opt" role="radio" aria-checked="${h === 455}">${h} mm</button>`).join('')}</div>
+    <span class="muted" style="font-size:13px">The bay's own shelf can't be removed — change the number of bays instead.</span>
+  </div>` : '';
+
+// ------------------------------------------------------------------ layouts
+function render() {
+  const s = state;
+  const stage = `<main class="stage" aria-label="Your product">
+      <div class="pic"><img class="product" src="hero.png" alt="Two bays of ladder shelving, 1500 mm tall, with four metal shelves">${dots()}</div>
+      <div class="stage-tools left">${tools('left')}</div>
+      <div class="stage-tools right">${tools('right')}</div>
+      <div class="dims num">${dims()}</div>
+      ${D === 'c' ? `<div class="sumcard">${price()}<div style="margin-top:8px">${validity()}</div></div>` : ''}
+      ${selpanel()}
+    </main>`;
+
+  if (D === 'a') {
+    document.body.innerHTML = `
+      <header class="top"><h1>Ladder shelving</h1><span class="sub">Design your own · ${s.depth} mm deep</span></header>
+      ${stage}
+      <aside class="panel" aria-label="Options">
+        <div class="scroll">${[0, 1, 2, 3, 4].map(group).join('')}
+          <section class="group" ${s.bomOpen ? '' : 'hidden'}>${bomTable()}</section></div>
+        <div class="foot"><div class="summary">${price()}${validity()}</div>${issues()}
+          <div class="summary" style="margin-top:12px">${cta()}<button class="bom-toggle" data-bom aria-expanded="${s.bomOpen}">${s.bomOpen ? 'Hide' : 'Show'} parts list</button></div></div>
+      </aside>`;
+  } else if (D === 'b') {
+    document.body.innerHTML = `
+      ${stage}
+      <div class="brand"><h1>Ladder shelving</h1><div class="sub">${s.depth} mm deep · ${s.bays} bays</div></div>
+      <aside class="panel" aria-label="Options">
+        <div class="tabs" role="tablist">${STEPS.map((t, k) => `<button role="tab" data-tab="${k}" aria-selected="${k === s.tab}">${t}</button>`).join('')}</div>
+        <div class="scroll">${[0, 1, 2, 3, 4].map((k) => group(k).replace('<section', `<section ${k === s.tab ? '' : 'hidden'}`)).join('')}${issues() ? `<div style="padding:0 20px 16px">${issues()}</div>` : ''}</div>
+      </aside>
+      <div class="bar">${price()}${validity()}<button class="tool" data-bom aria-expanded="${s.bomOpen}">${I.list}<span class="label">Parts</span></button>${cta()}</div>
+      <div class="drawer ${s.bomOpen ? 'open' : ''}" role="dialog" aria-label="Parts list" ${s.bomOpen ? '' : 'aria-hidden="true"'}>
+        <button class="tool" data-bom style="float:right" aria-label="Close parts list">×</button><h3 style="margin-bottom:12px">Your configuration</h3>${bomTable()}</div>`;
+  } else {
+    const review = s.step === 5;
+    document.body.innerHTML = `
+      <header class="steps" aria-label="Steps"><h1>Ladder shelving</h1>
+        ${[...STEPS, 'Review'].map((t, k) => `<button class="stepbtn ${k < s.step ? 'done' : ''}" data-step="${k}" ${k === s.step ? 'aria-current="step"' : ''}><i>${k < s.step ? '✓' : k + 1}</i>${t}</button>`).join('')}
+      </header>
+      <aside class="panel" aria-label="Options">
+        <div class="scroll">${review
+          ? `<div class="review"><h3 style="margin-bottom:12px">Review</h3>${bomTable()}<div style="margin-top:14px">${validity()}</div>${issues()}</div>`
+          : group(s.step)}</div>
+        <div class="nav"><button class="back" data-go="-1" ${s.step === 0 ? 'disabled' : ''}>Back</button>
+          ${review ? cta().replace('class="cta"', 'class="cta next"') : `<button class="next" data-go="1">Next: ${[...STEPS, 'Review'][s.step + 1]}</button>`}</div>
+      </aside>
+      ${stage}`;
+  }
+  wire();
+}
+
+// ------------------------------------------------------------------ behaviour (enough to feel it)
+function commit(fn) { state.history.push(JSON.stringify({ ...state, history: [], future: [] })); state.future = []; fn(); render(); }
+function wire() {
+  const on = (sel, fn) => document.querySelectorAll(sel).forEach((el) => el.addEventListener('click', (e) => fn(el, e)));
+  on('[data-set]', (el) => { if (el.getAttribute('aria-disabled') === 'true') return; commit(() => { const k = el.dataset.set; state[k] = isNaN(+el.dataset.v) ? el.dataset.v : +el.dataset.v; if (k === 'depth') { state.height = state.depth === 320 ? 1500 : 905; if (state.depth === 200) { state.width = 900; if (state.mounting === 'feet') state.mounting = 'floor'; } } }); });
+  on('[data-bay]', (el) => commit(() => { state.bays = Math.max(1, Math.min(3, state.bays + +el.dataset.bay)); }));
+  on('[data-add]', (el) => commit(() => { const k = el.dataset.add; state.adds[k] = Math.max(0, state.adds[k] + +el.dataset.by); state.draft = k === 'side-rack' && state.adds[k] > 0; }));
+  on('[data-place]', (el) => { state.placing = el.dataset.place; state.selected = null; render(); });
+  on('[data-dot]', () => commit(() => { state.adds[state.placing] += 1; state.placing = null; }));
+  on('[data-cancel]', () => { state.placing = null; render(); });
+  on('[data-select]', () => { state.selected = 'shelf'; render(); });
+  on('[data-unselect]', () => { state.selected = null; render(); });
+  on('[data-bom]', () => { state.bomOpen = !state.bomOpen; render(); });
+  on('[data-tab]', (el) => { state.tab = +el.dataset.tab; render(); });
+  on('[data-step]', (el) => { if (el.classList.contains('stepbtn')) { state.step = +el.dataset.step; render(); } });
+  on('[data-go]', (el) => { state.step = Math.max(0, Math.min(5, state.step + +el.dataset.go)); render(); });
+  on('[data-fix]', () => commit(() => { state.draft = false; }));
+  on('[data-undo]', () => { const prev = state.history.pop(); if (!prev) return; state.future.push(JSON.stringify({ ...state, history: [], future: [] })); Object.assign(state, JSON.parse(prev), { history: state.history, future: state.future }); render(); });
+  on('[data-redo]', () => { const nxt = state.future.pop(); if (!nxt) return; state.history.push(JSON.stringify({ ...state, history: [], future: [] })); Object.assign(state, JSON.parse(nxt), { history: state.history, future: state.future }); render(); });
+  // tapping the empty stage selects the bay shelf in the mockup, so the selected state can be seen
+  document.querySelector('.stage img').addEventListener('click', () => { if (!state.placing) { state.selected = state.selected ? null : 'shelf'; render(); } });
+}
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); document.querySelector(e.shiftKey ? '[data-redo]' : '[data-undo]')?.click(); }
+  if (e.key === 'Escape') { state.placing = null; state.selected = null; state.bomOpen = false; render(); }
+});
+render();
+</script>
+</body>
+</html>

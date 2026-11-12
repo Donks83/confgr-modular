@@ -103,10 +103,16 @@ function main(argv) {
   //
   // The rule instead: any array in the spec whose rows carry an id is a family.
   // Adding one to snap-spec.json is now all it takes.
-  const configurable = Object.values(spec)
-    .filter((value) => Array.isArray(value) && value.every((row) => row && row.id))
-    .flat()
-    .map((row) => row.id);
+  //
+  // And WHICH family, because the connection rules (youk/rules.json) are written
+  // per family and the runtime has no snap-spec to ask. This is the one place the
+  // membership is read, so it is carried from here rather than listed again.
+  const familyOf = new Map();
+  for (const [family, value] of Object.entries(spec)) {
+    if (!Array.isArray(value) || !value.every((row) => row && row.id)) continue;
+    for (const row of value) familyOf.set(row.id, family);
+  }
+  const configurable = [...familyOf.keys()];
 
   const existing = existsSync(outPath) ? JSON.parse(readFileSync(outPath, 'utf8')) : {};
   const keptItems = existing.items || {};
@@ -136,6 +142,7 @@ function main(argv) {
         ...(was.descriptionOverride ? { descriptionOverride: was.descriptionOverride } : {}),
         sizeMm: own.dims_mm,
         supplier: 'PWS',
+        family: familyOf.get(id),
         costEach: was.costEach ?? null,
         priceEach: was.priceEach ?? {},
       };
@@ -155,6 +162,7 @@ function main(argv) {
       description: was.descriptionOverride || description,
       ...(was.descriptionOverride ? { descriptionOverride: was.descriptionOverride } : {}),
       sizeMm: part.dims_mm,
+      family: familyOf.get(id),
       // Money, carried over verbatim. Note ?? rather than ||: a genuine 0 is a
       // price somebody entered, and must survive.
       costEach: was.costEach ?? null,

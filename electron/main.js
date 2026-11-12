@@ -488,6 +488,19 @@ ipcMain.handle('app:catalogue', () => {
   }
 });
 
+// The range's connection rules (A2), beside the catalogue for the same reason.
+// Absent is not an error: the engine then applies only the physical rules.
+ipcMain.handle('app:rules', () => {
+  const file = isDev
+    ? path.join(__dirname, '..', 'youk', 'rules.json')
+    : path.join(process.resourcesPath, 'rules.json');
+  try {
+    return { ok: true, rules: JSON.parse(fs.readFileSync(file, 'utf8')), path: file };
+  } catch (err) {
+    return { ok: false, error: err.message, path: file };
+  }
+});
+
 // Where the bundled test components live, so the spike can load them without a
 // file dialog. In a packaged build they sit beside the app resources.
 ipcMain.handle('app:testAssetsDir', () => (

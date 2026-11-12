@@ -52,6 +52,8 @@
 // stored id means. Undetectably, which is the one failure mode this file is
 // built to avoid. The ids are long because the ids are long.
 
+import { judge } from './judge.js';
+import { DEFAULT_RULES } from './rules.js';
 import { resolveTransforms, validateAssembly } from './assembly.js';
 import { impliedParts, impliedBom, withImplied } from './implied.js';
 import { overlaps } from './collision.js';
@@ -256,7 +258,7 @@ export function configurationDigest(id) {
  * assembly with no catalogue at all, and prices simply come back null, which is
  * exactly what quote.js does with a part it cannot price.
  */
-export function resolveConfiguration(id, components, { catalogue = null, tierId = null } = {}) {
+export function resolveConfiguration(id, components, { catalogue = null, tierId = null, rules = DEFAULT_RULES } = {}) {
   const { assembly, mounting, footHeightMm } = decodeConfiguration(id);
 
   const missing = [...new Set(
@@ -282,9 +284,20 @@ export function resolveConfiguration(id, components, { catalogue = null, tierId 
   const scene = withImplied(assembly, components, options);
   const sceneTransforms = resolveTransforms(scene, components).transforms;
 
+  // THE JUDGE'S VERDICT, and with it whether this can be ordered (A2 §3; Matt,
+  // 12 Nov 2026: an invalid product gets a DRAFT quote - the bill of materials
+  // and the price stay visible, ordering does not). A mounting the parts cannot
+  // take (implied refusals - 200 mm ladders on feet) counts against it too.
+  const reasons = judge(assembly, components, rules, { mounting, transforms });
+  for (const r of implied.refusals || []) {
+    reasons.push({ rule: r.code || 'implied', says: r.message || r.reason || String(r.code) });
+  }
+  const judgement = { ok: reasons.length === 0, reasons };
+
   return {
     id,
     digest: configurationDigest(id),
+    judgement,
     assembly,
     mounting,
     footHeightMm,
@@ -296,11 +309,15 @@ export function resolveConfiguration(id, components, { catalogue = null, tierId 
     implied,
     overlaps: overlaps(scene, components, sceneTransforms),
     quote: catalogue
-      ? quote(assembly, catalogue, {
-        tierId,
-        implied: impliedBom(assembly, components, options),
-        notes: implied.notes,
-      })
+      ? {
+        ...quote(assembly, catalogue, {
+          tierId,
+          implied: impliedBom(assembly, components, options),
+          notes: implied.notes,
+        }),
+        status: judgement.ok ? 'orderable' : 'draft',
+        draftBecause: judgement.ok ? [] : [...new Set(reasons.map((r) => r.says))],
+      }
       : null,
   };
 }

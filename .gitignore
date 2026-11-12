@@ -80,3 +80,11 @@ youk/officefeet.png
 .netlify/ 
 *.tmp.*  
 *.tmp.txt  
+
+# The A1 audit's bulky by-products: probe screenshots (renders of supplier-derived
+# geometry, 5.8 MB), Electron console noise and progress logs. The sweep results,
+# the probe text dumps and the failure table ARE committed - they are the evidence.
+docs/audit/probe/*.png
+docs/audit/probe/*.console.txt
+docs/audit/sweep.progress.txt
+docs/audit/sweep-quick.json

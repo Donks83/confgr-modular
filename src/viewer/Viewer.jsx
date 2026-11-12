@@ -52,6 +52,8 @@ export default function Viewer({
   components,
   catalogue = null,
   tierId = null,
+  /** The range's connection rules (A2); the physical defaults when absent. */
+  rules = undefined,
   showPrice = true,
   title = null,
   ar = null,
@@ -164,7 +166,7 @@ export default function Viewer({
     if (!configurationId || !components?.size) return null;
     try {
       setError(null);
-      return resolveConfiguration(configurationId, components, { catalogue, tierId });
+      return resolveConfiguration(configurationId, components, { catalogue, tierId, ...(rules ? { rules } : {}) });
     } catch (err) {
       setError(err.message);
       return null;
@@ -482,12 +484,18 @@ export default function Viewer({
             {/* Validity is REPORTED, not hidden. A runtime that silently shows
                 an unbuildable product is worse than one that says so — and the
                 engine already knows, because the same check runs in the editor. */}
-            {resolved.validity && !resolved.validity.isValid && (
-              <p className="cfgv-warn">
-                {resolved.validity.missingRequiredSnaps.length} part
-                {resolved.validity.missingRequiredSnaps.length === 1 ? '' : 's'} in
-                this configuration are not fully supported.
-              </p>
+            {/* THE JUDGE'S VERDICT, in its own sentences (A2 §3). It used to count
+                missing required points only, so a part fitted back to front read
+                "0 parts are not fully supported". Matt, 12 Nov 2026: an invalid
+                product's quote is a DRAFT - the parts and price stay, ordering
+                does not. The styling of this belongs to workstream B. */}
+            {resolved.judgement && !resolved.judgement.ok && (
+              <div className="cfgv-warn" role="status">
+                <strong>Draft — this can't be ordered yet.</strong>
+                <ul>
+                  {[...new Set(resolved.judgement.reasons.map((r) => r.says))].map((says) => <li key={says}>{says}</li>)}
+                </ul>
+              </div>
             )}
 
             {showPrice && (

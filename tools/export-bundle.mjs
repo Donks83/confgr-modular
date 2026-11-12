@@ -228,7 +228,7 @@ export async function writeArAssets({
  */
 export async function writeBundle({
   configurationId, folder, dist, models: modelsDir, title = null, generated = null,
-  ar = true, arNormals = true, guided = null, arRoute = null,
+  ar = true, arNormals = true, guided = null, arRoute = null, rules = null,
 }) {
   const needed = partsNeededFor(configurationId, { guided });
 
@@ -304,6 +304,7 @@ export async function writeBundle({
     generated,
     ar: arResult?.ar || arOnlyRoute,
     guided,
+    rules,
   });
   writeFileSync(join(folder, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(join(folder, 'Start Preview.bat'), startPreviewBat());
@@ -335,6 +336,7 @@ async function main(argv) {
   // default, computed here rather than asked for - a configurator that has to
   // be told which product to start from has the wrong shape.
   let guided = null;
+  let rules = null;
   const guidedPath = at('--guided')
     || (argv.includes('--guided') ? join(modelsDir, 'guided.json') : null);
   if (guidedPath) {
@@ -342,7 +344,17 @@ async function main(argv) {
     const { loadFolder } = await import('./export-glb.mjs');
     guided = parseGuided(JSON.parse(readFileSync(guidedPath, 'utf8')));
     const { components } = loadFolder(modelsDir);
-    const built = buildGuided(guided, defaultChoices(guided), components);
+    // The range's rules travel with its schema. Checked here, with the catalogue,
+    // so a bad rule stops the export by name rather than the customer's page.
+    const rulesPath = join(modelsDir, 'rules.json');
+    let parsedRules;
+    if (existsSync(rulesPath)) {
+      const { parseRules } = await import('../src/engine/rules.js');
+      rules = JSON.parse(readFileSync(rulesPath, 'utf8'));
+      const cataloguePath = join(modelsDir, 'catalogue.json');
+      parsedRules = parseRules(rules, { catalogue: existsSync(cataloguePath) ? JSON.parse(readFileSync(cataloguePath, 'utf8')) : null });
+    }
+    const built = buildGuided(guided, defaultChoices(guided), components, parsedRules ? { rules: parsedRules } : {});
     id = built.configurationId;
     console.log(`guided: ${guided.variants.length} variant`
       + `${guided.variants.length === 1 ? '' : 's'}, opening on `
@@ -381,6 +393,7 @@ async function main(argv) {
       arNormals: !argv.includes('--no-ar-normals'),
       guided,
       arRoute,
+      rules,
     });
 
     console.log(`\n  wrote   ${r.folder}  ${(r.bytes / 1024).toFixed(1)} kB`);

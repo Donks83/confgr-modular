@@ -1,0 +1,159 @@
+
+480 structures, {"builds":16531,"moves":1139,"dots":3890,"adds":4056,"removes":300,"stability":360}, 387 s
+┌────────────────────────────┬──────────┬─────────────┐
+│ (index)                    │ distinct │ occurrences │
+├────────────────────────────┼──────────┼─────────────┤
+│ I1-panel-move-springs-back │ 2        │ 128         │
+│ I2-drag-lands-elsewhere    │ 2        │ 213         │
+│ I3-add-dot-lands-elsewhere │ 4        │ 936         │
+│ I4-remove-moves-others     │ 17       │ 228         │
+│ O1-below-floor             │ 3        │ 5450        │
+│ O10-dead-control           │ 4        │ 576         │
+│ O11-two-parts-one-place    │ 6        │ 1082        │
+│ O6-dropped                 │ 1        │ 128         │
+│ O6-refused                 │ 29       │ 2700        │
+│ O8-mounting-refused        │ 1        │ 674         │
+│ O9-quote-while-invalid     │ 1        │ 674         │
+└────────────────────────────┴──────────┴─────────────┘
+[I1-panel-move-springs-back] ×100  move panel offered frame#1 at 355 mm; after rebuild it is at 0 mm (dropped: That position is no longer part of this product.)
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1
+[I1-panel-move-springs-back] ×28  move panel offered frame#1 at 237 mm; after rebuild it is at 0 mm (dropped: That position is no longer part of this product.)
+      e.g. d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1
+[I2-drag-lands-elsewhere] ×181  drag/dot preview showed frame#1 at y 355 mm; it landed at y 0 mm (record dropped - springs back)
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1
+[I2-drag-lands-elsewhere] ×32  drag/dot preview showed frame#1 at y 236.5 mm; it landed at y 0 mm (record dropped - springs back)
+      e.g. d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1
+[I3-add-dot-lands-elsewhere] ×408  tapped a dot for metal-shelf at g1::rung-1-left; placed at g3::rung-2-right instead
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×2 timber-shelf×1 side-rack×1 hook-strip×1 · moved: metal-shelf#1
+[I3-add-dot-lands-elsewhere] ×408  tapped a dot for timber-shelf at g1::rung-1-left; placed at g3::rung-2-left instead
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×2 side-rack×1 hook-strip×1 · moved: timber-shelf#1
+[I3-add-dot-lands-elsewhere] ×96  tapped a dot for timber-shelf at g1::rung-1-left; placed at g3::rung-2-right instead
+      e.g. d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×2 side-rack×1 hook-strip×1 · moved: timber-shelf#1
+[I3-add-dot-lands-elsewhere] ×24  tapped a dot for hook-strip at g3::rung-1-left; placed at g5::rung-1-right instead
+      e.g. d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 side-rack×1 hook-strip×2 · moved: hook-strip#1
+[I4-remove-moves-others] ×48  removing metal-shelf#0 moved timber-shelf#0 from (x 705.2, y 455) to (x 235.1, y 455) mm
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · timber-shelf×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×24  removing side-rack#0 moved hook-strip#0 from (x -11.9, y 51.5) to (x 11.9, y 51.5) mm
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 hook-strip×1
+[I4-remove-moves-others] ×24  removing clothes-rail#0 moved side-rack#0 from (x -57.8, y -58.5) to (x 57.8, y -58.5) mm
+      e.g. d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×24  removing clothes-rail#0 moved hook-strip#0 from (x 632, y 51.5) to (x -11.9, y 51.5) mm
+      e.g. d320 · 2 bays w600/w600 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×12  removing clothes-rail#0 moved youboxx#0 from (x -62.4, y -12.3) to (x 62.4, y -12.3) mm
+      e.g. d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 youboxx×1 hook-strip-full×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×12  removing youboxx#0 moved side-rack#0 from (x 862.3, y -58.5) to (x -57.8, y -58.5) mm
+      e.g. d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×12  removing hook-strip-full#0 moved side-rack#0 from (x 862.3, y -58.5) to (x 978, y -58.5) mm
+      e.g. d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 youboxx×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×12  removing clothes-rail#0 moved hook-strip-full#0 from (x 1830.2, y 51.5) to (x 610.1, y 51.5) mm
+      e.g. d320 · 2 bays w1200/w1200 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 hook-strip-full×1 side-rack×1
+[I4-remove-moves-others] ×12  removing side-rack#0 moved hook-strip#0 from (x -11.7, y 51.5) to (x 11.7, y 51.5) mm
+      e.g. d200 · 2 bays w450/w450 · frames 668/668/668 · floor · timber-shelf×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing timber-shelf#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing timber-shelf#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · clothes-rail×1 hook-strip-full×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing clothes-rail#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 hook-strip-full×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing hook-strip-full#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 side-rack×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing side-rack#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing side-rack#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 hook-strip×1
+[I4-remove-moves-others] ×6  removing hook-strip#0 moved clothes-rail#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1
+[I4-remove-moves-others] ×6  removing hook-strip#0 moved hook-strip-full#0 from (x ?, y ?) to (x -, y gone) mm
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×1 clothes-rail×1 hook-strip-full×1 side-rack×1
+[O1-below-floor] ×3550  008543-rack-for-ladder-depth-320mm (side-rack#0) reaches -58.5 mm below the floor on a floor-standing product
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · side-rack×1  (1 × side-rack)
+[O1-below-floor] ×988  008547-youboxx-set-4 (youboxx#0) reaches -12.3 mm below the floor on a floor-standing product
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · youboxx×1  (1 × youboxx)
+[O1-below-floor] ×912  008542-rack-for-ladder-depth-200mm (side-rack#0) reaches -58.5 mm below the floor on a floor-standing product
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · side-rack×1  (1 × side-rack)
+[O10-dead-control] ×234  "clothes-rail" is offered by size w900 of d200 and can never be placed: not available on 200 mm deep frames
+      e.g. d200 · 1 bay w900 · frames 668/668 · floor  (bare structure)
+[O10-dead-control] ×234  "hook-strip-full" is offered by size w900 of d200 and can never be placed: not available on 200 mm deep frames
+      e.g. d200 · 1 bay w900 · frames 668/668 · floor  (bare structure)
+[O10-dead-control] ×54  "clothes-rail" is offered by size w450 of d200 and can never be placed: not available on 200 mm deep frames
+      e.g. d200 · 2 bays w450/w900 · frames 668/668/668 · floor  (bare structure)
+[O10-dead-control] ×54  "hook-strip-full" is offered by size w450 of d200 and can never be placed: not available on 200 mm deep frames
+      e.g. d200 · 2 bays w450/w900 · frames 668/668/668 · floor  (bare structure)
+[O11-two-parts-one-place] ×337  008561-shelf-450mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-450mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2  (every accessory at max)
+[O11-two-parts-one-place] ×205  008562-shelf-600mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-600mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials
+      e.g. d320 · 1 bay w600 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2  (every accessory at max)
+[O11-two-parts-one-place] ×199  008563-shelf-900mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-900mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
+[O11-two-parts-one-place] ×199  008564-shelf-1200mm-for-ladder-depth-320mm (metal-shelf#0) and pws-timber-shelf-1200mm-for-ladder-depth-320mm (timber-shelf#0) occupy the same space at y 489.2 mm — both on the bill of materials
+      e.g. d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2  (every accessory at max)
+[O11-two-parts-one-place] ×83  008531-clothes-rail-900mm (clothes-rail#0) and 008540-hook-strip-for-ladder-width-900mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
+[O11-two-parts-one-place] ×59  008532-clothes-rail-1200mm (clothes-rail#0) and 008541-hook-strip-for-ladder-width-1200mm (hook-strip-full#0) occupy the same space at y 64 mm — both on the bill of materials
+      e.g. d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2  (every accessory at max)
+[O6-dropped] ×128  recorded position for frame#1 dropped: That position is no longer part of this product.
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 · moved: frame#1  (after panel move of frame#1)
+[O6-refused] ×450  asked for 1 × clothes-rail, placed 0: These are different kinds of joint and do not fit together.
+      e.g. d200 · 1 bay w900 · frames 668/668 · floor · clothes-rail×1  (1 × clothes-rail)
+[O6-refused] ×450  asked for 1 × hook-strip-full, placed 0: These are different kinds of joint and do not fit together.
+      e.g. d200 · 1 bay w900 · frames 668/668 · floor · hook-strip-full×1  (1 × hook-strip-full)
+[O6-refused] ×252  asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (6 tried).
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×3  (3 × metal-shelf)
+[O6-refused] ×204  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w450 · frames 550/905 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×120  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (7 tried).
+      e.g. d320 · 1 bay w450 · frames 550/905 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×108  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×96  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (9 tried).
+      e.g. d320 · 1 bay w450 · frames 550/1500 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×96  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (13 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×84  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (7 tried).
+      e.g. d320 · 1 bay w450 · frames 550/905 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×84  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w450 · frames 550/1500 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×72  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (9 tried).
+      e.g. d320 · 1 bay w450 · frames 550/1500 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×72  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (13 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×72  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×72  asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (10 tried).
+      e.g. d320 · 1 bay w450 · frames 905/1500 · floor · metal-shelf×3  (3 × metal-shelf)
+[O6-refused] ×72  asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (14 tried).
+      e.g. d320 · 1 bay w450 · frames 905/2210 · floor · metal-shelf×3  (3 × metal-shelf)
+[O6-refused] ×48  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (5 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×48  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (10 tried).
+      e.g. d320 · 1 bay w450 · frames 905/1500 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×48  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (14 tried).
+      e.g. d320 · 1 bay w450 · frames 905/2210 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×48  asked for 4 × metal-shelf, placed 3: Every position for that part is already taken (15 tried).
+      e.g. d320 · 1 bay w450 · frames 1500/2210 · floor · metal-shelf×4  (4 × metal-shelf)
+[O6-refused] ×36  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (5 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×36  asked for 3 × metal-shelf, placed 2: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w450 · frames 905/905 · floor · metal-shelf×3  (3 × metal-shelf)
+[O6-refused] ×36  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (10 tried).
+      e.g. d200 · 1 bay w450 · frames 668/904.5 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×24  asked for 4 × metal-shelf, placed 3: Every position for that part is already taken (11 tried).
+      e.g. d320 · 1 bay w450 · frames 1500/1500 · floor · metal-shelf×4  (4 × metal-shelf)
+[O6-refused] ×24  asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (15 tried).
+      e.g. d320 · 1 bay w450 · frames 1500/2210 · floor · timber-shelf×4  (4 × timber-shelf)
+[O6-refused] ×18  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (8 tried).
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×12  asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (11 tried).
+      e.g. d320 · 1 bay w450 · frames 1500/1500 · floor · timber-shelf×4  (4 × timber-shelf)
+[O6-refused] ×12  asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (11 tried).
+      e.g. d200 · 1 bay w450 · frames 904.5/904.5 · floor · timber-shelf×4  (4 × timber-shelf)
+[O6-refused] ×3  asked for 1 × clothes-rail, placed 0: Something already hangs from this rung.
+      e.g. d200 · 2 bays w450/w900 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 clothes-rail×1 hook-strip-full×1  (every accessory at max)
+[O6-refused] ×3  asked for 1 × hook-strip-full, placed 0: Something already hangs from this rung.
+      e.g. d200 · 2 bays w450/w900 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 clothes-rail×1 hook-strip-full×1  (every accessory at max)
+[O8-mounting-refused] ×674  feet: 2 ladders in this configuration have no fixing for a foot — the 200 mm frames do not have them. Stand it on the floor, or hang it on the wall.
+      e.g. d200 · 1 bay w450 · frames 668/668 · feet  (bare structure)
+[O9-quote-while-invalid] ×674  a full quote is produced for a product the engine knows is invalid or unbuildable
+      e.g. d200 · 1 bay w450 · frames 668/668 · feet  (bare structure)
+
+written D:\Claude\confgr-modular\docs\audit\sweep.json

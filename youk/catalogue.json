@@ -51,6 +51,7 @@
         668,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {},
       "notes": "Supplier filename leaves the German Leiterregal in the English half. Renamed to match the other five frames so the palette reads consistently."
@@ -64,6 +65,7 @@
         904.5,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {},
       "notes": "Supplier filename says 'ladder depth 2000 mm'. Measured 200 x 904.5 x 30, and the German half says Leitertiefe 200 mm. Typo in the filename."
@@ -76,6 +78,7 @@
         550,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {}
     },
@@ -87,6 +90,7 @@
         905,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {}
     },
@@ -98,6 +102,7 @@
         1500,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {}
     },
@@ -110,6 +115,7 @@
         2210,
         30
       ],
+      "family": "frames",
       "costEach": null,
       "priceEach": {},
       "notes": "Supplier filename's ENGLISH half says height 1500 mm; the German half says Hoehe 2210 mm and the geometry measures 2210. Without this override two different frames appear on a quote as the same 1500mm part at different prices."
@@ -122,6 +128,7 @@
         68.5,
         287
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -133,6 +140,7 @@
         68.5,
         287
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -144,6 +152,7 @@
         68.5,
         287
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -155,6 +164,7 @@
         68.5,
         287
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -166,6 +176,7 @@
         75,
         55
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -177,6 +188,7 @@
         75,
         55
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -189,6 +201,7 @@
         75,
         55
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {},
       "notes": "Filename puts 'YouK' on the German side only."
@@ -201,6 +214,7 @@
         50,
         72
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -212,6 +226,7 @@
         50,
         72
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -223,6 +238,7 @@
         50,
         72
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -234,6 +250,7 @@
         50,
         72
       ],
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -246,6 +263,7 @@
         289
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -258,6 +276,7 @@
         289
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -270,6 +289,7 @@
         289
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -282,6 +302,7 @@
         289
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -294,6 +315,7 @@
         169
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -306,6 +328,7 @@
         169
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -318,6 +341,7 @@
         169
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -330,6 +354,7 @@
         169
       ],
       "supplier": "PWS",
+      "family": "span",
       "costEach": null,
       "priceEach": {}
     },
@@ -341,6 +366,7 @@
         76.6,
         110.1
       ],
+      "family": "wall",
       "costEach": null,
       "priceEach": {}
     },
@@ -352,6 +378,7 @@
         76.6,
         110.1
       ],
+      "family": "wall",
       "costEach": null,
       "priceEach": {}
     },
@@ -363,6 +390,7 @@
         76.6,
         110.1
       ],
+      "family": "wall",
       "costEach": null,
       "priceEach": {}
     },
@@ -374,6 +402,7 @@
         76.6,
         110.1
       ],
+      "family": "wall",
       "costEach": null,
       "priceEach": {}
     },
@@ -385,6 +414,7 @@
         50,
         43.6
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -396,6 +426,7 @@
         50,
         43.3
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -407,6 +438,7 @@
         160,
         135.8
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -418,6 +450,7 @@
         160,
         135.8
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -430,6 +463,7 @@
         240,
         100.4
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {},
       "notes": "Filename reads 'fpr' for 'for'."
@@ -442,6 +476,7 @@
         210,
         195
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -453,6 +488,7 @@
         109.9,
         315
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -464,6 +500,7 @@
         113.8,
         315
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -475,6 +512,7 @@
         94,
         315
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -486,6 +524,7 @@
         48,
         315
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -497,6 +536,7 @@
         211,
         315
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -508,6 +548,7 @@
         8,
         50.3
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -519,6 +560,7 @@
         8,
         50.3
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -530,6 +572,7 @@
         8,
         80.5
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -541,6 +584,7 @@
         8,
         80.5
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -552,6 +596,7 @@
         300,
         27.3
       ],
+      "family": "hang",
       "costEach": null,
       "priceEach": {}
     },
@@ -564,6 +609,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -576,6 +622,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -588,6 +635,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -600,6 +648,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -612,6 +661,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -624,6 +674,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -636,6 +687,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -648,6 +700,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -660,6 +713,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -672,6 +726,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -684,6 +739,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -696,6 +752,7 @@
         320
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -708,6 +765,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -720,6 +778,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -732,6 +791,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -744,6 +804,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -756,6 +817,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -768,6 +830,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -780,6 +843,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -792,6 +856,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -804,6 +869,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -816,6 +882,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -828,6 +895,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -840,6 +908,7 @@
         200
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -852,6 +921,7 @@
         600
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -864,6 +934,7 @@
         700
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -876,6 +947,7 @@
         600
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -888,6 +960,7 @@
         700
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -900,6 +973,7 @@
         600
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -912,6 +986,7 @@
         700
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -924,6 +999,7 @@
         600
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -936,6 +1012,7 @@
         700
       ],
       "supplier": "PWS",
+      "family": "carcase",
       "costEach": null,
       "priceEach": {}
     },
@@ -947,6 +1024,7 @@
         50,
         310
       ],
+      "family": "bolted",
       "costEach": null,
       "priceEach": {}
     },
@@ -958,6 +1036,7 @@
         60,
         20
       ],
+      "family": "bolted",
       "costEach": null,
       "priceEach": {}
     },
@@ -969,6 +1048,7 @@
         99.8,
         20
       ],
+      "family": "bolted",
       "costEach": null,
       "priceEach": {}
     }

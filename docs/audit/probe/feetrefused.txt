@@ -1,0 +1,44 @@
+﻿node.exe : (node:65120) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() 
+instead.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:65120) [D...sign() instead.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[0] 
+[0]   VITE v5.4.21  ready in 388 ms
+[0] 
+[0]   ➜  Local:   http://localhost:5174/
+[0]   ➜  Network: use --host to expose
+[1] 
+[1] [renderer:log] [vite] connecting... (client:495)
+[1] [renderer:log] [vite] connected. (client:618)
+[1] [renderer:warn] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold (chunk-NGODP64W.js?v=1a918c16:21551)
+[1] [renderer:error] %cElectron Security Warning (Insecure Content-Security-Policy) font-weight: bold; This renderer process has either no Content Security
+[1]   Policy set or a policy with "unsafe-eval" enabled. This exposes users of
+[1]   this app to unnecessary security risks.
+[1] 
+[1] For more information and help, consult
+[1] https://electronjs.org/docs/tutorial/security.
+[1] This warning will not show up
+[1] once the app is packaged. (sandbox_bundle:2)
+[1] [click] part:pws-timber-shelf-900mm-for-ladder-depth-200mm -> pws-timber-shelf-900mm-for-ladder-depth-200mm is disabled - it fits nowhere right now
+[1] [click] marker:0 -> clicked marker 0 of 8 at 984,680
+[1] [click] part:236748 -> no palette entry for 236748
+[1] [click] marker:0 -> clicked marker 0 of 8 at 986,681
+[1] [click] choose:0 -> no choice offered
+[1] [click] mount:feet -> mounting set to feet
+[1] [click] layout -> 2 instances
+[1] i1 236758-ladder-depth-320mm @ 0.0,0.0,0.0  wall +z
+[1] implied:foot:i1:0 237023-adjustable-foot-100mm @ 0.0,-99.8,-100.0  wall +z
+[1] 0 connections
+[1] 
+[1] [click] dump -> Anchored product. Click a marker to add a part, or pick a part and see where it fits. Both orders work. Drag a part onto another marker to move it — it can only land on a marker, never in open space. | Drag the background to orbit · right-drag or two fingers to pan · scroll to zoom | 1 part, 0 joints, 8 open points | One foot per ladder, at the front; the back stays fixed to the wall. Raises the base 100 mm (±10 mm on the levelling nut) — usually to clear a skirting board. | Adds 1 part to the quote. | 2 wall fixings — Kesseböhmer's sheet specifies 8 × 50 plugs and a cover cap for each. Not supplied as a part number here; the installer chooses the fixing to suit the wall. | 15,023 triangles across 2 parts · in AR this goes on the floor | No prices on file yet | Not a quote yet — 2 lines with no price on file: YouK ladder depth 320 mm, height 1500 mm, YouK adjustable foot 100 mm. | 24 parts fit here.
+[1] [click] collisions -> no two parts share space
+[1] [capture] canvas readback -> D:\Claude\confgr-modular\youk\feetrefused.png
+[1] wait-on tcp:5174 && electron . exited with code 0
+--> Sending SIGTERM to other processes..
+[0] vite exited with code 1
+
