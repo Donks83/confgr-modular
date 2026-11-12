@@ -1,0 +1,1339 @@
+{
+ "_": "What the engine at this commit made of each link, captured BEFORE the A3 rules rewrite. Do not regenerate: see tools/audit/capture-fixtures.mjs.",
+ "capturedAt": "2026-11-12T17:09:03.972Z",
+ "commit": "97750cf",
+ "links": [
+  {
+   "name": "L1 side rack below floor",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJzaWRlLXJhY2siOjF9LCJhdCI6e30sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjEtc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU0My1yYWNrLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iXSwicyI6WyJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50Il0sImkiOlt7ImMiOjAsInAiOlswLDAsMF0sImYiOjF9LHsiYyI6MX0seyJjIjowfSx7ImMiOjJ9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM10sWzAsMCwzLDRdXX0",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      235.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      470.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008543-rack-for-ladder-depth-320mm",
+     "slot": "side-rack#0",
+     "at": [
+      57.8,
+      -58.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008543",
+     1
+    ],
+    [
+     "008561",
+     1
+    ],
+    [
+     "236750",
+     2
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "L2 YouboXx below floor",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJ5b3Vib3h4IjoxfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjMtc2hlbGYtOTAwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU0Ny15b3Vib3h4LXNldC00Il0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoyfV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdLFswLDAsMyw0XV19",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008547-youboxx-set-4",
+     "slot": "youboxx#0",
+     "at": [
+      62.4,
+      -12.3,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008547",
+     1
+    ],
+    [
+     "008563",
+     1
+    ],
+    [
+     "236750",
+     2
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "L3 d200 on feet",
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmZWV0IiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "c": "eyJ2IjoxLCJtIjoiZmVldCIsImYiOjEwMCwiYyI6WyIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwicHdzLXRpbWJlci1zaGVsZi00NTBtbS1mb3ItbGFkZGVyLWRlcHRoLTIwMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQyMDAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQyMDAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMjAwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQyMDAucnVuZy0xLWxlZnQiXSwiaSI6W3siYyI6MCwicCI6WzAsMCwwXSwiZiI6MX0seyJjIjoxfSx7ImMiOjB9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM11dfQ",
+   "layout": [
+    {
+     "componentId": "236746-leiterregal-ladder-depth-200mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-450mm-for-ladder-depth-200mm",
+     "slot": "span#0",
+     "at": [
+      235.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236746-leiterregal-ladder-depth-200mm",
+     "slot": "frame#1",
+     "at": [
+      470.1,
+      0,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "236746",
+     2
+    ],
+    [
+     "pws-timber-shelf-450mm-for-ladder-depth-200mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "L4 ladder springs back",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJmcmFtZSMxIjp7Imluc3RhbmNlSWQiOiJnNiIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibW91bnRTbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjEtc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsInB3cy10aW1iZXItc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU0My1yYWNrLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1MzctaG9vay1zdHJpcC1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoxfSx7ImMiOjB9LHsiYyI6MX0seyJjIjoyfSx7ImMiOjN9LHsiYyI6NH1dLCJuIjpbWzAsMCwxLDFdLFsxLDIsMiwzXSxbMiwwLDMsMV0sWzMsMiw0LDNdLFswLDQsNSwxXSxbMiw0LDYsMV0sWzAsMCw3LDVdLFswLDMsOCw1XV19",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      235.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      470.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      705.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      940.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#0",
+     "at": [
+      235.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      705.2,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008543-rack-for-ladder-depth-320mm",
+     "slot": "side-rack#0",
+     "at": [
+      57.8,
+      -58.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#0",
+     "at": [
+      -11.9,
+      51.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008537",
+     1
+    ],
+    [
+     "008543",
+     1
+    ],
+    [
+     "008561",
+     3
+    ],
+    [
+     "236750",
+     3
+    ],
+    [
+     "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": [
+    "frame#1"
+   ]
+  },
+  {
+   "name": "L5 shelf dot lands elsewhere",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MiwidGltYmVyLXNoZWxmIjoxLCJzaWRlLXJhY2siOjEsImhvb2stc3RyaXAiOjF9LCJhdCI6eyJtZXRhbC1zaGVsZiMxIjp7Imluc3RhbmNlSWQiOiJnMSIsInNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1sZWZ0In19LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjEtc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsInB3cy10aW1iZXItc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU0My1yYWNrLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1MzctaG9vay1zdHJpcC1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50Il0sImkiOlt7ImMiOjAsInAiOlswLDAsMF0sImYiOjF9LHsiYyI6MX0seyJjIjowfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoxfSx7ImMiOjF9LHsiYyI6Mn0seyJjIjozfSx7ImMiOjR9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM10sWzIsMCwzLDFdLFszLDIsNCwzXSxbMCw0LDUsMV0sWzIsNCw2LDFdLFsyLDUsNywxXSxbMCwwLDgsNl0sWzAsMyw5LDZdXX0",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      235.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      470.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      705.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      940.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#0",
+     "at": [
+      235.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#1",
+     "at": [
+      705.2,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      235.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008543-rack-for-ladder-depth-320mm",
+     "slot": "side-rack#0",
+     "at": [
+      57.8,
+      -58.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#0",
+     "at": [
+      -11.9,
+      51.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008537",
+     1
+    ],
+    [
+     "008543",
+     1
+    ],
+    [
+     "008561",
+     4
+    ],
+    [
+     "236750",
+     3
+    ],
+    [
+     "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": [
+    "metal-shelf#1"
+   ]
+  },
+  {
+   "name": "L6 hook strip dot lands elsewhere",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzYwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6MSwidGltYmVyLXNoZWxmIjoxLCJjbG90aGVzLXJhaWwiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6Mn0sImF0Ijp7Imhvb2stc3RyaXAjMSI6eyJpbnN0YW5jZUlkIjoiZzMiLCJzbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJ9fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjItc2hlbGYtNjAwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsInB3cy10aW1iZXItc2hlbGYtNjAwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODUzMC1jbG90aGVzLXJhaWwtNjAwbW0iLCIwMDg1NDMtcmFjay1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTM3LWhvb2stc3RyaXAtZm9yLWxhZGRlci1kZXB0aC0zMjBtbSJdLCJzIjpbIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1yaWdodCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1yaWdodCIsIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0yLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQiXSwiaSI6W3siYyI6MCwicCI6WzAsMCwwXSwiZiI6MX0seyJjIjoxfSx7ImMiOjB9LHsiYyI6MX0seyJjIjowfSx7ImMiOjF9LHsiYyI6Mn0seyJjIjozfSx7ImMiOjR9LHsiYyI6NX0seyJjIjo1fV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdLFsyLDAsMywxXSxbMywyLDQsM10sWzAsNCw1LDFdLFsyLDQsNiwxXSxbMCwwLDcsMV0sWzAsMyw4LDVdLFsyLDAsOSw1XSxbNCwwLDEwLDVdXX0",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      310,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      620.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      930.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      1240.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#0",
+     "at": [
+      310,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-600mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      929.8,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008530-clothes-rail-600mm",
+     "slot": "clothes-rail#0",
+     "at": [
+      309.8,
+      26.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008543-rack-for-ladder-depth-320mm",
+     "slot": "side-rack#0",
+     "at": [
+      -57.8,
+      -58.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#0",
+     "at": [
+      632,
+      51.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#1",
+     "at": [
+      1252.1,
+      51.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008530",
+     1
+    ],
+    [
+     "008537",
+     2
+    ],
+    [
+     "008543",
+     1
+    ],
+    [
+     "008562",
+     3
+    ],
+    [
+     "236750",
+     3
+    ],
+    [
+     "pws-timber-shelf-600mm-for-ladder-depth-320mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": [
+    "hook-strip#1"
+   ]
+  },
+  {
+   "name": "L7 after removal (timber shelf now in bay 1)",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzQ1MCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjEsInNpZGUtcmFjayI6MSwiaG9vay1zdHJpcCI6MX0sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc1MC1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjEtc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsInB3cy10aW1iZXItc2hlbGYtNDUwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU0My1yYWNrLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1MzctaG9vay1zdHJpcC1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoxfSx7ImMiOjB9LHsiYyI6Mn0seyJjIjozfSx7ImMiOjR9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM10sWzIsMCwzLDFdLFszLDIsNCwzXSxbMCw0LDUsMV0sWzAsMCw2LDVdLFswLDMsNyw1XV19",
+   "layout": [
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      235.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      470.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008561-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      705.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236750-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      940.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      235.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008543-rack-for-ladder-depth-320mm",
+     "slot": "side-rack#0",
+     "at": [
+      57.8,
+      -58.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#0",
+     "at": [
+      -11.9,
+      51.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008537",
+     1
+    ],
+    [
+     "008543",
+     1
+    ],
+    [
+     "008561",
+     2
+    ],
+    [
+     "236750",
+     3
+    ],
+    [
+     "pws-timber-shelf-450mm-for-ladder-depth-320mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "L8 d200 w900 dead controls",
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NDYtbGVpdGVycmVnYWwtbGFkZGVyLWRlcHRoLTIwMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sImF0Ijp7fSwibW91bnRpbmciOiJmbG9vciIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc0Ni1sZWl0ZXJyZWdhbC1sYWRkZXItZGVwdGgtMjAwbW0iLCJwd3MtdGltYmVyLXNoZWxmLTkwMG1tLWZvci1sYWRkZXItZGVwdGgtMjAwbW0iXSwicyI6WyJtZC1zbmFwLnlvdWstZDIwMC5ydW5nLTEtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDIwMC5tb3VudC1sZWZ0IiwibWQtc25hcC55b3VrLWQyMDAubW91bnQtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDIwMC5ydW5nLTEtbGVmdCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH1dLCJuIjpbWzAsMCwxLDFdLFsxLDIsMiwzXV19",
+   "layout": [
+    {
+     "componentId": "236746-leiterregal-ladder-depth-200mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236746-leiterregal-ladder-depth-200mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "236746",
+     2
+    ],
+    [
+     "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "default d320",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sIm1vdW50aW5nIjoiZmVldCIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmVldCIsImYiOjEwMCwiYyI6WyIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTYzLXNoZWxmLTkwMG1tLWZvci1sYWRkZXItZGVwdGgtMzIwbW0iXSwicyI6WyJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH1dLCJuIjpbWzAsMCwxLDFdLFsxLDIsMiwzXV19",
+   "layout": [
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008563",
+     1
+    ],
+    [
+     "236758",
+     2
+    ],
+    [
+     "237023",
+     2
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "default d200",
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6e30sIm1vdW50aW5nIjoiZmVldCIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoiZmVldCIsImYiOjEwMCwiYyI6WyIyMzY3NDgtbGFkZGVyLWRlcHRoLTIwMDBtbSIsInB3cy10aW1iZXItc2hlbGYtOTAwbW0tZm9yLWxhZGRlci1kZXB0aC0yMDBtbSJdLCJzIjpbIm1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1yaWdodCIsIm1kLXNuYXAueW91ay1kMjAwLm1vdW50LWxlZnQiLCJtZC1zbmFwLnlvdWstZDIwMC5tb3VudC1yaWdodCIsIm1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1sZWZ0Il0sImkiOlt7ImMiOjAsInAiOlswLDAsMF0sImYiOjF9LHsiYyI6MX0seyJjIjowfV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdXX0",
+   "layout": [
+    {
+     "componentId": "236748-ladder-depth-2000mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236748-ladder-depth-2000mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "236748",
+     2
+    ],
+    [
+     "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     1
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "3 bays mixed widths and ladders",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7IjEiOiIyMzY3NTQtbGFkZGVyLWRlcHRoLTMyMG1tIiwiMiI6IjIzNjc2Mi1sYWRkZXItZGVwdGgtMzIwbW0iLCIzIjoiMjM2NzU4LWxhZGRlci1kZXB0aC0zMjBtbSJ9LCJ3aWR0aHMiOnsiMCI6IncxMjAwIiwiMSI6Inc2MDAiLCIyIjoidzkwMCJ9LCJiYXlzIjozLCJhZGRzIjp7Im1ldGFsLXNoZWxmIjoyLCJjbG90aGVzLXJhaWwiOjF9LCJtb3VudGluZyI6ImZlZXQiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoiZmVldCIsImYiOjEwMCwiYyI6WyIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTY0LXNoZWxmLTEyMDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwiMjM2NzU0LWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU2Mi1zaGVsZi02MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwiMjM2NzYyLWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU2My1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTMyLWNsb3RoZXMtcmFpbC0xMjAwbW0iXSwicyI6WyJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTEtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMi1yaWdodCIsIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMy1yaWdodCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6Mn0seyJjIjozfSx7ImMiOjR9LHsiYyI6NX0seyJjIjowfSx7ImMiOjF9LHsiYyI6MX0seyJjIjo2fV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdLFsyLDAsMywxXSxbMywyLDQsM10sWzQsMCw1LDFdLFs1LDIsNiwzXSxbMCw0LDcsMV0sWzAsNSw4LDFdLFswLDAsOSwxXV19",
+   "layout": [
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008564-shelf-1200mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      610.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236754-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      1220.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008562-shelf-600mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      1530.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236762-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      1840.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#2",
+     "at": [
+      2300.3,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#3",
+     "at": [
+      2760.3,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008564-shelf-1200mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#0",
+     "at": [
+      610.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008564-shelf-1200mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#1",
+     "at": [
+      610.1,
+      810,
+      0
+     ]
+    },
+    {
+     "componentId": "008532-clothes-rail-1200mm",
+     "slot": "clothes-rail#0",
+     "at": [
+      609.8,
+      26.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008532",
+     1
+    ],
+    [
+     "008562",
+     1
+    ],
+    [
+     "008563",
+     1
+    ],
+    [
+     "008564",
+     3
+    ],
+    [
+     "236754",
+     1
+    ],
+    [
+     "236758",
+     2
+    ],
+    [
+     "236762",
+     1
+    ],
+    [
+     "237023",
+     4
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "wall-mounted 2 bays with storage",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjIsInlvdWJveHgiOjEsImhvb2stc3RyaXAiOjF9LCJtb3VudGluZyI6IndhbGwiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoid2FsbCIsImMiOlsiMjM2NzU4LWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU2My1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwicHdzLXRpbWJlci1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIiwiMDA4NTQ3LXlvdWJveHgtc2V0LTQiLCIwMDg1MzctaG9vay1zdHJpcC1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItcmlnaHQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoxfSx7ImMiOjB9LHsiYyI6Mn0seyJjIjoyfSx7ImMiOjN9LHsiYyI6NH1dLCJuIjpbWzAsMCwxLDFdLFsxLDIsMiwzXSxbMiwwLDMsMV0sWzMsMiw0LDNdLFswLDQsNSwxXSxbMiw0LDYsMV0sWzAsMCw3LDVdLFswLDMsOCw1XV19",
+   "layout": [
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      1380.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      1840.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      460.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "timber-shelf#1",
+     "at": [
+      1380.2,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008547-youboxx-set-4",
+     "slot": "youboxx#0",
+     "at": [
+      62.4,
+      -12.3,
+      0
+     ]
+    },
+    {
+     "componentId": "008537-hook-strip-for-ladder-depth-320mm",
+     "slot": "hook-strip#0",
+     "at": [
+      -11.9,
+      51.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008537",
+     1
+    ],
+    [
+     "008547",
+     1
+    ],
+    [
+     "008563",
+     2
+    ],
+    [
+     "236758",
+     3
+    ],
+    [
+     "pws-timber-shelf-900mm-for-ladder-depth-320mm",
+     2
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "floor 1 bay 2210 every shelf",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NjItbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NH0sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc2Mi1sYWRkZXItZGVwdGgtMzIwbW0iLCIwMDg1NjMtc2hlbGYtOTAwbW0tZm9yLWxhZGRlci1kZXB0aC0zMjBtbSJdLCJzIjpbIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1yaWdodCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5tb3VudC1yaWdodCIsIm1kLXNuYXAueW91ay1kMzIwLnJ1bmctMS1sZWZ0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0yLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0zLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy00LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy01LXJpZ2h0Il0sImkiOlt7ImMiOjAsInAiOlswLDAsMF0sImYiOjF9LHsiYyI6MX0seyJjIjowfSx7ImMiOjF9LHsiYyI6MX0seyJjIjoxfSx7ImMiOjF9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM10sWzAsNCwzLDFdLFswLDUsNCwxXSxbMCw2LDUsMV0sWzAsNyw2LDFdXX0",
+   "layout": [
+    {
+     "componentId": "236762-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236762-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#0",
+     "at": [
+      460.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#1",
+     "at": [
+      460.1,
+      810,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#2",
+     "at": [
+      460.1,
+      1405,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "metal-shelf#3",
+     "at": [
+      460.1,
+      1760,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008563",
+     5
+    ],
+    [
+     "236762",
+     2
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "d200 2 bays timber",
+   "o": "eyJ2YXJpYW50SWQiOiJkMjAwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6eyJ0aW1iZXItc2hlbGYiOjIsInNpZGUtcmFjayI6MX0sIm1vdW50aW5nIjoiZmxvb3IiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoiZmxvb3IiLCJjIjpbIjIzNjc0OC1sYWRkZXItZGVwdGgtMjAwMG1tIiwicHdzLXRpbWJlci1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTIwMG1tIiwiMDA4NTQyLXJhY2stZm9yLWxhZGRlci1kZXB0aC0yMDBtbSJdLCJzIjpbIm1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1yaWdodCIsIm1kLXNuYXAueW91ay1kMjAwLm1vdW50LWxlZnQiLCJtZC1zbmFwLnlvdWstZDIwMC5tb3VudC1yaWdodCIsIm1kLXNuYXAueW91ay1kMjAwLnJ1bmctMS1sZWZ0IiwibWQtc25hcC55b3VrLWQyMDAucnVuZy0yLXJpZ2h0IiwibWQtc25hcC55b3VrLWQyMDAubW91bnQiXSwiaSI6W3siYyI6MCwicCI6WzAsMCwwXSwiZiI6MX0seyJjIjoxfSx7ImMiOjB9LHsiYyI6MX0seyJjIjowfSx7ImMiOjF9LHsiYyI6MX0seyJjIjoyfV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdLFsyLDAsMywxXSxbMywyLDQsM10sWzAsNCw1LDFdLFsyLDQsNiwxXSxbMCwwLDcsNV1dfQ",
+   "layout": [
+    {
+     "componentId": "236748-ladder-depth-2000mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236748-ladder-depth-2000mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "span#1",
+     "at": [
+      1380.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236748-ladder-depth-2000mm",
+     "slot": "frame#2",
+     "at": [
+      1840.2,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "timber-shelf#0",
+     "at": [
+      460.1,
+      336.5,
+      0
+     ]
+    },
+    {
+     "componentId": "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     "slot": "timber-shelf#1",
+     "at": [
+      1380.2,
+      336.5,
+      0
+     ]
+    },
+    {
+     "componentId": "008542-rack-for-ladder-depth-200mm",
+     "slot": "side-rack#0",
+     "at": [
+      57.8,
+      -58.5,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008542",
+     1
+    ],
+    [
+     "236748",
+     3
+    ],
+    [
+     "pws-timber-shelf-900mm-for-ladder-depth-200mm",
+     4
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "wall 2 bays, last ladder moved",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6e30sImF0Ijp7ImZyYW1lIzIiOnsiaW5zdGFuY2VJZCI6Imc0Iiwic25hcElkIjoibWQtc25hcC55b3VrLWQzMjAubW91bnQtcmlnaHQiLCJtb3VudFNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLnJ1bmctNC1sZWZ0In19LCJtb3VudGluZyI6IndhbGwiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "c": "eyJ2IjoxLCJtIjoid2FsbCIsImMiOlsiMjM2NzU4LWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU2My1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0xLWxlZnQiLCJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTQtbGVmdCJdLCJpIjpbeyJjIjowLCJwIjpbMCwwLDBdLCJmIjoxfSx7ImMiOjF9LHsiYyI6MH0seyJjIjoxfSx7ImMiOjB9XSwibiI6W1swLDAsMSwxXSxbMSwyLDIsM10sWzIsMCwzLDFdLFszLDIsNCw0XV19",
+   "layout": [
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      1380.2,
+      100,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      1840.2,
+      -1305,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008563",
+     2
+    ],
+    [
+     "236758",
+     3
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  },
+  {
+   "name": "wall 2 bays, bay 1 shelf moved",
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTgtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MiwiYWRkcyI6e30sImF0Ijp7InNwYW4jMCI6eyJpbnN0YW5jZUlkIjoiZzEiLCJzbmFwSWQiOiJtZC1zbmFwLnlvdWstZDMyMC5ydW5nLTItcmlnaHQiLCJtb3VudFNuYXBJZCI6Im1kLXNuYXAueW91ay1kMzIwLm1vdW50LWxlZnQifX0sIm1vdW50aW5nIjoid2FsbCIsImZvb3RIZWlnaHRNbSI6MTAwfQ",
+   "c": "eyJ2IjoxLCJtIjoid2FsbCIsImMiOlsiMjM2NzU4LWxhZGRlci1kZXB0aC0zMjBtbSIsIjAwODU2My1zaGVsZi05MDBtbS1mb3ItbGFkZGVyLWRlcHRoLTMyMG1tIl0sInMiOlsibWQtc25hcC55b3VrLWQzMjAucnVuZy0yLXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAubW91bnQtbGVmdCIsIm1kLXNuYXAueW91ay1kMzIwLm1vdW50LXJpZ2h0IiwibWQtc25hcC55b3VrLWQzMjAucnVuZy0yLWxlZnQiXSwiaSI6W3siYyI6MCwicCI6WzAsMCwwXSwiZiI6MX0seyJjIjoxfSx7ImMiOjB9LHsiYyI6MX0seyJjIjowfV0sIm4iOltbMCwwLDEsMV0sWzEsMiwyLDNdLFsyLDAsMywxXSxbMywyLDQsM11dfQ",
+   "layout": [
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#0",
+     "at": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#0",
+     "at": [
+      460.1,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#1",
+     "at": [
+      920.1,
+      0,
+      0
+     ]
+    },
+    {
+     "componentId": "008563-shelf-900mm-for-ladder-depth-320mm",
+     "slot": "span#1",
+     "at": [
+      1380.2,
+      455,
+      0
+     ]
+    },
+    {
+     "componentId": "236758-ladder-depth-320mm",
+     "slot": "frame#2",
+     "at": [
+      1840.2,
+      0,
+      0
+     ]
+    }
+   ],
+   "bom": [
+    [
+     "008563",
+     2
+    ],
+    [
+     "236758",
+     3
+    ]
+   ],
+   "refused": [],
+   "dropped": []
+  }
+ ]
+}
