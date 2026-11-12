@@ -9,14 +9,21 @@ options). This is product-shaped (product → components → snaps → rules →
 price). Different nouns, different editor, different runtime. The shell is a
 copy of confgr Studio's, not a shared package — see plan section 3.2.
 
-## Status: Phase 0
+## Status
 
-Proving the snap system. Nothing else is built yet.
+**`confgr-modular-project.md` is the state of the project** - read it first; where it
+and this README disagree, it wins. In one line: a headless snap engine with a
+range's connection rules as data (`youk/rules.json`, judged by
+`src/engine/judge.js`), a customer runtime that ships as a self-contained folder
+and is live at confgr-youk.netlify.app, and an authoring editor that is still a
+spike. The benchmark range is Kesseböhmer's YouK: 80 parts.
 
 ```
 npm install
-npm test              # engine tests, no browser needed
-npm run electron:dev  # the spike
+npm test                                   # 893 tests, ~10 s, no browser needed
+npm run electron:dev                       # the editor (Vite on 5174)
+npx vite-node tools/audit/sweep.mjs        # every guided product, checked (~8 min)
+npm run youk:bundle -- --guided --out x    # a configurator folder you can send
 ```
 
 ## What is here
@@ -68,7 +75,7 @@ Regenerate the test components with `npm run test:assets`. That script
 
 ```
 npm install            # .npmrc forces include=dev — see below
-npm test               # 59 tests, no browser needed
+npm test               # see Status above
 npm run electron:dev   # the spike
 ```
 

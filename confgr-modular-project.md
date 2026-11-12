@@ -1,6 +1,14 @@
 # confgr Modular — Project Documentation
 
-**Last updated:** 10 September 2026, end of session 8. State verified against the
+**Last updated:** 12 November 2026, session 10, on branch `rework/a3-rules`
+(not yet merged to `main`). Session 10 is the first of the takeover brief's
+three workstreams: an audit of the connection rules (§5.28, `docs/audit/`), a
+rule model Matt approved (`docs/design/A2-rule-model.md`) and its build - one
+rules file, one judge, records that name slots. UI direction **C** was chosen for
+workstream B (`docs/design/ui-directions/`). The paragraph below is the state at
+session 8 and is kept as history.
+
+*Session 8:* state verified against the
 code at commit `6d4d7a4`, not from memory. Sessions 6 to 8 changed what this
 project *is* for a customer: session 6 finished the range (80 of 80) and closed
 the chain from a measured part to a button on a phone (§5.15–§5.23); sessions 7
@@ -19,9 +27,9 @@ recorded as intent against a **slot** and re-checked on every rebuild. The
 product stays a pure function of the choices, which is what keeps the URL, the
 configuration id and the quote round-tripping.
 
-**Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 86 commits, pushed to
-**github.com/Donks83/confgr-modular** (private, branch `main`).
-**Tests:** 711 passing across 36 files (`npm test`).
+**Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 116 commits on
+the session-10 branches; `main` pushed to **github.com/Donks83/confgr-modular** (private).
+**Tests:** 893 passing across 50 files (`npm test`), verified 12 November 2026.
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -72,7 +80,9 @@ run `npm run youk:bay`, which kills a stale one for you.
 
 | Command | What it does |
 |---|---|
-| `npm test` | 578 unit tests across 28 files, ~8 s. Run this before believing anything. |
+| `npm test` | 893 tests across 50 files, ~10 s. Run this before believing anything. |
+| `npx vite-node tools/audit/sweep.mjs` | **The audit sweep** (§5.28): every product the guided options reach, every move / dot / add / remove replayed the way the runtime records them, checked against physical invariants. ~8 min. Its failure count is the progress measure for the rules. |
+| `node tools/blender-exec.mjs "<python>"` | Runs Python in the open Blender (Blender Lab's MCP add-on: `{"type":"execute","code":…,"strict_json":true}` plus a NULL byte). Headless `blender -b --python` for anything that renders. |
 | `?c=<configuration-id>` | Not a command — a URL. The app boots as the **runtime** rather than the editor when it sees one (§5.21). The probe's `viewer` scenario is the easiest way to see it. |
 | `npm run youk:bay` | Scripted probe: launches the app, builds a real YouK bay, screenshots it, prints the layout and the quote. The fastest way to see whether something is broken. |
 | `npm run inspect youk` | What still blocks each of the 80 YouK parts from being a component. Currently: nothing. |
@@ -3463,6 +3473,90 @@ convert → snap → declare → normals → materials.
 that settles it — and the whole lesson of this section.
 
 
+### 5.28 The rules, audited and rebuilt — one judge instead of six questions
+
+Session 10 began a takeover brief with three workstreams; this is workstream A.
+
+#### A1 — measured before listed
+
+The probe drives the editor and nothing else, so it had never once touched the
+guided configurator customers use. `tools/audit/sweep.mjs` builds every product
+`guided.json` can reach (480 structures, about 16,500 builds) and **replays every
+move, drag, dot, add, removal and option change exactly the way the runtime records
+them**. It checks the results against oracles written in the sweep rather than
+borrowed from the engine - every fault in §5.24–§5.26 had passed the engine's own
+verdicts. `docs/audit/A1-failures.md` is the table: 23 failures, each with a link.
+
+Five things held everywhere: frames on the floor, bay shelves held at both ends,
+nothing through anything, no invalid assembly, ids round-trip exactly. **The
+joints were sound; the faults were in six places asking six different
+questions** - the floor only in the move list, "held at both ends" only for guided
+adds, collisions only in the guided survey, support from a tree that cannot see a
+shelf's second end, positions recorded against build-order ids, and a quote nobody
+gated. The worst, all S1: a side rack 58.5 mm through the floor (live on the
+deployed site - the product read 1559 mm tall on a 1500 frame); 19 of 19 editor
+deletes leaving a cantilever that was called valid; the 200 mm range defaulting to
+feet it cannot take, silently; and **F23**, found only by rendering a product for
+the UI mockups after the sweep had passed it - a metal and a timber shelf on one
+rung, both on the bill of materials, in 1,082 builds. Two coincident boards measure
+as a lap, so no collision rule objected. The sweep now has an oracle for it.
+
+#### A2 — the model, approved by Matt
+
+`docs/design/A2-rule-model.md`: the range's rules as one data file; contacts, not a
+tree; one judge every caller asks; records that name slots. Matt's four answers
+(12 November 2026): a delete that would strand parts is **refused with the reason,
+or shows the consequences first**; a clothes rail defaults to the **highest** rung;
+clothes rails are **one per bay**; a ladder may hang off a shelf on a floor-standing
+run, **because it is fixed to the wall**. Earlier the same day: an invalid product
+gets a **draft quote** (parts and price visible, ordering not), and a part below the
+floor is **refused** when the product stands on it.
+
+#### A3 — built
+
+- **Occupancy by contact** (`worldSnaps`): a socket and a plug that touch fill each
+  other exactly as a recorded joint does. F23 is gone; three of its tests fail on
+  the old engine.
+- **`youk/rules.json` + `src/engine/rules.js`**: families (held at every end, one,
+  or none; a 200 mm ladder needs a foot fixing to stand on feet), product rules
+  (floor, through, one space) and preferences, each with its sentence and source.
+  Fails closed by name. With no file, the physical rules still apply. Part→family
+  comes from `catalogue.json`, carried there from snap-spec by `make-catalogue`.
+- **`src/engine/judge.js`**: placements are judged on the new part, **moves on the
+  whole product before against after** (moving the middle ladder strands bay 1's
+  shelf, and that reason belongs to the shelf). While the bays themselves are
+  built, only the physical rules apply: a bay's shelf is held at one end until the
+  next ladder hangs from the other.
+- **Every caller asks it**: the guided build, the move list, the add dots (offered
+  only where the rebuild keeps the part), the editor's delete (it lists what would
+  be stranded: "Remove them too" or "Keep everything"), and `resolveConfiguration`
+  (`quote.status`: orderable or draft, with reasons, shown by the runtime).
+- **Addresses**: a record names the slot it hangs from; one naming a slot not built
+  yet is re-hung afterwards by the same `moveTo` the panel previewed; drag/dot
+  moves record the placement the ghost showed; a removal pins the rest first;
+  auto-placement goes round points a moved part is still to take.
+- **Data**: d200 defaults to the floor and offers floor or wall; the 320 mm rail and
+  full strip are out of its sizes; rails are per bay; the rail goes highest.
+
+**The sweep with YouK's rules: 0 below the floor, 0 doubled parts, 0 one-ended
+spans, 0 spring-backs, 0 lying dots, 0 parts jumping on remove, 0 dead controls,
+0 full quotes for invalid products.** 1,845 capacity refusals remain, and they are
+right. `tests/migration.test.js` opens 16 links captured before any change
+(`tests/fixtures/links-v1.json`, commit 97750cf), and every difference is a named
+fix. `tests/rulesMatrix.test.js` offers every catalogue part to every depth of bay.
+
+**Not done in A3, and why:**
+- **Multi-bay cabinets (F14).** The Carcass holder sheet shows the extension
+  bracket carrying **two** cabinets, so it needs two carry sockets, 15.1 mm either
+  side of the ladder. That is a snap-spec and pipeline change, followed by
+  convert → snap → declare → normals → materials.
+- **The cabinet's wall angle as a note (F15).**
+- **`condition` and the implied foot's hard-coded ids**, which still have to move
+  into `rules.json`.
+- **Cabinets and desks in the guided options (F16)**, which is a scope decision.
+
+F17 (the rail's 1.00 mm) and F18 (the handed office arm) are still Kesseböhmer's.
+
 ---
 
 ## 6. Roadmap
@@ -3810,6 +3904,25 @@ application reusable on the next client's range, rather than better at this one:
 ---
 
 ## 7. Session Log
+
+### Session 10 — 12 November 2026
+
+A takeover: a new brief in three workstreams (A rules, B UI, C hardening), with
+checkpoints for Matt. The environment was re-checked after the move to D: - 835
+tests green, the venv on Python 3.13. Blender's "Client timed out" was a
+**protocol** mismatch, not a busy Blender (Blender Lab's MCP add-on wants a
+NULL-terminated request with `strict_json`); that is now `tools/blender-exec.mjs`.
+
+- **A1**: the sweep (§5.28) and a 23-row failure table. Matt: "they are definitely
+  failures".
+- **A2**: the rule model, approved with four decisions.
+- **B0**: three clickable UI directions built on themeable tokens, with a
+  YouK-flavoured and a neutral theme. The stage image is rendered in headless
+  Blender from our own export. **Matt chose C** (guided steps on a dark rail).
+- **A3**: built (§5.28). Sweep to zero; 893 tests.
+
+Branches, none merged or pushed: `rework/a1-audit` → `rework/a2-rule-model` →
+`rework/a3-rules`, stacked.
 
 ### Session 9 — 15 September 2026
 
@@ -4413,11 +4526,16 @@ pan; drag-to-another-point; the STEP conversion of the YouK range. See
    not consult it. Deletion is still the open case: nothing yet re-checks a
    product after a part is removed, so the cantilever this risk describes can
    still be created by deleting rather than by building.
+   **Retired in session 10 (§5.28):** occupancy and support are read from
+   contacts, both ends of everything, and a delete says what it would strand.
+   The tree remains only as the record of which joint was chosen.
 5. ~~**Nothing stops an impossible configuration**~~ — **largely retired.**
    Collision refusal (§5.16) and required-part validation (§5.17) both exist, and
    both are reported in the app. What is left is narrower and worth stating
    precisely: **nothing gates checkout on them.** The quote is produced from an
    assembly that may be invalid, and says so, but a customer could still send it.
+   **Closed in session 10:** the resolved quote carries `status` (orderable or
+   draft) and the judge's reasons, and the runtime shows a draft as one.
    A rules engine beyond these two remains unbuilt, and *deletion* is unchecked
    (see risk 4).
 6. ~~**The static-export vs hosted-AR tension**~~ — **retired, and it was never a
