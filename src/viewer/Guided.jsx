@@ -580,6 +580,7 @@ export default function Guided({
         components={components}
         catalogue={catalogue}
         tierId={tierId}
+        rules={rules}
         title={title}
         ar={handoff.ar}
         arWithheld={handoff.withheld}

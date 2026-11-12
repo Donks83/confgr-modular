@@ -140,6 +140,7 @@ export default function ViewerHost({ configurationId = null }) {
       configurationId={id}
       components={state.components}
       catalogue={state.catalogue}
+      rules={state.manifest?.rules ? parseRules(state.manifest.rules, { catalogue: state.catalogue }) : undefined}
       title={state.manifest?.title}
       // Only a bundle has AR files; the desktop app has an exporter instead,
       // and offering a link to `ar/product.usdz` inside Electron would be a
