@@ -190,7 +190,7 @@ Write-Host ("  signed in{0}" -f $(if ($account) { " as $account" } else { '' }))
 # only, and nothing would say so until somebody was standing in a room.
 Write-Host "`n  exporting the bundle..." -ForegroundColor Cyan
 Invoke-Native 'the export' 'node' @(
-  'tools/export-bundle.mjs', '--guided', '--models', $Models, '--ar-route', '--out', $Out
+  'tools/export-bundle.mjs', '--guided', '--models', $Models, '--ar-route', '--theme', 'youk', '--out', $Out
 )
 
 $manifest = Get-Content (Join-Path $Out 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json

@@ -29,7 +29,7 @@ configuration id and the quote round-tripping.
 
 **Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 116 commits on
 the session-10 branches; `main` pushed to **github.com/Donks83/confgr-modular** (private).
-**Tests:** 893 passing across 50 files (`npm test`), verified 12 November 2026.
+**Tests:** 913 passing across 52 files (`npm test`), verified 12 November 2026.
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -3565,6 +3565,74 @@ fix. `tests/rulesMatrix.test.js` offers every catalogue part to every depth of b
 - **Cabinets and desks in the guided options (F16)**, which is a scope decision.
 
 F17 (the rail's 1.00 mm) and F18 (the handed office arm) are still Kesseböhmer's.
+
+### 5.29 The configurator in direction C, on design tokens
+
+Workstream B. Matt chose direction C from three clickable mockups
+(`docs/design/ui-directions/`) on 12 November 2026: one decision at a time on a
+dark rail, a step bar across the top, the light build space as the hero, and a
+review step before anything is sent.
+
+**Tokens first (B1).**
+- Every colour, font and radius in the runtime is now a CSS custom property, in
+  `src/viewer/tokens.css`.
+- The tokens are scoped to the **instance's own root** (`.cfg-theme`), never
+  `:root`. Two configurators on one page may wear different themes, and a
+  client's stylesheet cannot reach in.
+- The neutral theme's values are exactly the colours the runtime had before, so
+  a plain viewer looks the same as it did.
+- `data-cfg-theme="youk"` is the Kesseböhmer-flavoured theme: a pine shell,
+  Roboto, square corners. It takes none of their exact colours, logo or assets.
+- A bundle picks its theme with `youk:bundle --theme youk`; the Netlify deploy
+  script passes it.
+- **Not tokens**, because they are Matt's: the build space `#efece7` and the
+  material colours. `tests/lighting.test.js` now reads them through the tokens,
+  in both themes, and checks that no theme redefines the build space.
+
+**The layout (B2).** `Guided.jsx` renders:
+- **The step bar**: Size, Bays, Shelves & storage, Accessories, Mounting, Review.
+- **The rail**: one step at a time (`Options` takes a `step`). Which step an
+  accessory belongs to is its `group` in `guided.json` ("storage" or
+  "accessories"), not a list in code.
+- **The stage**: the viewer in a stage-only layout, with undo/redo (Ctrl+Z,
+  Ctrl+Shift+Z or Ctrl+Y), the snap dots, drag, the spacing lines, and the move
+  and spacing panels.
+- **AR on the stage**: on a phone the AR button; on a desktop "View on your
+  phone", with the QR code and the AR sentence inside it.
+- **A summary card**: the price (or "Price on request"), parts, size, and "Ready
+  to order" or "Draft · n issues", which opens the review.
+- **The review step**: the parts list as a table, the implied foot marked
+  *Included*, the notes, the total, and the draft reasons.
+
+Undo history holds choices, the same values `?o=` carries. System corrections
+(a dropped record being forgotten) are not on it, so undo undoes the person,
+not the engine.
+
+**On a phone:** the step bar, then the product (sticky), then the step, with a
+sticky Back / Next. While a part is being placed or moved, the rail steps aside
+so the dots are not underneath it. The `.cfgg-panel[hidden]` rule that
+`tests/touch.test.js` pins is what does it; on a wide screen the rail overrides
+it and stays.
+
+**Verified in a browser**, on an exported guided bundle in the YouK theme, at
+1280 × 800 and at 375 × 812:
+- the steps walk through, and completed ones tick;
+- Shelves & storage shows only shelves and YouboXx;
+- **+** on a timber shelf brings up 8 dots, all on rungs where it would be held;
+- tapping one put the shelf exactly there;
+- undo took it off and enabled redo;
+- the review shows the parts table.
+
+**Not yet:**
+- **The review's action** is "Copy link to this design". A "Request quote" button
+  needs somewhere for the request to go, which is Matt's decision.
+- **The editor (B3)** is untouched.
+- **Customer copy.** The foot's "because" text names an instruction PDF, and the
+  wall-fixings note names Kesseböhmer's sheet - both written for us, not for a
+  customer.
+- **Multi-instance.** `Guided` still reads and writes the page URL, and
+  `__viewerLayout` is still set (A1 F19, workstream C).
+- **Phones.** Not yet seen on Matt's phones.
 
 ---
 

@@ -41,7 +41,8 @@
     "`spans: true` means the part bridges two frames and must be held at both",
     "ends. Without it a fourth shelf asked for in a bay with three free rungs",
     "was cantilevered off the outside of the run rather than refused.",
-    "A3, 12 November 2026 (docs/audit/A1-failures.md): the 200 mm range defaults to the FLOOR and offers floor or wall only - its ladders have no fixing for a foot (F04); the 900 mm clothes rail and full-width hook strip are no longer listed for 200 mm deep, because both are 320 mm parts that can never attach there (F13); and a clothes rail is one PER BAY, so a three-bay wardrobe can have three (F12, Matt)."
+    "A3, 12 November 2026 (docs/audit/A1-failures.md): the 200 mm range defaults to the FLOOR and offers floor or wall only - its ladders have no fixing for a foot (F04); the 900 mm clothes rail and full-width hook strip are no longer listed for 200 mm deep, because both are 320 mm parts that can never attach there (F13); and a clothes rail is one PER BAY, so a three-bay wardrobe can have three (F12, Matt).",
+    "B, 12 November 2026: every add names its `group` - \"storage\" (shelves, YouboXx) or \"accessories\" (rails, hook strips, side racks) - which is the step of the guided flow it appears in (direction C). The runtime reads it; nothing in code lists the kinds."
   ],
   "version": 1,
   "title": "YouK shelving",
@@ -92,26 +93,30 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
             }
           ]
         },
@@ -129,14 +134,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-600mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008530-clothes-rail-600mm",
@@ -144,19 +151,22 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
             }
           ]
         },
@@ -175,14 +185,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008531-clothes-rail-900mm",
@@ -190,32 +202,37 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008547-youboxx-set-4",
               "label": "YouboXx Set 4",
               "max": 2,
-              "kind": "youboxx"
+              "kind": "youboxx",
+              "group": "storage"
             },
             {
               "componentId": "008540-hook-strip-for-ladder-width-900mm",
               "label": "Hook strip, full width",
               "max": 1,
               "spans": true,
-              "kind": "hook-strip-full"
+              "kind": "hook-strip-full",
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
             }
           ]
         },
@@ -233,14 +250,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-1200mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008532-clothes-rail-1200mm",
@@ -248,20 +267,23 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008541-hook-strip-for-ladder-width-1200mm",
               "label": "Hook strip, full width",
               "max": 1,
               "spans": true,
-              "kind": "hook-strip-full"
+              "kind": "hook-strip-full",
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             }
           ]
         }
@@ -302,19 +324,22 @@
               "label": "Extra timber shelf",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008542-rack-for-ladder-depth-200mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008536-hook-strip-for-ladder-depth-200mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
             }
           ]
         },
@@ -333,19 +358,22 @@
               "label": "Extra timber shelf",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008542-rack-for-ladder-depth-200mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008536-hook-strip-for-ladder-depth-200mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
             }
           ]
         }

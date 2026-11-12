@@ -1,0 +1,96 @@
+/* DESIGN TOKENS — every colour, font and radius the runtime uses (workstream B1).
+ *
+ * Scoped to the instance's own root element (`.cfg-theme`), NEVER to :root or
+ * the page: two configurators on one page may wear different themes, and a
+ * client's own stylesheet must not reach in. That is §2's multi-instance rule
+ * applied to colour.
+ *
+ * The default block IS the runtime as it looked before tokens existed — the
+ * warm charcoal shell — so a plain viewer is unchanged. `data-cfg-theme="youk"`
+ * is the Kesseböhmer-flavoured theme Matt chose with direction C (12 Nov 2026):
+ * a pine shell, Roboto, square corners. A nod, not a copy: no logo, no copied
+ * colours (docs/design/ui-directions/README.md).
+ *
+ * NOT TOKENS, and deliberately: the build space #efece7 and the material colours
+ * (steel 45, plastic 50) are Matt's decisions, the same in every theme.
+ */
+.cfg-theme {
+  --cfg-stage: #efece7;
+
+  /* the shell: the dark rail and its controls */
+  --cfg-shell: #1b1815;
+  --cfg-shell-2: #221f1b;
+  --cfg-shell-3: #2a2622;
+  --cfg-shell-glass: rgba(28, 25, 22, 0.94);
+  --cfg-shell-line: #3a332c;
+  --cfg-shell-ink: #f0ebe4;
+  --cfg-shell-ink-2: #cbc2b6;
+  --cfg-shell-ink-3: #8d8175;
+
+  /* the accent, as it reads on the shell */
+  --cfg-accent: #f0a53c;
+  --cfg-accent-2: #f6c67a;
+  --cfg-accent-soft: #f0d5a8;
+  --cfg-accent-ink: #3a2a16;
+  --cfg-on-accent: #1b1815;
+
+  /* light surfaces: the step bar, the summary card, the review */
+  --cfg-surface: #ffffff;
+  --cfg-surface-2: #faf8f5;
+  --cfg-ink: #1d1b18;
+  --cfg-ink-2: #5a544c;
+  --cfg-line: #e5dfd6;
+  --cfg-action: #a35f1f;            /* 5.0:1 with white text */
+  --cfg-on-action: #ffffff;
+  --cfg-ok: #1f7a4d;
+  --cfg-ok-soft: #e4f2ea;
+
+  /* refusals and drafts */
+  --cfg-warn-bg: #43211c;
+  --cfg-warn-ink: #f6d5cf;
+  --cfg-warn-light-bg: #fbefe4;
+  --cfg-warn-light-ink: #a0521a;
+
+  --cfg-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cfg-head-weight: 600;
+  --cfg-radius: 8px;
+  --cfg-radius-lg: 14px;
+  --cfg-shadow: 0 1px 2px rgba(30, 20, 10, 0.06), 0 10px 30px rgba(30, 20, 10, 0.10);
+  --cfg-focus: 0 0 0 2px var(--cfg-shell), 0 0 0 4px var(--cfg-accent);
+}
+
+.cfg-theme[data-cfg-theme="youk"] {
+  --cfg-shell: #0f2a26;
+  --cfg-shell-2: #143530;
+  --cfg-shell-3: #1a3f39;
+  --cfg-shell-glass: rgba(15, 42, 38, 0.95);
+  --cfg-shell-line: rgba(255, 255, 255, 0.14);
+  --cfg-shell-ink: #eef3ef;
+  --cfg-shell-ink-2: #c3d0cb;
+  --cfg-shell-ink-3: #8fa39d;
+
+  --cfg-accent: #7fd1b3;
+  --cfg-accent-2: #a6e0ca;
+  --cfg-accent-soft: #cdeee1;
+  --cfg-accent-ink: #0f2a26;
+  --cfg-on-accent: #0f2a26;
+
+  --cfg-ink: #12302b;
+  --cfg-ink-2: #4a5a56;
+  --cfg-line: #dbe2de;
+  --cfg-action: #17705b;            /* 6.0:1 with white text */
+  --cfg-surface-2: #f6f7f5;
+
+  --cfg-font: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --cfg-head-weight: 300;
+  --cfg-radius: 0px;
+  --cfg-radius-lg: 0px;
+  --cfg-shadow: 0 1px 2px rgba(10, 30, 25, 0.06), 0 8px 24px rgba(10, 30, 25, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cfg-theme *, .cfg-theme *::before, .cfg-theme *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -22,6 +22,7 @@
 // exactly what must not come along.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import './tokens.css';
 import './viewer.css';
 import {
   createScene, fitBounds, frameProduct, followProduct,
@@ -54,6 +55,16 @@ export default function Viewer({
   tierId = null,
   /** The range's connection rules (A2); the physical defaults when absent. */
   rules = undefined,
+  /**
+   * THE THEME (B1): a name from tokens.css ("youk"), or nothing for the neutral
+   * one. Set on this instance's own root - never on the page - so two viewers on
+   * one page may wear different themes. `themed: false` when a parent (the
+   * configurator) owns the theme, so this root's defaults do not override it.
+   */
+  theme = undefined,
+  themed = true,
+  /** 'sheet' (the bill of materials in a bottom sheet) or 'stage' (the stage only - the configurator draws its own summary). */
+  layout = 'sheet',
   showPrice = true,
   title = null,
   ar = null,
@@ -156,6 +167,9 @@ export default function Viewer({
   const [size, setSize] = useState(null);
   const [error, setError] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  // The stage layout's "on your phone" popover: the QR code and the AR
+  // sentence, which the sheet layout keeps in its bottom sheet.
+  const [phoneOpen, setPhoneOpen] = useState(false);
 
   // Resolve FIRST, draw second. A configuration that cannot be resolved is not
   // a blank screen — it is a message naming what is wrong, because the most
@@ -254,6 +268,9 @@ export default function Viewer({
     // world positions rather than where things were before the sync.
     onReadyRef.current?.({
       resolved,
+      // Its size in millimetres, measured from the drawn scene - what the
+      // configurator's summary card and review show (B2).
+      size: mmOf(bounds),
       describe: () => describeLayout(
         ctx,
         { instances: resolved.scene.assembly.instances, transforms: resolved.scene.transforms },
@@ -407,7 +424,7 @@ export default function Viewer({
   })), [arIsLink, scanChoices, configurationId]);
 
   return (
-    <div className="cfgv">
+    <div className={`cfgv${themed ? ' cfg-theme' : ''}`} data-cfg-theme={themed ? theme : undefined}>
       {/* One or the other, never both. With an interaction layer the shared
           gesture owns the pointer; without one, the tap rule is all a plain
           viewer needs and all it should have. */}
@@ -444,6 +461,31 @@ export default function Viewer({
         </div>
       )}
 
+      {/* THE STAGE LAYOUT'S ROUTE TO A PHONE. On a phone the AR button above is
+          the action; on a desktop the action is getting the design onto a
+          phone, so it is a control on the stage too - with the sentence that
+          explains AR inside it, next to the code it qualifies. */}
+      {layout === 'stage' && !arIsLink && resolved && (
+        <div className="cfgv-phone">
+          <button
+            type="button"
+            className="cfgv-phonebtn"
+            aria-expanded={phoneOpen}
+            onClick={() => setPhoneOpen((v) => !v)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2" /><path d="M11 18.5h2" /></svg>
+            View on your phone
+          </button>
+          {phoneOpen && (
+            <div className="cfgv-phonepop" role="dialog" aria-label="View on your phone">
+              <ArButton availability={arLink} hasAr={!!ar} withheld={arWithheld} />
+              {scan?.ok && <ScanToPhone url={scan.url} />}
+              {scan && !scan.ok && scan.reason && <p className="cfgv-ar-no">{scan.reason}</p>}
+            </div>
+          )}
+        </div>
+      )}
+
       {error && (
         <div className="cfgv-error" role="alert">
           <strong>This product cannot be shown.</strong>
@@ -451,7 +493,7 @@ export default function Viewer({
         </div>
       )}
 
-      {resolved && (
+      {resolved && layout === 'sheet' && (
         <div className={`cfgv-sheet${sheetOpen ? ' cfgv-sheet-open' : ''}`}>
           {/* A handle, not a button, on purpose: on a phone this is a bottom
               sheet and the whole strip should be tappable, which is what

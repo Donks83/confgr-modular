@@ -20,9 +20,9 @@
   width: 100%;
   height: 100%;
   min-height: 320px;
-  background: #1b1815;
-  color: #e8e2da;
-  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--cfg-shell);
+  color: var(--cfg-shell-ink);
+  font: 14px/1.45 var(--cfg-font);
   /* The sheet is absolutely positioned against this. */
   overflow: hidden;
 }
@@ -39,7 +39,7 @@
 .cfgv-stage {
   flex: 1 1 auto;
   min-height: 0;
-  background: #efece7;
+  background: var(--cfg-stage);
   /* The canvas sets its own touch-action in scene.js - it has to, because the
      element is created there. This is the belt to that pair of braces. */
   touch-action: none;
@@ -54,7 +54,7 @@
   bottom: 0;
   background: rgba(28, 25, 22, 0.94);
   backdrop-filter: blur(8px);
-  border-top: 1px solid #3a332c;
+  border-top: 1px solid var(--cfg-shell-line);
   /* Collapsed by default on a phone: the product is what someone came for, and
      a panel covering a third of a small screen is the commonest way to ruin a
      3D view. */
@@ -85,12 +85,12 @@
   width: 36px;
   height: 4px;
   border-radius: 2px;
-  background: #6b5f52;
+  background: var(--cfg-shell-ink-3);
 }
 
 .cfgv-summary {
   font-variant-numeric: tabular-nums;
-  color: #cbc2b6;
+  color: var(--cfg-shell-ink-2);
 }
 
 .cfgv-body {
@@ -109,7 +109,7 @@
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 600;
-  color: #f0ebe4;
+  color: var(--cfg-shell-ink);
 }
 
 .cfgv-dims {
@@ -119,15 +119,15 @@
 }
 
 .cfgv-dims div { display: flex; flex-direction: column; gap: 2px; }
-.cfgv-dims dt { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #8d8175; }
+.cfgv-dims dt { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cfg-shell-ink-3); }
 .cfgv-dims dd { margin: 0; font-variant-numeric: tabular-nums; }
 
 .cfgv-warn {
   margin: 0 0 12px;
   padding: 8px 10px;
   border-radius: 6px;
-  background: #3a2a16;
-  color: #f0d5a8;
+  background: var(--cfg-accent-ink);
+  color: var(--cfg-accent-soft);
 }
 
 .cfgv-quote {
@@ -141,7 +141,7 @@
      been re-flowed is just wrong. */
   white-space: pre;
   overflow-x: auto;
-  color: #cbc2b6;
+  color: var(--cfg-shell-ink-2);
 }
 
 .cfgv-error {
@@ -152,8 +152,8 @@
   gap: 4px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #43211c;
-  color: #f6d5cf;
+  background: var(--cfg-warn-bg);
+  color: var(--cfg-warn-ink);
 }
 
 /* ------------------------------------------------------------------- AR handoff
@@ -207,14 +207,14 @@
      guidelines ask for, and this is a button that will almost only ever be
      pressed with a thumb. */
   min-height: 46px;
-  background: #f0ebe4;
-  color: #1b1815;
-  font: 600 15px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--cfg-shell-ink);
+  color: var(--cfg-shell);
+  font: 600 15px/1 var(--cfg-font);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.cfgv-ar:active { background: #cbc2b6; }
+.cfgv-ar:active { background: var(--cfg-shell-ink-2); }
 
 .cfgv-ar img {
   width: 20px;
@@ -235,7 +235,7 @@
    control: a greyed-out button invites tapping and explains nothing. */
 .cfgv-ar-no {
   margin: 14px 0 0;
-  color: #8d8175;
+  color: var(--cfg-shell-ink-3);
   font-size: 12px;
   line-height: 1.45;
 }
@@ -250,7 +250,7 @@
 
 .cfgv-scan-label {
   margin: 0 0 8px;
-  color: #8d8175;
+  color: var(--cfg-shell-ink-3);
   font-size: 12px;
 }
 
@@ -268,12 +268,12 @@
   /* The code is black on white whatever the page is, because a QR inverted is
      a QR most readers refuse. The border stops it looking like a hole in a
      dark panel. */
-  border: 1px solid #d8cfc4;
+  border: 1px solid var(--cfg-shell-ink-2);
 }
 
 .cfgv-scan-url {
   margin: 8px 0 0;
-  color: #8d8175;
+  color: var(--cfg-shell-ink-3);
   font-size: 10px;
   line-height: 1.4;
   /* A four-hundred-character URL must not push the panel wider than the page. */
@@ -298,7 +298,7 @@
     width: 360px;
     max-height: none;
     border-top: 0;
-    border-left: 1px solid #3a332c;
+    border-left: 1px solid var(--cfg-shell-line);
   }
 
   /* THE CANVAS STOPS WHERE THE PANEL STARTS.
@@ -326,5 +326,5 @@
 /* Someone who has asked their system not to animate should not be given a
    backdrop filter that costs a frame on a mid-range Android either. */
 @media (prefers-reduced-motion: reduce) {
-  .cfgv-sheet { backdrop-filter: none; background: #1c1916; }
+  .cfgv-sheet { backdrop-filter: none; background: var(--cfg-shell-2); }
 }

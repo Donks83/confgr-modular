@@ -228,7 +228,7 @@ export async function writeArAssets({
  */
 export async function writeBundle({
   configurationId, folder, dist, models: modelsDir, title = null, generated = null,
-  ar = true, arNormals = true, guided = null, arRoute = null, rules = null,
+  ar = true, arNormals = true, guided = null, arRoute = null, rules = null, theme = null,
 }) {
   const needed = partsNeededFor(configurationId, { guided });
 
@@ -305,6 +305,7 @@ export async function writeBundle({
     ar: arResult?.ar || arOnlyRoute,
     guided,
     rules,
+    theme,
   });
   writeFileSync(join(folder, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(join(folder, 'Start Preview.bat'), startPreviewBat());
@@ -394,6 +395,8 @@ async function main(argv) {
       guided,
       arRoute,
       rules,
+      // `--theme youk` - a theme name from src/viewer/tokens.css (B1).
+      theme: at('--theme') || null,
     });
 
     console.log(`\n  wrote   ${r.folder}  ${(r.bytes / 1024).toFixed(1)} kB`);

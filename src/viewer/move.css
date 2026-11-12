@@ -17,9 +17,9 @@
   flex-direction: column;
   gap: 2px;
   padding: 12px 16px max(20px, env(safe-area-inset-bottom));
-  border-top: 1px solid #3a332c;
+  border-top: 1px solid var(--cfg-shell-line);
   border-radius: 14px 14px 0 0;
-  background: #1c1916;
+  background: var(--cfg-shell-2);
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
 }
 
@@ -31,8 +31,8 @@
 }
 
 .cfgm-title {
-  color: #f0ebe4;
-  font: 600 15px/1.3 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--cfg-shell-ink);
+  font: 600 15px/1.3 var(--cfg-font);
 }
 
 .cfgm-close {
@@ -42,7 +42,7 @@
   border: 0;
   border-radius: 9px;
   background: transparent;
-  color: #8d8175;
+  color: var(--cfg-shell-ink-3);
   font-size: 15px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -50,19 +50,19 @@
 
 .cfgm-reason {
   margin: 4px 0 0;
-  color: #8d8175;
+  color: var(--cfg-shell-ink-3);
   font-size: 12px;
   line-height: 1.45;
 }
 
 /* A structural part is not a failure, so it is not amber. "Change the size
    instead" is a direction, not a refusal. */
-.cfgm-structural { color: #cbc2b6; }
+.cfgm-structural { color: var(--cfg-shell-ink-2); }
 
 .cfgm-label {
   margin: 10px 0 6px;
-  color: #8d8175;
-  font: 600 11px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--cfg-shell-ink-3);
+  font: 600 11px/1.2 var(--cfg-font);
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -80,19 +80,19 @@
   min-width: 88px;
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid #3a332c;
+  border: 1px solid var(--cfg-shell-line);
   border-radius: 9px;
-  background: #221f1b;
-  color: #cbc2b6;
-  font: 500 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--cfg-shell-2);
+  color: var(--cfg-shell-ink-2);
+  font: 500 14px/1.2 var(--cfg-font);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .cfgm-height.cfgm-on {
-  border-color: #f0ebe4;
-  background: #f0ebe4;
-  color: #1b1815;
+  border-color: var(--cfg-shell-ink);
+  background: var(--cfg-shell-ink);
+  color: var(--cfg-shell);
   font-weight: 600;
 }
 
@@ -104,16 +104,16 @@
   margin-top: 14px;
   min-height: 40px;
   padding: 0 14px;
-  border: 1px solid #43211c;
+  border: 1px solid var(--cfg-warn-bg);
   border-radius: 9px;
   background: transparent;
-  color: #f6d5cf;
-  font: 500 13px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--cfg-warn-ink);
+  font: 500 13px/1 var(--cfg-font);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.cfgm-delete:active { background: #43211c; }
+.cfgm-delete:active { background: var(--cfg-warn-bg); }
 
 /* ------------------------------------------------------- wider than a phone
  *
@@ -127,7 +127,7 @@
   .cfgm {
     inset: auto auto 20px 320px;
     width: 300px;
-    border: 1px solid #3a332c;
+    border: 1px solid var(--cfg-shell-line);
     border-radius: 12px;
     padding: 14px 16px 18px;
   }

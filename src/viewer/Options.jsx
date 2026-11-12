@@ -120,13 +120,25 @@ export default function Options({
    */
   onPlace = null,
   placing = null,
+  /**
+   * ONE STEP of the guided flow (direction C), or null for every control at
+   * once (the embed and the tests). Which step an accessory belongs to is its
+   * `group` in guided.json - "storage" or "accessories" - so a new kind lands
+   * in the right step without anything here changing.
+   */
+  step = null,
   onChange,
 }) {
   if (!schema || !choices || !variant || !size) return null;
 
   const set = (patch) => onChange({ ...choices, ...patch });
 
-  const rows = adds || size.adds || [];
+  const show = (id) => !step || step === id;
+  const allRows = adds || size.adds || [];
+  const groupOf = (a) => (a.group === 'storage' ? 'storage' : 'accessories');
+  const rows = step === 'storage' || step === 'accessories'
+    ? allRows.filter((a) => groupOf(a) === step)
+    : (step ? [] : allRows);
 
   // How many bays carry a width of their own. Counted from the choices rather
   // than from the built run, because this panel is deliberately given the
@@ -162,6 +174,7 @@ export default function Options({
 
   return (
     <div className="cfgo">
+      {show('size') && (<>
       <Choice
         label="Depth"
         help={variant.help}
@@ -193,7 +206,9 @@ export default function Options({
         value={choices.frameId}
         onChange={(id) => set({ frameId: id })}
       />
+      </>)}
 
+      {show('bays') && (
       <div className="cfgo-group">
         <div className="cfgo-label">Size</div>
         <Stepper
@@ -203,7 +218,15 @@ export default function Options({
           max={variant.maxBays ?? 4}
           onChange={(bays) => set({ bays })}
         />
+        {step === 'bays' && (
+          <p className="cfgo-hint">Tap the line between two ladders to set that bay's width on its own, or a ladder to change its height.</p>
+        )}
       </div>
+      )}
+
+      {(step === 'storage' || step === 'accessories') && rows.length === 0 && (
+        <p className="cfgo-hint">Nothing to add here for this size.</p>
+      )}
 
       {rows.length > 0 && (
         <div className="cfgo-group">
@@ -235,7 +258,7 @@ export default function Options({
         </div>
       )}
 
-      {mountings.length > 1 && (
+      {show('mounting') && mountings.length > 1 && (
         <Choice
           label="Standing on"
           options={mountings}
