@@ -20,7 +20,7 @@
 # Closing this window stops both processes and the link goes dead.
 
 param(
-  [string]$Bundle = 'C:\Claude\bundle-config',
+  [string]$Bundle = (Join-Path (Split-Path -Parent $PSScriptRoot) 'bundle-config'),
   [string]$Models = '',
   [int]$Port = 8124
 )

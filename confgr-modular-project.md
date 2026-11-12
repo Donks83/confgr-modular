@@ -19,7 +19,7 @@ recorded as intent against a **slot** and re-checked on every rebuild. The
 product stays a pure function of the choices, which is what keeps the URL, the
 configuration id and the quote round-tripping.
 
-**Code:** `C:\Claude\confgr-modular` — git, 86 commits, pushed to
+**Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 86 commits, pushed to
 **github.com/Donks83/confgr-modular** (private, branch `main`).
 **Tests:** 711 passing across 36 files (`npm test`).
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
@@ -41,8 +41,8 @@ nothing in the assembly (§5.24).
 
 | File | What it is |
 |---|---|
-| `C:\Claude\confgr-studio\confgr-modular-plan.md` | The research and build plan, 3 Sep 2026. Still the strategy. **This file is the state** — where the plan and reality disagree, this file wins. |
-| `C:\Claude\confgr-studio\configurator-studio-project.md` | confgr Studio V2 — the sibling product this borrows from, and the thing it must reach parity with on export. |
+| `D:\Claude\confgr-studio\confgr-modular-plan.md` | The research and build plan, 3 Sep 2026. Still the strategy. **This file is the state** — where the plan and reality disagree, this file wins. |
+| `D:\Claude\confgr-studio\configurator-studio-project.md` | confgr Studio V2 — the sibling product this borrows from, and the thing it must reach parity with on export. |
 | `youk/FINDINGS.md` | Everything measured from Kesseböhmer's YouK range. The most detailed document in the project. |
 | `tools/AUTHORING.md` | How a supplier's CAD file becomes a component. |
 
@@ -51,7 +51,7 @@ nothing in the assembly (§5.24).
 ## 0. How to run it
 
 ```
-cd C:\Claude\confgr-modular
+cd D:\Claude\confgr-modular
 npm install          # first time only
 npm run electron:dev
 ```
@@ -131,8 +131,9 @@ because a rule that says "not on a short ladder" cannot be tested on a tall one
 (§5.8).
 
 **Where it lives.** `github.com/Donks83/confgr-modular`, private, branch `main`.
-The clone is `C:\Claude\confgr-modular`; the supplier's STEP files are **not** in
-it and never will be — they live in `C:\Claude\YouK models` and everything
+The clone is `D:\Claude\confgr-modular`; the supplier's STEP files sit inside it
+at `youk\step files` but are **never tracked** — `.gitignore` excludes the
+folder, along with the brochures and instruction sheets beside them — and everything
 derived from them is gitignored and regenerates from the pipeline below.
 
 **Adding parts is a pipeline, not an edit.** `youk/snap-spec.json` holds the

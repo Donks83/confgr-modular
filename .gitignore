@@ -21,7 +21,13 @@ test-assets-broken/
 # Kesseboehmer's and live outside the repo. The .confgr.json sidecars ARE
 # committed - those hold decisions, not derived geometry.
 tools/.venv-step/
+tools/.venv-step.*/
 youk/*.glb
+
+# Kesseboehmer's own files: STEP models, brochures, mounting instructions and
+# photography. They now sit inside the clone (moved here November 2026) but are
+# theirs, not ours, and the repo is pushed to GitHub - so they are never tracked.
+youk/step files/
 
 # tools/probe-bay.ps1 copies the converted YouK components into test-assets so
 # the app can load them. Those are the same derived supplier geometry as

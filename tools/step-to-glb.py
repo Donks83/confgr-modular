@@ -6,8 +6,8 @@ range and the conversion has to be identical for all of them. Same tessellation
 tolerance, same origin rule, same node name. A GUI does it 45 times slightly
 differently and nobody can tell afterwards which run produced which file.
 
-    python tools/step-to-glb.py "C:/Claude/YouK models" -o converted
-    python tools/step-to-glb.py "C:/Claude/YouK models" -o converted --angular 0.2
+    python tools/step-to-glb.py "youk/step files" -o converted
+    python tools/step-to-glb.py "youk/step files" -o converted --angular 0.2
 
 WHAT IT DOES, AND WHY EACH STEP IS THERE. Every one of these was found by
 looking at the real Kesseboehmer files rather than reasoned about in advance.

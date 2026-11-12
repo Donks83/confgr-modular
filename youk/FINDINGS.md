@@ -1,6 +1,6 @@
 # Kesseböhmer YouK — what the models actually contain
 
-Source: 45 STEP files, `C:\Claude\YouK models`, 46.3 MB, exported from Creo
+Source: 45 STEP files, `youk\step files` (originally `C:\Claude\YouK models`), 46.3 MB, exported from Creo
 Parametric 2020184 by Kesseböhmer, schema AP214, dated 2021-04-06.
 
 Converted with `tools/step-to-glb.py`. Everything below was measured from the
