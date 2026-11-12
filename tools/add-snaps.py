@@ -353,12 +353,28 @@ def carries_socket(mesh, part, spec):
         # part's own WALL end is where a carried part's plugs must meet it for
         # that part's back edge to land on the end, whatever its own depth.
         z = float(v[:, 2].max()) - float(part["depth"]) / 2.0
+    # ONE PART, TWO CARRIED ENDS (A1 F14). The EXTENSION cabinet bracket
+    # (008559/60) sits on the middle ladder of a run and carries the cabinet on
+    # EACH side of it - `Carcass holder` MA 406214 p.1 and step 1b draw one wide
+    # plate under two cabinets. A single socket on its centreline put the carried
+    # end inside the ladder, which is why cabinets across two bays never worked.
+    # `carriesAtXmm` lists where along the part the carried ends land, and each
+    # one must be over the part's own metal: refused, not trusted, like a hole.
+    xs = [float(x) for x in part.get("carriesAtXmm", [0.0])]
+    lo, hi = float(v[:, 0].min()), float(v[:, 0].max())
+    for x in xs:
+        if not (lo <= x <= hi):
+            raise SystemExit(
+                f"{part['id']}: carriesAtXmm {x} is not over the part - its metal "
+                f"runs x {lo:.1f} to {hi:.1f} mm")
+    label = lambda x: "carries" if len(xs) == 1 else ("carries-left" if x < 0 else "carries-right")
     return [{
-        "name": f"md-snap.youk-{part['carries']}-d{part['depth']}.carries",
-        "position_mm": (0.0, top_y + packer, z),
+        "name": f"md-snap.youk-{part['carries']}-d{part['depth']}.{label(x)}",
+        "position_mm": (x, top_y + packer, z),
         "facing": "+y",
         "role": "socket",
-    }], {"carriesY_mm": round(top_y + packer, 2), "carriesZ_mm": round(z, 2)}
+    } for x in xs], {"carriesY_mm": round(top_y + packer, 2), "carriesZ_mm": round(z, 2),
+                     **({"carriesAtXmm": xs} if len(xs) > 1 else {})}
 
 
 def carcase_snaps(mesh, part, spec):

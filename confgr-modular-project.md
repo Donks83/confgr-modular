@@ -508,7 +508,7 @@ This is the honest half of the document.
 | **A part bolted to another part's face** | **Built** (§5.9). The `bolted` family inverts the relationship that caused the error: the spec **names** the hole and `add-snaps` **verifies** one is really there, refusing the part if they disagree. The office arm bolts to the plate as the sheet says, flat or **tilted 9°** — a declared roll, not a wedge part, and the clamping angle now bolts to the arm's rear end through a slot (§5.10). A part may be bolted on **and** be a bolt-on host; a slot is declared by both ends and verified on the line between them. |
 | **A part on the TOP of a ladder** | **Nothing, and now blocked on a question rather than on work.** The 008552 top-panel bracket is measured exactly — a 3 mm cranked strap, 29 mm legs, a **15.0 mm** crank, capping a **30.0 mm** stile — and the socket it needs on `frames` is a small change. What is not settled is which way up it goes: the sheet reads equally as "the panel rests on the bracket, 15 mm above the stile top" and "the bracket hooks down over a panel sitting on the ladders". 15 mm of height, and nobody would miss it in a render. See `youk/FINDINGS.md`, *The last five STEP files*. |
 | **An accessory on an accessory** | **Nothing, and one reading ruled out.** The 008549 divider is a 1.5 mm sheet with hooks curling down at both ends, **60.0 mm apart**, and a 13.5 mm upstand. Those hooks look exactly like something that straddles the rack's front and back rods — and **no pair of rods in that rack is 60.0 apart at any height** (66.25 at y 31, 72.65 at y 100). What it does hook is the open question. What is settled: every d200 accessory is exactly **195.0** wide and the divider is **201.0**, the only part in the range that breaks its family's width — which is why it cannot be a rung-hung part. |
-| **Cabinets in a multi-bay run** | **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
+| **Cabinets in a multi-bay run** | **Built, session 10 (§5.28, A1 F14).** The extension bracket now carries a cabinet each side of the middle ladder, at ±15.1 mm - the outer bracket's own measured offset - and two 900 cabinets sit across two bays with every end held. *Was:* **Unproven.** The extension bracket (008559/60) puts its socket on its own centreline, which on a middle ladder is the ladder centre rather than 15.1 mm inboard, so a carcase sized for outer brackets will not meet it. Outer brackets — a single bay — are verified (§5.6). |
 | **Multi-user, login, hosting** | Nothing, and not wanted yet. |
 
 ~~There is also no git remote.~~ **Retired.** 67 commits are on
@@ -3538,6 +3538,19 @@ floor is **refused** when the product stands on it.
 - **Data**: d200 defaults to the floor and offers floor or wall; the 320 mm rail and
   full strip are out of its sizes; rails are per bay; the rail goes highest.
 
+**Multi-bay cabinets (F14), done afterwards in the same session.** The Carcass
+holder sheet (MA 406214 p.1, step 1b) draws ONE extension bracket on the middle
+ladder carrying the cabinet on EACH side; its single carry socket sat on its own
+centreline, inside the ladder. `snap-spec.json` gives 008559/60 `carriesAtXmm:
+[-15.1, 15.1]` - the offset the outer bracket's own plug-to-socket measures - and
+`add-snaps` refuses an offset that is not over the plate. Pipeline re-run (snap →
+declare → normals → materials): only the two extension brackets changed, +936
+bytes each; every other model is the same size. Two 900 cabinets now sit
+15.1 → 905.0 and 935.2 → 1825.1, all four ends held, nothing wrong anywhere
+(`tests/cabinets.test.js`; render `docs/audit/img/F14-two-cabinets.png`). The
+carry snaps are named `carries-left` / `carries-right` on that bracket, and the
+packer count reads both. Guided options still do not offer cabinets (F16).
+
 **The sweep with YouK's rules: 0 below the floor, 0 doubled parts, 0 one-ended
 spans, 0 spring-backs, 0 lying dots, 0 parts jumping on remove, 0 dead controls,
 0 full quotes for invalid products.** 1,845 capacity refusals remain, and they are
@@ -3546,10 +3559,6 @@ right. `tests/migration.test.js` opens 16 links captured before any change
 fix. `tests/rulesMatrix.test.js` offers every catalogue part to every depth of bay.
 
 **Not done in A3, and why:**
-- **Multi-bay cabinets (F14).** The Carcass holder sheet shows the extension
-  bracket carrying **two** cabinets, so it needs two carry sockets, 15.1 mm either
-  side of the ladder. That is a snap-spec and pipeline change, followed by
-  convert → snap → declare → normals → materials.
 - **The cabinet's wall angle as a note (F15).**
 - **`condition` and the implied foot's hard-coded ids**, which still have to move
   into `rules.json`.

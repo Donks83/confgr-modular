@@ -7,6 +7,7 @@
   },
   "confgrRoles": {
     "md-snap.youk-d200.mount": "plug",
-    "md-snap.youk-carcase-d200.carries": "socket"
+    "md-snap.youk-carcase-d200.carries-left": "socket",
+    "md-snap.youk-carcase-d200.carries-right": "socket"
   }
 }

@@ -428,13 +428,17 @@
       "id": "008559-cabinet-bracket-for-ladder-depth-200mm",
       "depth": 200,
       "rotateYdeg": 90,
-      "carries": "carcase"
+      "carries": "carcase",
+      "carriesAtXmm": [-15.1, 15.1],
+      "_carriesAtXmm": "The extension bracket carries a cabinet each side of the middle ladder (MA 406214 p.1, step 1b). Each end lands 15.1 mm from the ladder centre - the offset the OUTER bracket's own plug-to-socket measures (008557/58: plug x -15.1, socket x 0), so cabinets sized for outer brackets meet it. Checked over the plate by add-snaps (A1 F14)."
     },
     {
       "id": "008560-cabinet-bracket-for-ladder-depth-320mm",
       "depth": 320,
       "rotateYdeg": 90,
-      "carries": "carcase"
+      "carries": "carcase",
+      "carriesAtXmm": [-15.1, 15.1],
+      "_carriesAtXmm": "As 008559: one cabinet each side of the middle ladder, 15.1 mm from its centre (A1 F14)."
     },
     {
       "id": "008551-base-brackets-for-office-solution",

@@ -192,7 +192,10 @@ export function impliedParts(assembly, components, options = {}) {
   const carried = (assembly?.connections || []).filter((c) => {
     const from = snapOf(assembly, components, c.fromInstanceId, c.fromSnapId);
     const to = snapOf(assembly, components, c.toInstanceId, c.toSnapId);
-    return from?.label === CARRIES_LABEL || to?.label === CARRIES_LABEL;
+    // `carries`, or `carries-left` / `carries-right` on a part that carries one
+    // thing each side (the extension cabinet bracket, A1 F14).
+    const isCarries = (l) => l === CARRIES_LABEL || String(l || '').startsWith(`${CARRIES_LABEL}-`);
+    return isCarries(from?.label) || isCarries(to?.label);
   }).length;
 
   const packers = sharedRungs + carried;

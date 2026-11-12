@@ -684,6 +684,13 @@ of a slot search that had only ever been asked about rungs; it bolts to nothing.
 Those are real constraints for a rules engine to enforce later, and the first
 numeric limits in the range that a customer could violate by choosing badly.
 
+**The extension bracket carries TWO cabinets (session 10, A1 F14).** Page 1 and
+step 1b draw the wide plate under the end of the left cabinet AND the start of
+the right one. Measured on a ladder: the plate runs x −40.2 to +40.2 across a
+30 mm ladder (±15); the outer bracket's socket is 15.1 mm from its plug. So the
+extension carries at ±15.1 mm, one cabinet end each side of the stile, and two
+900 cabinets meet it at 905.0 and 935.2 on ladder centres 920.1 apart.
+
 ## Office solution 008551 — the desktop, and one rule nothing else states
 
 `Office solution`, 6 pages. Three separate 008551 parts fitted in sequence:
