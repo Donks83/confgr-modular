@@ -29,7 +29,7 @@ configuration id and the quote round-tripping.
 
 **Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 116 commits on
 the session-10 branches; `main` pushed to **github.com/Donks83/confgr-modular** (private).
-**Tests:** 934 passing across 54 files (`npm test`), verified 13 November 2026.
+**Tests:** 947 passing across 55 files (`npm test`), verified 13 November 2026.
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -3710,6 +3710,54 @@ not: one clamping angle stands **25 mm inside the 20 mm board**. This is F18 /
 §5.13: the arm is handed and we hold one hand of the pair. The judge refuses
 it, so a desk add would only ever say no. The recipe stays in `guided.json` with
 the reason in `_heldBack`. The adds go back in when the handedness is answered.
+
+### 5.31 AR on Android: Chrome first, because Scene Viewer stopped opening
+
+Matt, 13 November 2026: "the augmented reality feature isn't working". On his new
+phone, "View in your room" started Scene Viewer and it closed again at once. It
+did the same on his Pixel tablet.
+
+**It was not us, and proving that took four codes.** The live route built a
+valid GLB for the configuration on screen. The file passed every structural
+check: header and chunks, alignment, accessor bounds, unit normals, index
+ranges. The QR codes, each opening Scene Viewer:
+
+| Code | What it opened | Result |
+|---|---|---|
+| A | our shipped file | closed |
+| B | the route's file | closed |
+| C | Google's own sample avocado | closed |
+| D | our file in 3D-only mode | closed |
+
+C settles it. Current Google app builds (17.68 onwards) close Scene Viewer about
+30 ms after it opens, whatever the model (google-ar/arcore-android-sdk #1795,
+#1797). His old phone had an older Google app.
+
+On the way, the route now states each file's length and allows any origin to
+fetch it. Netlify still answers chunked, so the length does not survive. The
+change is harmless, and the AR route's test pins the length.
+
+**The fix is WebXR in Chrome.** On Android, `ArButton` loads
+`webxr-ar.js` (3.7 kB) and asks Chrome whether it can start `immersive-ar`.
+If it can, a tap opens the session inside Chrome:
+- it draws the same GLB Scene Viewer would have been given;
+- a ring finds the floor and a tap places the product, front to the person, with
+  a soft shadow;
+- tapping again moves it, and Close ends the session.
+
+Chrome's AR needs Google Play Services for AR, not the Google app, so Google's
+bug does not reach it. If Chrome cannot start a session, the intent link is
+followed exactly as before. iOS is unchanged.
+
+The module is per session and themed by its configurator, with no globals and
+no ids. Tested in jsdom:
+- the session is requested from the tap itself;
+- the overlay goes away when Chrome refuses;
+- Close is not a tap on the floor;
+- the product turns to face the person.
+
+**Needs a phone:** the session itself. Wall-mounted products are placed on the
+floor in front of the wall for now.
 
 ---
 

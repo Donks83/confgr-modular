@@ -257,7 +257,9 @@ export function arAvailability({
       return no('Android needs this folder on a web server — Scene Viewer '
         + 'fetches the model itself and cannot see a file on your device.');
     }
-    return { mode: AR_MODE.SCENE_VIEWER, url, reason: null };
+    // `glb` as well as the intent: Chrome's own AR (webxr-ar.js) is tried
+    // first and draws the same file; the intent is the fallback.
+    return { mode: AR_MODE.SCENE_VIEWER, url, reason: null, glb, title: title || null };
   }
 
   return no('AR needs a phone or tablet. Open this page on one to place the '

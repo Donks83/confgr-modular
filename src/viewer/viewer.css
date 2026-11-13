@@ -328,3 +328,47 @@
 @media (prefers-reduced-motion: reduce) {
   .cfgv-sheet { backdrop-filter: none; background: var(--cfg-shell-2); }
 }
+
+/* AR inside Chrome (webxr-ar.js): the layer drawn over the camera. It is
+ * appended to <body> for the session only, and wears the theme of the
+ * configurator it was opened from (it carries .cfg-theme itself), so the
+ * tokens still apply. Over a camera picture the glass is black, whatever the
+ * theme: that is what reads over any room. */
+.cfgx {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  font: 500 15px/1.35 var(--cfg-font);
+  color: var(--cfg-shell-ink);
+}
+.cfgx-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  pointer-events: auto;
+}
+.cfgx-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cfgx-close {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--cfg-shell-ink);
+  color: var(--cfg-shell);
+  font: 600 15px/1 var(--cfg-font);
+}
+.cfgx-hint {
+  align-self: center;
+  margin: 0 16px max(28px, env(safe-area-inset-bottom));
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  text-align: center;
+}

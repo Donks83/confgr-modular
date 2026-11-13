@@ -15,7 +15,7 @@
 //
 // `arAvailability` has already decided; this only draws the decision.
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AR_MODE } from './ar-link.js';
 
 /**
@@ -37,7 +37,52 @@ export const AR_GLYPH = 'data:image/svg+xml;utf8,'
     + '</svg>',
   );
 
-export default function ArButton({ availability, hasAr = true, withheld = null }) {
+// Chrome's own AR, loaded only where it could be used. A function so a test can
+// hand in its own; the real one is a separate chunk, so three.js's loaders never
+// reach a page that is not on Android.
+const loadWebXr = () => import('./webxr-ar.js');
+
+export default function ArButton({
+  availability, hasAr = true, withheld = null, loadXr = loadWebXr,
+}) {
+  // ANDROID: CHROME FIRST, SCENE VIEWER SECOND (Matt, 13 Nov 2026 - current
+  // Google app builds close Scene Viewer as soon as it opens; see
+  // webxr-ar.js). Asked once, before any tap, because Chrome only starts a
+  // session inside the tap itself and there is no time to find out then.
+  const xr = useRef(null);
+  const starting = useRef(false);
+  const sceneViewer = availability?.mode === AR_MODE.SCENE_VIEWER && !withheld;
+  const glb = sceneViewer ? availability.glb || null : null;
+  useEffect(() => {
+    xr.current = null;
+    if (!glb || typeof navigator === 'undefined' || !navigator.xr) return undefined;
+    let live = true;
+    loadXr()
+      .then(async (m) => { if (live && await m.webxrArSupported()) xr.current = m; })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [glb, loadXr]);
+
+  const onAndroidTap = (e) => {
+    const m = xr.current;
+    // No WebXR here: the link is the intent, and following it is the fallback.
+    if (!m || !glb) return;
+    e.preventDefault();
+    if (starting.current) return;
+    starting.current = true;
+    const intent = availability.url;
+    // The theme of the configurator this button is in, for the overlay.
+    const theme = e.currentTarget.closest?.('[data-cfg-theme]')?.dataset.cfgTheme || null;
+    m.startWebXrAr({
+      glbUrl: glb, title: availability.title || null, theme, onEnd: () => { starting.current = false; },
+    })
+      .catch(() => {
+        starting.current = false;
+        // Chrome would not start a session: hand over to Scene Viewer as before.
+        window.location.href = intent;
+      });
+  };
+
   // A caller can know something this component cannot: the guided flow
   // withholds AR once the product stops being the one the bundle's files were
   // baked for. It wins over everything below, because a button that would open
@@ -60,7 +105,7 @@ export default function ArButton({ availability, hasAr = true, withheld = null }
   // is better for a screen reader and for anyone who has images turned off.
   if (availability.mode === AR_MODE.SCENE_VIEWER) {
     return (
-      <a className="cfgv-ar cfgv-ar-text" href={availability.url}>
+      <a className="cfgv-ar cfgv-ar-text" href={availability.url} onClick={onAndroidTap}>
         <img src={AR_GLYPH} alt="" aria-hidden="true" />
         <span>View in your room</span>
       </a>
