@@ -298,7 +298,13 @@ const build = (choices) => {
   counts.builds += 1;
   return buildGuided(schema, choices, components, rules ? { rules } : {});
 };
-const instanceForSlot = (built, slot) => Object.entries(built.slots || {}).find(([, s]) => s === slot)?.[0];
+// A kit's slot names its brackets AND what they carry, and which bracket comes
+// first depends on its neighbours - so a kit is located by its LAST part, the
+// cabinet itself.
+const instanceForSlot = (built, slot) => {
+  const ids = Object.entries(built.slots || {}).filter(([, s]) => s === slot).map(([id]) => id);
+  return built.kits?.has?.(slot) ? ids.at(-1) : ids[0];
+};
 const posOf = (built, slot) => {
   const id = instanceForSlot(built, slot);
   if (!id) return null;
@@ -354,7 +360,9 @@ function sweepInteractions(built) {
     const kind = add.kind;
     // The runtime only enters "placing" from a + that is enabled, and + is
     // disabled at the schema's max. Asking past it measures the harness.
-    if ((base.adds?.[kind] || 0) >= (add.max ?? 4)) continue;
+    // A kit (cabinet) is counted by +, never placed by a dot.
+    if (add.kit) continue;
+    if ((base.adds?.[kind] || 0) >= ceilingOf(add, base.bays)) continue;
     for (const point of addPoints(built, components, kind)) {
       counts.adds += 1;
       const index = base.adds?.[kind] || 0;
@@ -396,6 +404,9 @@ function sweepRemovals(built) {
           const before = posOf(built, `${k2}#${j}`);
           const nj = k2 === kind && j > i ? j - 1 : j;
           const afterPos = posOf(after, `${k2}#${nj}`);
+          // Not on the product before - refused for room - is not a move, even if
+          // the removal made room for it.
+          if (!before) continue;
           if (dist(before, afterPos) > TOL_M) {
             report('I4-remove-moves-others', choices, {
               key: `${kind}->${k2}|${base.variantId}`,
@@ -421,6 +432,8 @@ function sweepStability(built) {
     const ref = posOf(builtMoved, slot);
     const changes = [];
     for (const add of builtMoved.adds || []) {
+      // + is disabled at the ceiling (Options.jsx); pressing past it measures the harness.
+      if ((moved.adds?.[add.kind] || 0) >= ceilingOf(add, moved.bays)) continue;
       changes.push([`+1 ${add.kind}`, { ...moved, adds: { ...moved.adds, [add.kind]: (moved.adds?.[add.kind] || 0) + 1 } }]);
     }
     const variant = variantOfChoices(base);
@@ -442,6 +455,9 @@ function sweepStability(built) {
 
 // ---------------------------------------------------------------------------
 // The products.
+
+// The + control's own ceiling (Options.jsx): a per-bay kind scales with the bays.
+const ceilingOf = (add, bays) => (add.perBay ? (add.max ?? 1) * (bays || 1) : (add.max ?? 4));
 
 function* structures() {
   for (const variant of schema.variants) {
@@ -491,7 +507,7 @@ for (const s of structures()) {
   // Accessories: each kind alone at every count, then everything at max.
   const uniform = !s.frames && !s.widths;
   for (const add of built.adds || []) {
-    const max = add.max ?? 4;
+    const max = ceilingOf(add, choices.bays);
     for (let k = 1; k <= max; k += 1) {
       const c2 = normaliseChoices(schema, { ...choices, adds: { [add.kind]: k } });
       const b2 = build(c2);
@@ -499,7 +515,13 @@ for (const s of structures()) {
     }
   }
   const full = {};
-  for (const add of built.adds || []) full[add.kind] = add.max ?? 4;
+  // Kits (cabinets) share the bays - one per bay, whatever the height - so
+  // 'everything at max' is one per bay, the heights taken in turn.
+  let kitsLeft = choices.bays || 1;
+  for (const add of built.adds || []) {
+    if (add.kit) { if (kitsLeft > 0) { full[add.kind] = 1; kitsLeft -= 1; } continue; }
+    full[add.kind] = ceilingOf(add, choices.bays);
+  }
   const cFull = normaliseChoices(schema, { ...choices, adds: full });
   const bFull = build(cFull);
   checkProduct(bFull, cFull, 'every accessory at max');
@@ -508,7 +530,11 @@ for (const s of structures()) {
   // with one of each accessory so there is something to move.
   if (uniform && s.bays <= 2 && !QUICK) {
     const one = {};
-    for (const add of built.adds || []) one[add.kind] = 1;
+    let kitRoom = choices.bays || 1;
+    for (const add of built.adds || []) {
+      if (add.kit) { if (kitRoom > 0) { one[add.kind] = 1; kitRoom -= 1; } continue; }
+      one[add.kind] = 1;
+    }
     const cOne = normaliseChoices(schema, { ...choices, adds: one });
     const bOne = build(cOne);
     sweepInteractions(bOne);

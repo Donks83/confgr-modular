@@ -153,6 +153,12 @@
 .cfgc-stage { position: relative; grid-row: 2; min-width: 0; min-height: 0; background: var(--cfg-stage); }
 .cfgc-stage > .cfgv { position: absolute; inset: 0; min-height: 0; background: var(--cfg-stage); }
 .cfgc .cfgv-stage { margin: 0; }
+/* The part card: bottom-LEFT of the stage, where nothing else is. move.css puts
+   it 320 px in, for the layout whose options lay over the product; here that ran
+   10 px off a 1024 screen and covered the price. */
+@media (min-width: 900px) {
+  .cfgc-stage > .cfgm { inset: auto auto 20px 20px; width: min(300px, calc(100% - 40px)); box-sizing: border-box; }
+}
 
 .cfgc-tools { position: absolute; z-index: 3; top: 12px; left: 12px; display: flex; gap: 8px; }
 .cfgc-tool {

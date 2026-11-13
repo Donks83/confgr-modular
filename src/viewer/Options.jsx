@@ -169,6 +169,9 @@ export default function Options({
     const r = shortfall.get(componentId);
     if (!r) return null;
     if (r.placed > 0) return `only ${r.placed} fit`;
+    // A cabinet is refused for a reason worth reading (too tall for these
+    // ladders, every bay taken), not for want of a free rung.
+    if (r.kit && r.reason) return r.reason;
     return 'no room for one';
   };
 
@@ -249,7 +252,9 @@ export default function Options({
                 onChange={(n) => {
                   const now = choices.adds?.[k] || 0;
                   // Going UP is a question about where; going down is not.
-                  if (onPlace && n > now) { onPlace(k); return; }
+                  // A kit (cabinet, desk) brings its own brackets and goes in the
+                  // next free bay, so + just counts it - there is no dot to choose.
+                  if (onPlace && n > now && !a.kit) { onPlace(k); return; }
                   set({ adds: { ...choices.adds, [k]: n } });
                 }}
               />

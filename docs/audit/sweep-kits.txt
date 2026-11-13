@@ -1,0 +1,106 @@
+  25 structures, 455 builds, 22 distinct findings, 3 s
+  50 structures, 911 builds, 22 distinct findings, 8 s
+  75 structures, 2203 builds, 25 distinct findings, 59 s
+  100 structures, 3751 builds, 26 distinct findings, 177 s
+  125 structures, 4245 builds, 29 distinct findings, 181 s
+  150 structures, 4701 builds, 29 distinct findings, 183 s
+  175 structures, 5160 builds, 29 distinct findings, 188 s
+  200 structures, 7481 builds, 29 distinct findings, 344 s
+  225 structures, 8073 builds, 30 distinct findings, 361 s
+  250 structures, 8558 builds, 30 distinct findings, 364 s
+  275 structures, 9017 builds, 30 distinct findings, 368 s
+  300 structures, 9472 builds, 30 distinct findings, 372 s
+  325 structures, 11829 builds, 30 distinct findings, 527 s
+  350 structures, 12397 builds, 30 distinct findings, 542 s
+  375 structures, 13110 builds, 37 distinct findings, 553 s
+  400 structures, 13513 builds, 38 distinct findings, 557 s
+  425 structures, 14187 builds, 38 distinct findings, 568 s
+  450 structures, 14679 builds, 38 distinct findings, 573 s
+  475 structures, 15273 builds, 38 distinct findings, 582 s
+
+480 structures, {"builds":15353,"moves":531,"dots":2335,"adds":2323,"removes":408,"stability":504}, 583 s
+┌────────────────────────┬──────────┬─────────────┐
+│ (index)                │ distinct │ occurrences │
+├────────────────────────┼──────────┼─────────────┤
+│ I4-remove-moves-others │ 1        │ 24          │
+│ O6-dropped             │ 1        │ 24          │
+│ O6-refused             │ 36       │ 3100        │
+└────────────────────────┴──────────┴─────────────┘
+[I4-remove-moves-others] ×24  removing cabinet-300#0 moved hook-strip-full#0 from (x 460.1, y 51.5) to (x 1380.2, y 51.5) mm
+      e.g. d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 youboxx×1 hook-strip-full×1 side-rack×1 hook-strip×1 cabinet-200×1 · moved: span#0,frame#1,span#1,frame#2,cabinet-200#0,clothes-rail#0,youboxx#0,hook-strip-full#0,side-rack#0,hook-strip#0
+[O6-dropped] ×24  recorded position for hook-strip-full#0 dropped: That position is no longer part of this product.
+      e.g. d320 · 2 bays w900/w900 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 clothes-rail×1 youboxx×1 hook-strip-full×1 side-rack×1 hook-strip×1 cabinet-200×1 · moved: span#0,frame#1,span#1,frame#2,cabinet-200#0,clothes-rail#0,youboxx#0,hook-strip-full#0,side-rack#0,hook-strip#0  (after removing cabinet-300#0)
+[O6-refused] ×420  asked for 1 × cabinet-450, placed 0: too tall for these ladders - the shelf above it has no rung to go to
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · cabinet-450×1  (1 × cabinet-450)
+[O6-refused] ×304  asked for 4 × metal-shelf, placed 0: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w600 · frames 550/905 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×304  asked for 4 × timber-shelf, placed 0: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w600 · frames 550/905 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×294  asked for 1 × cabinet-450, placed 0: too tall for these ladders - the shelf above it has no rung to go to
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · cabinet-450×1  (1 × cabinet-450)
+[O6-refused] ×216  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×216  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×181  asked for 4 × timber-shelf, placed 0: The Timber shelf 450 mm for ladder depth 320 mm, 25 mm would take the space the Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm is already in.
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×169  asked for 4 × metal-shelf, placed 0: The YouK shelf 450 mm for ladder depth 320 mm would take the space the Timber cabinet 450 mm, 200 mm high, for ladder depth 320 mm, 25 mm is already in.
+      e.g. d320 · 1 bay w450 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×153  asked for 2 × timber-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · timber-shelf×2  (2 × timber-shelf)
+[O6-refused] ×144  asked for 2 × metal-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w450 · frames 550/2210 · floor · metal-shelf×2  (2 × metal-shelf)
+[O6-refused] ×123  asked for 4 × timber-shelf, placed 0: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w600 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×105  asked for 4 × metal-shelf, placed 0: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w600 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×90  asked for 4 × timber-shelf, placed 1: The Timber shelf 450 mm for ladder depth 200 mm, 25 mm would take the space the Timber cabinet 450 mm, 200 mm high, for ladder depth 200 mm, 25 mm is already in.
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×72  asked for 4 × timber-shelf, placed 0: Every position for that part is already taken (14 tried).
+      e.g. d320 · 1 bay w600 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×63  asked for 4 × metal-shelf, placed 0: Every position for that part is already taken (14 tried).
+      e.g. d320 · 1 bay w600 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×54  asked for 4 × metal-shelf, placed 0: Every position for that part is already taken (10 tried).
+      e.g. d320 · 1 bay w600 · frames 550/1500 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×54  asked for 4 × timber-shelf, placed 0: Every position for that part is already taken (10 tried).
+      e.g. d320 · 1 bay w600 · frames 550/1500 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×33  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (8 tried).
+      e.g. d200 · 1 bay w900 · frames 668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×12  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (6 tried).
+      e.g. d320 · 1 bay w1200 · frames 550/905 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×12  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (6 tried).
+      e.g. d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×3  (3 × timber-shelf)
+[O6-refused] ×9  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (4 tried).
+      e.g. d320 · 1 bay w1200 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×9  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (16 tried).
+      e.g. d320 · 3 bays w600/w600/w600 · frames 1500/1500/1500/1500 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×3 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1 cabinet-450×1  (every accessory at max)
+[O6-refused] ×9  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (10 tried).
+      e.g. d200 · 1 bay w900 · frames 668/904.5 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×6  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (8 tried).
+      e.g. d320 · 1 bay w1200 · frames 550/1500 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×6  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (10 tried).
+      e.g. d320 · 1 bay w900 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×6  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (12 tried).
+      e.g. d320 · 1 bay w1200 · frames 550/2210 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 hook-strip-full×1 side-rack×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×6  asked for 1 × timber-shelf, placed 0: The Timber shelf 450 mm for ladder depth 320 mm, 25 mm would take the space the Timber cabinet 450 mm, 300 mm high, for ladder depth 320 mm, 25 mm is already in.
+      e.g. d320 · 2 bays w450/w450 · frames 550/550/550 · floor · metal-shelf×1 timber-shelf×1 side-rack×1 hook-strip×1 cabinet-300×1 · moved: span#0,frame#1,span#1,frame#2,cabinet-300#0,side-rack#0,hook-strip#0  (after removing cabinet-200#0)
+[O6-refused] ×6  asked for 4 × timber-shelf, placed 1: Every position for that part is already taken (12 tried).
+      e.g. d200 · 2 bays w900/w900 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1  (every accessory at max)
+[O6-refused] ×4  asked for 2 × hook-strip, placed 0: Something already hangs from this rung.
+      e.g. d320 · 1 bay w900 · frames 550/550 · feet · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×3  asked for 1 × hook-strip-full, placed 0: Every position for that part is already taken (2 tried).
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×3  asked for 2 × side-rack, placed 0: That would put the YouK rack for ladder depth 320 mm 59 mm below the floor.
+      e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2 cabinet-200×1  (every accessory at max)
+[O6-refused] ×3  asked for 2 × clothes-rail, placed 1: Every position for that part is already taken (3 tried).
+      e.g. d320 · 2 bays w450/w600 · frames 550/550/550 · floor · metal-shelf×4 timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1 clothes-rail×2  (every accessory at max)
+[O6-refused] ×3  asked for 4 × metal-shelf, placed 0: The YouK shelf 450 mm for ladder depth 320 mm would take the space the Timber cabinet 450 mm, 300 mm high, for ladder depth 320 mm, 25 mm is already in.
+      e.g. d320 · 2 bays w600/w450 · frames 550/550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×2 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1  (every accessory at max)
+[O6-refused] ×3  asked for 4 × timber-shelf, placed 3: Every position for that part is already taken (14 tried).
+      e.g. d200 · 2 bays w900/w900 · frames 904.5/904.5/904.5 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1  (every accessory at max)
+[O6-refused] ×3  asked for 4 × timber-shelf, placed 1: The Timber shelf 450 mm for ladder depth 200 mm, 25 mm would take the space the Timber cabinet 450 mm, 300 mm high, for ladder depth 200 mm, 25 mm is already in.
+      e.g. d200 · 2 bays w900/w450 · frames 668/668/668 · floor · timber-shelf×4 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1  (every accessory at max)
+[O6-refused] ×2  asked for 2 × hook-strip, placed 1: The YouK hook strip for ladder depth 320 mm would take the space the YouK cabinet bracket for ladder depth 320 mm is already in.
+      e.g. d320 · 3 bays w900/w900/w900 · frames 550/550/550/550 · feet · metal-shelf×4 timber-shelf×4 clothes-rail×3 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2 cabinet-200×1 cabinet-300×1 cabinet-450×1  (every accessory at max)
+
+written D:\Claude\confgr-modular\docs\audit\sweep-kits.json

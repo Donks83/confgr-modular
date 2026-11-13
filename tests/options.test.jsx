@@ -166,6 +166,26 @@ describe('when the run is described by kinds rather than by one size', () => {
     fireEvent.click(stepper('Extra shelf').plus);
     expect(onPlace).toHaveBeenCalledWith('metal-shelf');
   });
+
+  it('just counts a cabinet: it brings its own brackets, so there is no dot to choose', () => {
+    const onPlace = vi.fn();
+    const onChange = vi.fn();
+    const withCabinet = [...adds, { kind: 'cabinet-200', componentId: 'cab', label: 'Cabinet 200', max: 1, perBay: true, kit: 'cabinet' }];
+    draw({ adds: withCabinet, choices: byKind, onPlace, onChange });
+    fireEvent.click(stepper('Cabinet 200').plus);
+    expect(onPlace).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ adds: expect.objectContaining({ 'cabinet-200': 1 }) }));
+  });
+
+  it('says why a cabinet was refused, not just that there was no room', () => {
+    const withCabinet = [...adds, { kind: 'cabinet-450', componentId: 'cab', label: 'Cabinet 450', max: 1, perBay: true, kit: 'cabinet' }];
+    draw({
+      adds: withCabinet,
+      choices: { ...byKind, adds: { 'cabinet-450': 1 } },
+      refused: [{ kind: 'cabinet-450', kit: true, placed: 0, asked: 1, reason: 'too tall for these ladders - the shelf above it has no rung to go to' }],
+    });
+    expect(stepper('Cabinet 450').note).toBe('too tall for these ladders - the shelf above it has no rung to go to');
+  });
 });
 
 // The Width control shows the RUN's width and sets all of them. A bay set from

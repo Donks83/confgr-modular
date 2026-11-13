@@ -29,7 +29,7 @@ configuration id and the quote round-tripping.
 
 **Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 116 commits on
 the session-10 branches; `main` pushed to **github.com/Donks83/confgr-modular** (private).
-**Tests:** 913 passing across 52 files (`npm test`), verified 12 November 2026.
+**Tests:** 934 passing across 54 files (`npm test`), verified 13 November 2026.
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -3634,6 +3634,83 @@ it and stays.
   `__viewerLayout` is still set (A1 F19, workstream C).
 - **Phones.** Not yet seen on Matt's phones.
 
+### 5.30 Cabinets in the configurator, as kits
+
+Matt, 13 November 2026: "there doesn't seem to be cabs available?" The engine
+had carried cabinets across two bays since F14 was fixed, but the guided
+configurator offered none. His answers to four questions are the specification:
+
+- all three heights (200, 300, 450);
+- the cabinet on the bottom rung, with the bay's shelf moving up;
+- the shared extension bracket between two cabinets chosen automatically;
+- desks at the same time.
+
+**A kit is an add that brings what carries it.** The variant's `kits` in
+`guided.json` says which brackets, on which rung, and whether the shelf moves.
+An add with `kit: 'cabinet'` uses that recipe, so another range writes its own
+and the engine knows nothing about cabinets. The rules are:
+
+- One kit per bay. The bay is recorded as `{ bay }`, so it survives the rebuild.
+- Bays are planned **per ladder** first. Between two cabinets on the same rung
+  there is one 008560 bracket, carrying a cabinet each side, instead of two
+  outer ones in the same place.
+- Every part goes through the same judge. If any step fails, the whole kit is
+  taken off again and refused with the reason.
+
+**The shelf moves by measurement, not by a rung number.** Every rung from the
+cabinet's own up to the first one above the cabinet's top plus 25 mm is avoided.
+On a 1500 ladder (rungs 100, 455, 810) a 450 cabinet reaches 553, so the shelf
+goes to rung 3, while a 300 cabinet leaves it on rung 2. The shelf must also
+land where the next ladder has a rung at the same height. If it can't, the
+cabinet is refused ("the ladders here are not tall enough"). Before this, the
+sweep found a 550 ladder hung 355 mm off the floor to meet the shelf.
+
+**In the configurator:**
+- the three heights are under Shelves & storage;
+- **+** just counts a cabinet, with no dots, because it goes in the next free bay;
+- when every bay has one, the note reads "every bay has one - add a bay";
+- a selected cabinet says it "comes with the brackets it sits on", and offers
+  only Remove.
+
+**Verified in a browser** on an exported bundle:
+- one 450 cabinet, with the shelf on rung 3;
+- two bays with two cabinets, where the parts list reads 2 × 008558 and
+  1 × 008560;
+- both orderable.
+
+On the way, the part card was moved to the stage's bottom left. It had run
+10 px off a 1024 px screen and covered the price.
+
+**What the sweep found, run with cabinets in it.** It now counts a per-bay
+kind's ceiling as the + button does, and asks for one kit per bay.
+
+- **A 550 ladder hung off the floor** to meet a shelf moved up for a 450
+  cabinet. Fixed, as described above.
+- **A recorded part lost to an unrecorded one.** A hook strip moved under bay 1's
+  rung 2 was dropped when a second clothes rail went on, because rails are
+  placed before hook strips. The rail took the same space from the other
+  ladder, which the reservation of the hook strip's own point could not see.
+  Accessories are now placed in **two passes**: every recorded one first,
+  across all kinds, then the policy's. A3's rule, that what the customer put
+  somewhere wins, now holds across kinds. The old-link migration tests still
+  open every fixture.
+- **Left as it is, and reported in words:** when one of two neighbouring
+  cabinets is removed, the shared bracket becomes an outer one. The outer
+  bracket takes the other face of that rung. A part pinned to that face is
+  re-placed, and the drop is listed.
+- **Observed, not changed:** with bay 1 taken by that hook strip, the second
+  rail went under rung 1 in bay 0, 26 mm off the floor. That is legal, and
+  `highest` is only a preference. Whether a rail needs a minimum height is
+  Matt's call.
+
+**Desks are not offered, and that needs Kesseböhmer or Matt.** The desk kit is
+built and tried: base brackets on rung 3, arms on the 650 or 750 hole row by
+mounting, and clamping angles. Every one of those parts fits. The desktop does
+not: one clamping angle stands **25 mm inside the 20 mm board**. This is F18 /
+§5.13: the arm is handed and we hold one hand of the pair. The judge refuses
+it, so a desk add would only ever say no. The recipe stays in `guided.json` with
+the reason in `_heldBack`. The adds go back in when the handedness is answered.
+
 ---
 
 ## 6. Roadmap
@@ -3997,6 +4074,11 @@ NULL-terminated request with `strict_json`); that is now `tools/blender-exec.mjs
   YouK-flavoured and a neutral theme. The stage image is rendered in headless
   Blender from our own export. **Matt chose C** (guided steps on a dark rail).
 - **A3**: built (§5.28). Sweep to zero; 893 tests.
+- **13 November**: cabinets in the configurator as kits (§5.30), all three
+  heights, with the shared bracket chosen automatically. Desks are built but held
+  back on F18. Two engine fixes came out of the sweep: a shelf no longer lifts a
+  short ladder off the floor, and recorded accessories are placed before the
+  policy's. 934 tests.
 
 Branches, none merged or pushed: `rework/a1-audit` → `rework/a2-rule-model` →
 `rework/a3-rules`, stacked.
