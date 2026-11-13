@@ -80,6 +80,28 @@ describe('finding the models', () => {
     }
   });
 
+  it('finds them beside the function, whatever folder the package was rooted at', () => {
+    // 13 Nov 2026: deployed from D:Claudeconfgr-modular, Netlify's zip held
+    // "Claude/confgr-modular/bundle-netlify/models" next to
+    // "Claude/confgr-modular/netlify/functions/ar.mjs", and every AR request
+    // answered 500 because no path the search tried existed.
+    const override = process.env.CONFGR_MODELS;
+    delete process.env.CONFGR_MODELS;
+    const task = join(tmpdir(), `confgr-task-${Date.now()}`);
+    const site = join(task, 'Claude', 'confgr-modular');
+    try {
+      mkdirSync(join(site, 'bundle-netlify', 'models'), { recursive: true });
+      mkdirSync(join(site, 'netlify', 'functions'), { recursive: true });
+      writeFileSync(join(site, 'bundle-netlify', 'models', 'x.glb'), 'not a glb');
+      const found = findModels(task, task, join(site, 'netlify', 'functions'));
+      expect(found).toBe(join(site, 'netlify', 'functions', '..', '..', 'bundle-netlify', 'models'));
+      expect(existsSync(found)).toBe(true);
+    } finally {
+      rmSync(task, { recursive: true, force: true });
+      process.env.CONFGR_MODELS = override;
+    }
+  });
+
   it('prefers an explicit answer over the search', () => {
     // The escape hatch itself, asserted rather than assumed: `netlify dev` and
     // this suite both rely on it, and a silent fallback to the wrong folder
@@ -93,7 +115,7 @@ describe('finding the models', () => {
     const override = process.env.CONFGR_MODELS;
     delete process.env.CONFGR_MODELS;
     try {
-      expect(findModels(join(tmpdir(), `confgr-none-${Date.now()}`), null)).toBe(null);
+      expect(findModels(join(tmpdir(), `confgr-none-${Date.now()}`), null, null)).toBe(null);
     } finally {
       process.env.CONFGR_MODELS = override;
     }

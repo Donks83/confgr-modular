@@ -27,7 +27,8 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 
@@ -84,7 +85,10 @@ const cacheKey = (id) => createHash('sha256').update(id).digest('hex');
  * report itself as "that configuration cannot be turned into a model", which
  * would send somebody looking at the engine.
  */
-export function findModels(cwd = process.cwd(), root = process.env.LAMBDA_TASK_ROOT) {
+/** This file's own folder, deployed: <prefix>/netlify/functions. */
+const HERE = (() => { try { return dirname(fileURLToPath(import.meta.url)); } catch { return null; } })();
+
+export function findModels(cwd = process.cwd(), root = process.env.LAMBDA_TASK_ROOT, here = HERE) {
   const candidates = [
     // An explicit answer wins, and it is what makes this testable without
     // exporting a bundle first - `netlify dev` and the test suite both point it
@@ -96,6 +100,13 @@ export function findModels(cwd = process.cwd(), root = process.env.LAMBDA_TASK_R
     root ? join(root, PUBLISH, 'models') : null,
     join(cwd, 'models'),
     root ? join(root, 'models') : null,
+    // BESIDE THIS FILE, whatever folder the package was rooted at. Deployed from
+    // D:Claudeconfgr-modular (13 Nov 2026) the zip held
+    // "Claude/confgr-modular/bundle-netlify/models/..." next to
+    // "Claude/confgr-modular/netlify/functions/ar.mjs" - rooted at the DRIVE -
+    // so none of the paths above existed and every AR request answered 500.
+    // Two folders up from the function is the site root in every layout.
+    here ? join(here, '..', '..', PUBLISH, 'models') : null,
   ];
   for (const dir of candidates) {
     if (dir && existsSync(dir)) return dir;
