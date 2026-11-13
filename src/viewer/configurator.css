@@ -204,6 +204,34 @@
    they start at its edge rather than clearing a rail that is no longer there. */
 .cfgc .cfgg-ask { left: 12px; right: 12px; top: 68px; }
 
+/* The recorder (?record): under undo / redo, clear of the summary card and the
+   AR button, and obviously ON so nobody records by accident. */
+.cfgc-rec {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  top: 64px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-shell);
+  color: var(--cfg-shell-ink);
+  box-shadow: var(--cfg-shadow);
+  font-size: 13px;
+}
+.cfgc-recdot { width: 10px; height: 10px; border-radius: 50%; background: var(--cfg-warn-ink); box-shadow: 0 0 0 3px var(--cfg-warn-bg); }
+.cfgc-rec button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--cfg-shell-line);
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-shell-2);
+  color: var(--cfg-shell-ink);
+  cursor: pointer;
+}
+
 /* "View on your phone": the stage layout's QR and AR sentence. */
 .cfgv-phone { position: absolute; z-index: 4; top: 12px; right: 12px; display: grid; justify-items: end; gap: 8px; }
 .cfgv-phonebtn {
@@ -251,6 +279,7 @@
   .cfgc-nav { position: sticky; bottom: 0; z-index: 4; }
   .cfgc-summary { display: none; }
   .cfgc-tools { top: auto; bottom: 12px; left: auto; right: 12px; }
+  .cfgc-rec { top: 8px; left: 8px; }
 }
 
 /* On a wide screen the rail is permanent - there is nothing to dismiss - so it

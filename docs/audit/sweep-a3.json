@@ -1,16 +1,16 @@
 {
- "generated": "2026-11-12T17:55:03.884Z",
+ "generated": "2026-11-13T09:29:37.925Z",
  "models": "D:\\Claude\\confgr-modular\\youk",
  "structures": 480,
  "counts": {
-  "builds": 13837,
-  "moves": 694,
-  "dots": 3053,
-  "adds": 2728,
+  "builds": 14015,
+  "moves": 710,
+  "dots": 3135,
+  "adds": 2808,
   "removes": 288,
   "stability": 348
  },
- "seconds": 404,
+ "seconds": 416,
  "findings": [
   {
    "oracle": "O6-refused",
@@ -248,9 +248,37 @@
   },
   {
    "oracle": "O6-refused",
+   "message": "asked for 2 × hook-strip, placed 1: Something already hangs from this rung.",
+   "product": "d320 · 1 bay w900 · frames 550/550 · feet · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
+   "occurrences": 2,
+   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZlZXQiLCJmb290SGVpZ2h0TW0iOjEwMH0",
+   "choices": {
+    "variantId": "d320",
+    "sizeId": "w900",
+    "frameId": "236750-ladder-depth-320mm",
+    "frames": {},
+    "widths": {},
+    "bays": 1,
+    "adds": {
+     "metal-shelf": 4,
+     "timber-shelf": 4,
+     "clothes-rail": 1,
+     "youboxx": 2,
+     "hook-strip-full": 1,
+     "side-rack": 2,
+     "hook-strip": 2
+    },
+    "at": {},
+    "mounting": "feet",
+    "footHeightMm": 100
+   },
+   "ctx": "every accessory at max"
+  },
+  {
+   "oracle": "O6-refused",
    "message": "asked for 2 × side-rack, placed 0: That would put the YouK rack for ladder depth 320 mm 59 mm below the floor.",
    "product": "d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
-   "occurrences": 2,
+   "occurrences": 1,
    "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6ImZsb29yIiwiZm9vdEhlaWdodE1tIjoxMDB9",
    "choices": {
     "variantId": "d320",
@@ -270,34 +298,6 @@
     },
     "at": {},
     "mounting": "floor",
-    "footHeightMm": 100
-   },
-   "ctx": "every accessory at max"
-  },
-  {
-   "oracle": "O6-refused",
-   "message": "asked for 2 × hook-strip, placed 1: Something already hangs from this rung.",
-   "product": "d320 · 1 bay w900 · frames 550/550 · wall · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2",
-   "occurrences": 1,
-   "o": "eyJ2YXJpYW50SWQiOiJkMzIwIiwic2l6ZUlkIjoidzkwMCIsImZyYW1lSWQiOiIyMzY3NTAtbGFkZGVyLWRlcHRoLTMyMG1tIiwiZnJhbWVzIjp7fSwid2lkdGhzIjp7fSwiYmF5cyI6MSwiYWRkcyI6eyJtZXRhbC1zaGVsZiI6NCwidGltYmVyLXNoZWxmIjo0LCJjbG90aGVzLXJhaWwiOjEsInlvdWJveHgiOjIsImhvb2stc3RyaXAtZnVsbCI6MSwic2lkZS1yYWNrIjoyLCJob29rLXN0cmlwIjoyfSwiYXQiOnt9LCJtb3VudGluZyI6IndhbGwiLCJmb290SGVpZ2h0TW0iOjEwMH0",
-   "choices": {
-    "variantId": "d320",
-    "sizeId": "w900",
-    "frameId": "236750-ladder-depth-320mm",
-    "frames": {},
-    "widths": {},
-    "bays": 1,
-    "adds": {
-     "metal-shelf": 4,
-     "timber-shelf": 4,
-     "clothes-rail": 1,
-     "youboxx": 2,
-     "hook-strip-full": 1,
-     "side-rack": 2,
-     "hook-strip": 2
-    },
-    "at": {},
-    "mounting": "wall",
     "footHeightMm": 100
    },
    "ctx": "every accessory at max"

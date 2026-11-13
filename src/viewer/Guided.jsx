@@ -27,6 +27,7 @@ import MovePanel from './MovePanel.jsx';
 import SpacingPanel from './SpacingPanel.jsx';
 import './options.css';
 import './configurator.css';
+import { recordingRequested, describeChange, drawnFacts, recordingFile } from './recorder.js';
 import {
   buildGuided, defaultChoices, normaliseChoices, variantOf, sizeOf, moveOptions, addForComponent, pinPositions,
   moveCandidates, movePoints, addPoints, baySpacings,
@@ -166,6 +167,15 @@ export default function Guided({
   // What the drawn product is - the resolved configuration and its size, handed
   // out by the viewer once it has drawn. The summary card and the review read it.
   const [drawn, setDrawn] = useState(null);
+
+  // THE RECORDER (Matt, 13 Nov 2026: record what I do so a broken build can be
+  // reproduced). Opt-in with ?record, per instance, in memory only.
+  const [recordOn] = useState(() => typeof window !== 'undefined' && recordingRequested(window.location.href));
+  const logRef = useRef([]);
+  const startedRef = useRef(null);
+  const prevForLogRef = useRef(null);
+  const actionRef = useRef('opened');
+  const [logSize, setLogSize] = useState(0);
   // The BUILDER's id of the tapped part, already translated. Storing the
   // translated one means everything downstream deals in one id space.
   const [picked, setPicked] = useState(null);
@@ -248,6 +258,7 @@ export default function Guided({
   }, [built.configurationId, encoded]);
 
   const change = useCallback((next, { record = true } = {}) => {
+    actionRef.current = record ? 'changed' : 'corrected by the engine';
     setChoices((prev) => {
       // A customer's change goes on the undo stack; a correction the system makes
       // on its own (forgetting a record the engine dropped) does not, or undo
@@ -282,6 +293,7 @@ export default function Guided({
   }, [schema]);
 
   const undo = useCallback(() => {
+    actionRef.current = 'undo';
     setChoices((prev) => {
       const back = pastRef.current.at(-1);
       if (!back) return prev;
@@ -292,6 +304,7 @@ export default function Guided({
     setTimeout(syncHistory, 0);
   }, []);
   const redo = useCallback(() => {
+    actionRef.current = 'redo';
     setChoices((prev) => {
       const fwd = futureRef.current.at(-1);
       if (!fwd) return prev;
@@ -301,6 +314,63 @@ export default function Guided({
     });
     setTimeout(syncHistory, 0);
   }, []);
+
+  // Every change to the choices is a step - read off the choices themselves,
+  // so no control can change the product without it being recorded.
+  useEffect(() => {
+    if (!recordOn) return;
+    if (!startedRef.current) startedRef.current = Date.now();
+    logRef.current = [...logRef.current, {
+      step: logRef.current.length,
+      ms: Date.now() - startedRef.current,
+      action: actionRef.current,
+      changes: describeChange(prevForLogRef.current, choices),
+      o: encodeChoices(choices),
+    }];
+    prevForLogRef.current = choices;
+    actionRef.current = 'changed';
+    setLogSize(logRef.current.length);
+  }, [choices, recordOn]);
+
+  // ...and what the viewer then drew for it: size, issues, the lowest part.
+  useEffect(() => {
+    if (!recordOn || !drawn) return;
+    const last = logRef.current.at(-1);
+    if (last && !last.drawn) last.drawn = drawnFacts(drawn);
+  }, [drawn, recordOn]);
+
+  const recordingText = () => JSON.stringify(recordingFile(logRef.current, {
+    page: typeof window !== 'undefined' ? window.location.href : null,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    startedAt: startedRef.current ? new Date(startedRef.current).toISOString() : null,
+  }), null, 1);
+  const [copiedLog, setCopiedLog] = useState(false);
+  const copyRecording = async () => {
+    try {
+      await navigator.clipboard.writeText(recordingText());
+      setCopiedLog(true);
+      setTimeout(() => setCopiedLog(false), 2000);
+    } catch { /* fall back to Download */ }
+  };
+  const downloadRecording = () => {
+    const blob = new Blob([recordingText()], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `confgr-recording-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  const clearRecording = () => {
+    logRef.current = [];
+    prevForLogRef.current = null;
+    startedRef.current = null;
+    actionRef.current = 'cleared, then';
+    // Start again from the product as it stands.
+    logRef.current = [{ step: 0, ms: 0, action: 'cleared - recording from here', changes: ['started'], o: encodeChoices(choices) }];
+    prevForLogRef.current = choices;
+    startedRef.current = Date.now();
+    setLogSize(1);
+  };
 
   // What the tapped part can do. Computed here rather than held in state so it
   // is always about the CURRENT product: a stale list of positions is a list of
@@ -743,6 +813,16 @@ export default function Guided({
             onReady?.(info);
           }}
         />
+
+        {recordOn && (
+          <div className="cfgc-rec" role="group" aria-label="Recording">
+            <span className="cfgc-recdot" aria-hidden="true" />
+            <span className="cfgc-reccount" aria-live="polite">Recording · {logSize} step{logSize === 1 ? '' : 's'}</span>
+            <button type="button" onClick={copyRecording}>{copiedLog ? 'Copied' : 'Copy'}</button>
+            <button type="button" onClick={downloadRecording}>Download</button>
+            <button type="button" onClick={clearRecording}>Clear</button>
+          </div>
+        )}
 
         <div className="cfgc-tools" role="toolbar" aria-label="Edit">
           <button type="button" className="cfgc-tool" onClick={undo} disabled={!historySize.past} aria-label="Undo" title="Undo (Ctrl+Z)">

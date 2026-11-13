@@ -44,7 +44,7 @@ import { resolveTransforms, snapSupport, productFront } from './assembly.js';
 import { overlaps, boxFor } from './collision.js';
 import { encodeConfiguration } from './configuration.js';
 import { impliedComponentIds } from './implied.js';
-import { MOUNTING, isMounting, isGrounded, FOOT } from './ar.js';
+import { MOUNTING, isMounting, isGrounded, FOOT, groundClearanceMm } from './ar.js';
 
 export const GUIDED_VERSION = 1;
 
@@ -648,8 +648,9 @@ export function moveCandidates(built, components, instanceId) {
   // the AR export rebases from it. On a wall-mounted product there is no floor
   // and hanging lower is a real option, so the limit simply does not apply.
   const anchorId = built.assembly.instances[0]?.instanceId;
+  // The real floor: on feet, the bottom of the foot (see judge.js).
   const floorY = isGrounded(built.mounting) && anchorId
-    ? (transforms.get(anchorId)?.translation[1] ?? 0)
+    ? (transforms.get(anchorId)?.translation[1] ?? 0) - groundClearanceMm(built.mounting, built.footHeightMm) / 1000
     : null;
   const FLOOR_TOLERANCE_M = 0.001;
 
@@ -1399,7 +1400,7 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
   const c = normaliseChoices(schema, choices);
   // ONE JUDGE for everything this build places (A2 §3), and handed on in the
   // result so the move list and the dots ask exactly the same question.
-  const judgeAt = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId });
+  const judgeAt = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm, focus: instanceId });
   // While the bays themselves are laid out, a shelf is held at one end until the
   // next ladder hangs from the other. So the STRUCTURE is placed against the
   // physical rules only (floor, through, one space); accessories, moves, dots and
@@ -1407,10 +1408,10 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
   // A MOVE is judged on the whole product, before against after: what it does to
   // the parts around it is the point (moving a ladder can strand a shelf).
   const judgeMove = (before, after) => introduced(
-    judge(before, components, rules, { mounting: c.mounting }),
-    judge(after, components, rules, { mounting: c.mounting }),
+    judge(before, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm }),
+    judge(after, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm }),
   );
-  const judgeStructure = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId, skip: ['held', 'mountingNeeds'] });
+  const judgeStructure = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm, focus: instanceId, skip: ['held', 'mountingNeeds'] });
   const variant = variantOf(schema, c);
   const size = sizeOf(variant, c);
 

@@ -288,7 +288,7 @@ export function resolveConfiguration(id, components, { catalogue = null, tierId 
   // 12 Nov 2026: an invalid product gets a DRAFT quote - the bill of materials
   // and the price stay visible, ordering does not). A mounting the parts cannot
   // take (implied refusals - 200 mm ladders on feet) counts against it too.
-  const reasons = judge(assembly, components, rules, { mounting, transforms });
+  const reasons = judge(assembly, components, rules, { mounting, footHeightMm, transforms });
   for (const r of implied.refusals || []) {
     reasons.push({ rule: r.code || 'implied', says: r.message || r.reason || String(r.code) });
   }

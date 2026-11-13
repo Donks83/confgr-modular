@@ -1,5 +1,5 @@
 
-480 structures, {"builds":13837,"moves":694,"dots":3053,"adds":2728,"removes":288,"stability":348}, 404 s
+480 structures, {"builds":14015,"moves":710,"dots":3135,"adds":2808,"removes":288,"stability":348}, 416 s
 ┌────────────┬──────────┬─────────────┐
 │ (index)    │ distinct │ occurrences │
 ├────────────┼──────────┼─────────────┤
@@ -25,9 +25,9 @@
       e.g. d200 · 1 bay w450 · frames 668/904.5 · floor · timber-shelf×3  (3 × timber-shelf)
 [O6-refused] ×18  asked for 3 × timber-shelf, placed 2: Every position for that part is already taken (6 tried).
       e.g. d200 · 1 bay w450 · frames 668/668 · floor · timber-shelf×3  (3 × timber-shelf)
-[O6-refused] ×2  asked for 2 × side-rack, placed 0: That would put the YouK rack for ladder depth 320 mm 59 mm below the floor.
+[O6-refused] ×2  asked for 2 × hook-strip, placed 1: Something already hangs from this rung.
+      e.g. d320 · 1 bay w900 · frames 550/550 · feet · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
+[O6-refused] ×1  asked for 2 × side-rack, placed 0: That would put the YouK rack for ladder depth 320 mm 59 mm below the floor.
       e.g. d320 · 1 bay w900 · frames 550/550 · floor · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
-[O6-refused] ×1  asked for 2 × hook-strip, placed 1: Something already hangs from this rung.
-      e.g. d320 · 1 bay w900 · frames 550/550 · wall · metal-shelf×4 timber-shelf×4 clothes-rail×1 youboxx×2 hook-strip-full×1 side-rack×2 hook-strip×2  (every accessory at max)
 
 written D:\Claude\confgr-modular\docs\audit\sweep-a3.json

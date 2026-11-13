@@ -11,7 +11,7 @@
 
 import { resolveTransforms, worldSnaps, inContact, backToFrontParts } from './assembly.js';
 import { overlaps, boxesFor } from './collision.js';
-import { isGrounded, MOUNTING } from './ar.js';
+import { isGrounded, MOUNTING, groundClearanceMm } from './ar.js';
 import { DEFAULT_RULES, sentence } from './rules.js';
 
 const pairKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
@@ -69,7 +69,7 @@ function sharedShare(a, b) {
  * @returns {Array<{rule, says, instanceId, componentId, otherId?, source?}>}
  */
 export function judge(assembly, components, rules = DEFAULT_RULES, {
-  mounting = MOUNTING.FLOOR, transforms = null, focus = null, skip = [],
+  mounting = MOUNTING.FLOOR, transforms = null, focus = null, skip = [], footHeightMm = undefined,
 } = {}) {
   const t = transforms || resolveTransforms(assembly, components).transforms;
   const instances = (assembly.instances || []).filter((i) => components.get(i.componentId) && t.get(i.instanceId));
@@ -108,7 +108,11 @@ export function judge(assembly, components, rules = DEFAULT_RULES, {
 
   // Product rules: true of any range.
   const anchor = assembly.instances?.[0];
-  const floorY = t.get(anchor?.instanceId)?.translation[1] ?? 0;
+  // THE REAL FLOOR. On feet it is the bottom of the foot, not the ladder's base:
+  // the product's origin is the anchor ladder's base and the feet stand below
+  // it. Measuring from the base refused a side rack on rung 1 that clears the
+  // real floor by 41.5 mm on 100 mm feet (found recording Matt's session, 13 Nov).
+  const floorY = (t.get(anchor?.instanceId)?.translation[1] ?? 0) - groundClearanceMm(mounting, footHeightMm) / 1000;
   const boxes = new Map(instances.map((i) => [i.instanceId, worldAabb(components.get(i.componentId), t.get(i.instanceId))]));
   for (const r of rules.product || []) {
     if (r.rule === 'notBelowFloor') {

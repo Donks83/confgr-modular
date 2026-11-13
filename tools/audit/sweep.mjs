@@ -27,7 +27,7 @@ import { resolveTransforms, snapSupport, validateAssembly } from '../../src/engi
 import { overlaps, boxesFor } from '../../src/engine/collision.js';
 import { resolveConfiguration } from '../../src/engine/configuration.js';
 import { impliedParts } from '../../src/engine/implied.js';
-import { isGrounded, MOUNTING } from '../../src/engine/ar.js';
+import { isGrounded, MOUNTING, groundClearanceMm } from '../../src/engine/ar.js';
 import { removeSlot } from '../../src/viewer/Guided.jsx';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -132,6 +132,9 @@ function checkProduct(built, choices, ctx = '') {
   const grounded = isGrounded(c.mounting);
   const anchor = assembly.instances[0];
   const floorY = transforms.get(anchor.instanceId)?.translation[1] ?? 0;
+  // The REAL floor for O1: on feet, the bottom of the foot (A3 correction,
+  // 13 Nov). O2 still measures ladders against the first ladder's base.
+  const groundY = floorY - groundClearanceMm(c.mounting, c.footHeightMm) / 1000;
   const spans = spanningIds(variant);
   const frames = frameIds(variant);
   const where = (id) => {
@@ -144,10 +147,10 @@ function checkProduct(built, choices, ctx = '') {
   if (grounded) {
     for (const i of assembly.instances) {
       const y = minY(components.get(i.componentId), transforms.get(i.instanceId));
-      if (y < floorY - TOL_M) {
+      if (y < groundY - TOL_M) {
         report('O1-below-floor', choices, {
           key: `${i.componentId}@${slotOf(i.instanceId).replace(/#\d+$/, '')}`,
-          message: `${i.componentId} (${slotOf(i.instanceId)}) reaches ${mm(y - floorY)} mm below the floor on a ${c.mounting}-standing product`,
+          message: `${i.componentId} (${slotOf(i.instanceId)}) reaches ${mm(y - groundY)} mm below the floor on a ${c.mounting}-standing product`,
         }, { ctx, at: where(i.instanceId) });
       }
     }
