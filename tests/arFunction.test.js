@@ -158,4 +158,15 @@ describe('answering', () => {
     const res = await handler(ask('/ar/build/product.glb', `?c=${encodeURIComponent(threeBay)}`));
     expect(res.headers.get('cache-control')).toMatch(/immutable/);
   }, 60000);
+
+  it.runIf(has)('states its length, so a viewer is not handed a stream of unknown size', async () => {
+    // Scene Viewer opened and closed at once on Matt's Android while the route
+    // answered chunked with no length; the laptop server it worked from sent one.
+    for (const file of ['product.glb', 'product.usdz']) {
+      const res = await handler(ask(`/ar/build/${file}`, `?c=${encodeURIComponent(threeBay)}`));
+      const bytes = await res.arrayBuffer();
+      expect(res.headers.get('content-length'), file).toBe(String(bytes.byteLength));
+      expect(res.headers.get('access-control-allow-origin'), file).toBe('*');
+    }
+  }, 60000);
 });

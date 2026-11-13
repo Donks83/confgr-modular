@@ -164,6 +164,14 @@ export default async function handler(request) {
     return new Response(data, {
       headers: {
         'content-type': TYPES[format],
+        // THE LENGTH, stated. Without it Netlify streamed the file chunked, with
+        // no size at all - and on Matt's Android, Scene Viewer opened and closed
+        // again at once (13 Nov 2026). The laptop server it worked from,
+        // tools/serve-ar.mjs, always sent one.
+        'content-length': String(data.length),
+        // Scene Viewer and Quick Look fetch the file themselves; nothing here is
+        // private, so any origin may.
+        'access-control-allow-origin': '*',
         // A configuration id names one product for ever, so this is cached hard
         // by the phone AND by Netlify's own edge - which gets back most of what
         // the ephemeral /tmp cache gives up.
