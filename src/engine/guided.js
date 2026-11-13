@@ -44,7 +44,7 @@ import { resolveTransforms, snapSupport, productFront } from './assembly.js';
 import { overlaps, boxFor } from './collision.js';
 import { encodeConfiguration } from './configuration.js';
 import { impliedComponentIds } from './implied.js';
-import { MOUNTING, isMounting, isGrounded, FOOT } from './ar.js';
+import { MOUNTING, isMounting, isGrounded, FOOT, groundClearanceMm } from './ar.js';
 
 export const GUIDED_VERSION = 1;
 
@@ -135,6 +135,11 @@ export function guidedComponentIds(schema, { includeImplied = true } = {}) {
   const ids = new Set();
   for (const v of schema.variants) {
     for (const f of v.frames) ids.add(f.componentId);
+    // A kit's own parts - brackets, arms, clamps - ship with the bundle too,
+    // or a cabinet could be chosen and never drawn.
+    for (const k of Object.values(v.kits || {})) {
+      for (const id of [k.brackets?.end, k.brackets?.shared, k.arm?.componentId, k.clamp?.componentId]) if (id) ids.add(id);
+    }
     for (const s of v.sizes) {
       ids.add(s.span.componentId);
       for (const a of s.adds || []) ids.add(a.componentId);
@@ -475,9 +480,13 @@ export function normaliseChoices(schema, choices = {}) {
   // because of something the person did and then undid.
   const at = {};
   for (const [key, ref] of Object.entries(choices.at || {})) {
-    if (!ref || typeof ref !== 'object' || !ref.instanceId || !ref.snapId) continue;
+    if (!ref || typeof ref !== 'object') continue;
+    // A KIT's record is the BAY it stands in (a cabinet, a desk), not a snap:
+    // the kit places its own brackets, so the bay is the whole of the choice.
+    const bayRecord = Number.isInteger(ref.bay) && ref.bay >= 0 && ref.bay < bays;
+    if (!bayRecord && (!ref.instanceId || !ref.snapId)) continue;
 
-    const kept = {
+    const kept = bayRecord ? { bay: ref.bay } : {
       instanceId: String(ref.instanceId),
       snapId: String(ref.snapId),
     };
@@ -602,6 +611,16 @@ export function moveCandidates(built, components, instanceId) {
     };
   }
 
+  // A KIT moves as a whole or not at all: its brackets were chosen for the
+  // bay it is in. Removing it is offered; moving it is "add it to another bay".
+  if (slot && built.kits?.has(slot)) {
+    return {
+      ok: false, slot, kind: 'add', kit: true, componentId: instance.componentId,
+      reason: 'This comes with the brackets it sits on. To have it in another bay, remove it and add it again.',
+      candidates: [],
+    };
+  }
+
   const { transforms } = resolveTransforms(built.assembly, components);
   const allowed = canMove(built.assembly, instanceId);
   if (!allowed.ok) {
@@ -648,8 +667,9 @@ export function moveCandidates(built, components, instanceId) {
   // the AR export rebases from it. On a wall-mounted product there is no floor
   // and hanging lower is a real option, so the limit simply does not apply.
   const anchorId = built.assembly.instances[0]?.instanceId;
+  // The real floor: on feet, the bottom of the foot (see judge.js).
   const floorY = isGrounded(built.mounting) && anchorId
-    ? (transforms.get(anchorId)?.translation[1] ?? 0)
+    ? (transforms.get(anchorId)?.translation[1] ?? 0) - groundClearanceMm(built.mounting, built.footHeightMm) / 1000
     : null;
   const FLOOR_TOLERANCE_M = 0.001;
 
@@ -1390,16 +1410,62 @@ export function pinPositions(built) {
   const at = { ...(built.choices?.at || {}) };
   for (const [slot, rec] of Object.entries(built.slotAt || {})) {
     if (slot === frameSlotFor(0) || at[slot]) continue;
+    if (Number.isInteger(rec.bay)) { at[slot] = { bay: rec.bay }; continue; }
     at[slot] = { instanceId: rec.instanceId, slot: rec.slot || null, snapId: rec.snapId, mountSnapId: rec.mountSnapId || null };
   }
   return { ...built.choices, at };
 }
 
+
+/**
+ * KITS: an add that brings the parts that carry it (cabinets, desks).
+ *
+ * Matt, 13 Nov 2026: cabinets at all three heights on the bottom rung, the bay
+ * shelf moving up, the shared bracket chosen automatically; desks at the same
+ * time. A kit is described by the variant's `kits` in the schema - which
+ * brackets, which arm and clamp, which rung - so another range writes its own
+ * recipes and nothing here knows what a cabinet is.
+ *
+ * One kit per bay. Which bay: the one recorded for that slot, if it is free and
+ * that bay's size offers the kind; otherwise the first free bay from the left.
+ */
+export function kitRequests(variant, c) {
+  const kinds = [];
+  for (let b = 0; b < c.bays; b += 1) {
+    for (const a of sizeAt(variant, c, b).adds || []) if (a.kit && !kinds.includes(a.kind)) kinds.push(a.kind);
+  }
+  const takes = (b, kind) => (sizeAt(variant, c, b).adds || []).find((a) => a.kind === kind && a.kit) || null;
+  const want = [];
+  for (const kind of kinds) for (let i = 0; i < (c.adds[kind] || 0); i += 1) want.push({ kind, i, key: slotKeyFor(kind, i) });
+  const taken = new Set();
+  for (const w of want) {
+    const b = c.at?.[w.key]?.bay;
+    if (Number.isInteger(b) && b < c.bays && !taken.has(b) && takes(b, w.kind)) { w.bay = b; taken.add(b); }
+  }
+  for (const w of want) {
+    if (w.bay !== undefined) continue;
+    for (let b = 0; b < c.bays; b += 1) {
+      if (!taken.has(b) && takes(b, w.kind)) { w.bay = b; taken.add(b); break; }
+    }
+  }
+  for (const w of want) {
+    if (w.bay === undefined) continue;
+    w.add = takes(w.bay, w.kind);
+    w.recipe = variant.kits?.[w.add.kit] || null;
+  }
+  return want;
+}
+
+const snapIdByLabel = (components, componentId, label) => components.get(componentId)?.snaps.find((s) => s.label === label)?.id || null;
+// What a cabinet sits above its rung (its bracket, ~10 mm) plus room to lift
+// it out. The judge still refuses anything that actually meets.
+const KIT_CLEAR_M = 0.025;
+
 export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES } = {}) {
   const c = normaliseChoices(schema, choices);
   // ONE JUDGE for everything this build places (A2 §3), and handed on in the
   // result so the move list and the dots ask exactly the same question.
-  const judgeAt = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId });
+  const judgeAt = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm, focus: instanceId });
   // While the bays themselves are laid out, a shelf is held at one end until the
   // next ladder hangs from the other. So the STRUCTURE is placed against the
   // physical rules only (floor, through, one space); accessories, moves, dots and
@@ -1407,12 +1473,42 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
   // A MOVE is judged on the whole product, before against after: what it does to
   // the parts around it is the point (moving a ladder can strand a shelf).
   const judgeMove = (before, after) => introduced(
-    judge(before, components, rules, { mounting: c.mounting }),
-    judge(after, components, rules, { mounting: c.mounting }),
+    judge(before, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm }),
+    judge(after, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm }),
   );
-  const judgeStructure = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, focus: instanceId, skip: ['held', 'mountingNeeds'] });
+  const judgeStructure = (assembly, instanceId) => judge(assembly, components, rules, { mounting: c.mounting, footHeightMm: c.footHeightMm, focus: instanceId, skip: ['held', 'mountingNeeds'] });
   const variant = variantOf(schema, c);
   const size = sizeOf(variant, c);
+  // Which bay each cabinet or desk goes in, decided before the bays are built,
+  // because a bay with a cabinet has its own shelf placed clear of it.
+  const kitWant = kitRequests(variant, c);
+  // The bay's shelf goes clear of the cabinet: every rung from the cabinet's
+  // own up to the first one above its top. Measured - the rung heights off the
+  // ladder, the height off the cabinet - so a 450 mm cabinet on a 1500 ladder
+  // (rungs 100, 455, 810) sends the shelf to rung 3, and a 300 one only to 2.
+  const kitAvoid = (bay, from) => {
+    const w = kitWant.find((x) => x.bay === bay && x.recipe?.spanMovesUp);
+    const inst = w && assembly.instances.find((x) => x.instanceId === from);
+    if (!inst) return null;
+    const rungs = components.get(inst.componentId).snaps.filter((s) => /^rung-\d+-(left|right)$/.test(s.label));
+    const base = rungs.find((s) => s.label === `rung-${w.recipe.rung}-left`)?.position[1];
+    const tall = (components.get(w.add.componentId)?.dimsMm?.heightMm || 0) / 1000;
+    if (base === undefined) return null;
+    const avoid = rungs.filter((s) => s.position[1] >= base - 1e-6 && s.position[1] < base + tall + KIT_CLEAR_M);
+    // And the shelf has to land where the NEXT ladder has a rung at the same
+    // height, or that ladder hangs off the floor to meet it (sweep O2: a 450
+    // cabinet beside a 550 ladder, whose top rung is 455). No such rung, no
+    // cabinet - refused in words below, rather than the run bent to fit it.
+    const next = components.get(frameIdAt(bay + 1));
+    const heights = (next?.snaps || []).filter((s) => /^rung-\d+-(left|right)$/.test(s.label)).map((s) => s.position[1]);
+    const left = rungs.filter((s) => !avoid.includes(s) && heights.some((h) => Math.abs(h - s.position[1]) < 1e-4));
+    if (!left.length) {
+      kitBlocked.set(bay, `too tall for these ladders - the shelf above it has no rung to go to`);
+      return null;
+    }
+    return new Set(avoid.map((s) => `${from}::${s.id}`));
+  };
+  const kitBlocked = new Map();
 
   const missing = guidedComponentIds(schema, { includeImplied: false })
     .filter((id) => !components.has(id));
@@ -1521,6 +1617,9 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
     if (spanRemembered?.pending) { deferred.push({ key: spanKey, at: c.at[spanKey], label: baySize.span.label }); spanRemembered = null; }
     const spanOpts = {
       instanceId: nextId(), catalogue, prefer: growingFrom, policy: PLACE.EXTEND, judge: judgeStructure,
+      // Matt, 13 Nov 2026: a cabinet takes the bottom rung and the bay's shelf
+      // moves up - so the shelf is placed clear of the cabinet's rung.
+      avoid: kitAvoid(bay, growingFrom),
     };
     let span = spanRemembered
       ? autoAttach(assembly, components, baySize.span.componentId, {
@@ -1597,19 +1696,168 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
     for (const a of s.adds || []) if (!addKinds.some((k) => k.kind === a.kind)) addKinds.push(a);
   }
 
+  // KITS NEXT (cabinets, desks): before the loose accessories, so a cabinet
+  // gets the bottom rung Matt chose for it rather than whatever a shelf left.
+  // Brackets are planned per LADDER first, because a ladder between two cabinets
+  // takes ONE shared bracket carrying both (MA 406214 step 1b), not two outer
+  // ones - which would sit in the same place.
+  const kitSlots = new Set();
+  {
+    const byBay = new Map(kitWant.filter((w) => w.bay !== undefined && w.recipe).map((w) => [w.bay, w]));
+    for (const w of kitWant) {
+      if (w.bay !== undefined && w.recipe) continue;
+      refused.push({
+        kind: w.kind, kit: true, componentId: null, placed: 0, asked: 1,
+        reason: w.bay === undefined
+          ? 'every bay has one - add a bay'
+          : 'This product has no recipe for fitting that part.',
+      });
+    }
+    const ladderOf = (k) => Object.entries(slots).find(([, sl]) => sl === frameSlotFor(k))?.[0] || null;
+    const sharesLadder = (k) => {
+      const L = byBay.get(k - 1);
+      const R = byBay.get(k);
+      return !!(L && R && L.add.kit === R.add.kit && L.recipe.rung === R.recipe.rung && L.recipe.brackets?.shared);
+    };
+    const sharedAt = new Map();      // ladder index -> instance id of the shared bracket
+    const mountOn = (componentId, ladder, rung, faces) => {
+      const ladderInst = assembly.instances.find((x) => x.instanceId === ladder);
+      let why = 'That ladder has no rung for it.';
+      for (const face of faces) {
+        const snapId = snapIdByLabel(components, ladderInst.componentId, `rung-${rung}-${face}`);
+        if (!snapId) continue;
+        const r = autoAttach(assembly, components, componentId, {
+          instanceId: nextId(), catalogue: [componentId], policy: PLACE.FILL, judge: judgeAt,
+          at: { instanceId: ladder, snapId },
+        });
+        if (r.ok) return r;
+        why = r.reason;
+      }
+      return { ok: false, reason: why };
+    };
+
+    for (const bay of [...byBay.keys()].sort((p, q) => p - q)) {
+      const w = byBay.get(bay);
+      const { recipe } = w;
+      const before = { assembly, slots: { ...slots }, n };
+      const placed = [];
+      const fail = (reason) => {
+        assembly = before.assembly;
+        for (const k of Object.keys(slots)) if (!(k in before.slots)) delete slots[k];
+        // A shared bracket this kit put up has gone with it, and the next bay
+        // no longer has a neighbour to share with.
+        for (const [k, id] of [...sharedAt]) if (placed.includes(id)) sharedAt.delete(k);
+        byBay.delete(bay);
+        refused.push({ kind: w.kind, kit: true, componentId: w.add.componentId, label: w.add.label, placed: 0, asked: 1, reason });
+      };
+      const keep = (r) => {
+        assembly = r.assembly;
+        const id = assembly.instances[assembly.instances.length - 1].instanceId;
+        slots[id] = w.key;
+        placed.push(id);
+        return id;
+      };
+
+      if (kitBlocked.has(bay)) { fail(kitBlocked.get(bay)); continue; }
+
+      // A support each side: the ladder at the bay's left and the one at its right.
+      const supports = [];
+      let failed = null;
+      for (const [k, faces] of [[bay, ['right', 'left']], [bay + 1, ['left', 'right']]]) {
+        const ladder = ladderOf(k);
+        if (!ladder) { failed = 'That bay is missing a ladder.'; break; }
+        if (sharesLadder(k)) {
+          if (sharedAt.has(k)) { supports.push(sharedAt.get(k)); continue; }
+          const r = mountOn(recipe.brackets.shared, ladder, recipe.rung, ['right', 'left']);
+          if (!r.ok) { failed = r.reason; break; }
+          const id = keep(r);
+          sharedAt.set(k, id);
+          supports.push(id);
+          continue;
+        }
+        const r = mountOn(recipe.brackets.end, ladder, recipe.rung, faces);
+        if (!r.ok) { failed = r.reason; break; }
+        supports.push(keep(r));
+      }
+      if (failed) { fail(failed); continue; }
+
+      // A desk's arm on each bracket, at the hole row for a 750 mm top, and the
+      // clamping angle on the arm (Office solution steps 3-4).
+      let carriers = supports;
+      if (recipe.arm) {
+        const arms = [];
+        for (const plate of supports) {
+          const plateInst = assembly.instances.find((x) => x.instanceId === plate);
+          const hole = snapIdByLabel(components, plateInst.componentId, recipe.arm.hole?.[c.mounting] || recipe.arm.hole?.floor);
+          const mount = snapIdByLabel(components, recipe.arm.componentId, recipe.arm.mount);
+          const r = autoAttach(assembly, components, recipe.arm.componentId, {
+            instanceId: nextId(), catalogue: [recipe.arm.componentId], policy: PLACE.FILL, judge: judgeAt,
+            at: { instanceId: plate, snapId: hole, mountSnapId: mount },
+          });
+          if (!r.ok) { failed = r.reason; break; }
+          const arm = keep(r);
+          arms.push(arm);
+          if (recipe.clamp) {
+            const on = snapIdByLabel(components, recipe.arm.componentId, recipe.clamp.on);
+            const cr = autoAttach(assembly, components, recipe.clamp.componentId, {
+              instanceId: nextId(), catalogue: [recipe.clamp.componentId], policy: PLACE.FILL, judge: judgeAt,
+              at: { instanceId: arm, snapId: on },
+            });
+            if (!cr.ok) { failed = cr.reason; break; }
+            keep(cr);
+          }
+        }
+        if (failed) { fail(failed); continue; }
+        carriers = arms;
+      }
+
+      // The top - the cabinet, the desktop - on the first carrier, and it must
+      // land in THIS bay with both ends held (the judge's every-end rule).
+      const { transforms: t } = resolveTransforms(assembly, components);
+      const xs = [ladderOf(bay), ladderOf(bay + 1)].map((id) => t.get(id).translation[0]).sort((p, q) => p - q);
+      const host = assembly.instances.find((x) => x.instanceId === carriers[0]);
+      let top = null;
+      let why = 'There is nothing for it to rest on.';
+      for (const sock of components.get(host.componentId).snaps.filter((s) => s.role === 'socket' && /^carries/.test(s.label))) {
+        const r = autoAttach(assembly, components, w.add.componentId, {
+          instanceId: nextId(), catalogue: [w.add.componentId], policy: PLACE.FILL, judge: judgeAt,
+          at: { instanceId: host.instanceId, snapId: sock.id },
+        });
+        if (!r.ok) { why = r.reason; continue; }
+        const cx = resolveTransforms(r.assembly, components).transforms.get(r.assembly.instances.at(-1).instanceId).translation[0];
+        if (cx > xs[0] && cx < xs[1]) { top = r; break; }
+      }
+      if (!top) { fail(why); continue; }
+      keep(top);
+      slotAt[w.key] = { bay };
+      kitSlots.add(w.key);
+    }
+  }
+
   // Every point a recorded accessory is still to take, so nothing auto-placed
   // before it gets there first. Cleared as each one is placed.
   const reserved = new Set();
   for (const add of addKinds) {
+    if (add.kit) continue;
     for (let i = 0; i < (c.adds[add.kind] || 0); i += 1) {
       const rec = resolveAt(c.at?.[slotKeyFor(add.kind, i)]);
       if (rec && !rec.pending) reserved.add(`${rec.instanceId}::${rec.snapId}`);
     }
   }
 
+  // TWO PASSES (sweep I5, 13 Nov 2026): every RECORDED accessory first, across
+  // all kinds, then the ones the policy places. In one pass by kind, a second
+  // clothes rail - unrecorded, and placed before the hook strips because rails
+  // come first - took the space under a rung that a hook strip the customer had
+  // moved there was still to take, from the other ladder's side, which the
+  // reservation of the hook strip's own point could not see. What the customer
+  // put somewhere wins; that was A3's rule and this is what keeps it.
+  const placedOf = new Map();          // kind -> how many are on
+  const gaveUp = new Set();            // kinds refused: no more of them
+  const toPlace = [];
   for (const add of addKinds) {
-    const wanted = c.adds[add.kind] || 0;
-
+    // Kits were placed above, with their brackets.
+    if (add.kit) continue;
     /*
      * THE LENGTH IS CHOSEN BY THE GEOMETRY, not by bookkeeping.
      *
@@ -1626,61 +1874,74 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
      * across it.
      */
     const candidates = candidatesFor(variant, add.kind);
-
-    for (let i = 0; i < wanted; i += 1) {
+    for (let i = 0; i < (c.adds[add.kind] || 0); i += 1) {
       const key = slotKeyFor(add.kind, i);
       let remembered = resolveAt(c.at?.[key]);
       if (remembered?.pending) { deferred.push({ key, at: c.at[key], label: add.label }); remembered = null; }
-      const id = nextId();
-      const opts = {
-        instanceId: id,
-        catalogue,
-        policy: PLACE.FILL,
-        requireFullyHeld: !!add.spans,
-        judge: judgeAt,
-        order: rules.preferences?.byKind?.[add.kind] || rules.preferences?.default || 'lowest',
-        avoid: reserved,
-      };
-      if (remembered) reserved.delete(`${remembered.instanceId}::${remembered.snapId}`);
-
-      // A remembered position first; auto-placement if it will no longer take.
-      // Dropping it rather than refusing the part is the kinder failure: the
-      // customer reduced the bays and the rail they had moved has to go
-      // SOMEWHERE, and saying "we put it back" beats losing it.
-      let r = null;
-      if (remembered) {
-        r = tryCandidates(assembly, components, candidates, { ...opts, at: remembered });
-        if (!r.ok) {
-          dropped.push({ slot: key, componentId: r.componentId, label: add.label, reason: r.reason });
-          r = null;
-        }
-      }
-      if (!r) r = tryCandidates(assembly, components, candidates, opts);
-
-      if (!r.ok) {
-        refused.push({
-          componentId: r.componentId,
-          // THE KIND AS WELL, because the control that asked for it is a kind
-          // now. Keyed on the part number alone, the shortfall note went
-          // looking for "008562" against a stepper called "metal-shelf" and
-          // found nothing - so "only 2 fit" was computed and never shown.
-          kind: add.kind,
-          label: add.label,
-          // How many of them DID go on, so the message can be about the
-          // shortfall rather than about the failure. "3 of the 4 fit" is a
-          // sentence somebody can act on; "could not place" is not.
-          placed: i,
-          asked: wanted,
-          reason: r.reason,
-        });
-        break;
-      }
-      assembly = r.assembly;
-      // Which slot this instance IS, so a person tapping the part in the scene
-      // can be turned back into the choice that produced it.
-      slots[id] = key;
-      slotAt[key] = recordOf(r);
+      toPlace.push({ add, i, key, candidates, remembered });
     }
+  }
+  const optsFor = (add, id) => ({
+    instanceId: id,
+    catalogue,
+    policy: PLACE.FILL,
+    requireFullyHeld: !!add.spans,
+    judge: judgeAt,
+    order: rules.preferences?.byKind?.[add.kind] || rules.preferences?.default || 'lowest',
+    avoid: reserved,
+  });
+  const keepAdd = (w, id, r) => {
+    assembly = r.assembly;
+    // Which slot this instance IS, so a person tapping the part in the scene
+    // can be turned back into the choice that produced it.
+    slots[id] = w.key;
+    slotAt[w.key] = recordOf(r);
+    placedOf.set(w.add.kind, (placedOf.get(w.add.kind) || 0) + 1);
+  };
+
+  // Pass 1: the remembered positions. One that will no longer take is DROPPED
+  // and its part goes round again with the policy's - the kinder failure: the
+  // customer reduced the bays and the rail they had moved has to go SOMEWHERE,
+  // and saying "we put it back" beats losing it.
+  const later = [];
+  for (const w of toPlace) {
+    if (!w.remembered) { later.push(w); continue; }
+    reserved.delete(`${w.remembered.instanceId}::${w.remembered.snapId}`);
+    const id = nextId();
+    const r = tryCandidates(assembly, components, w.candidates, { ...optsFor(w.add, id), at: w.remembered });
+    if (!r.ok) {
+      dropped.push({ slot: w.key, componentId: r.componentId, label: w.add.label, reason: r.reason });
+      later.push(w);
+      continue;
+    }
+    keepAdd(w, id, r);
+  }
+
+  // Pass 2: the policy's, in kind order.
+  for (const w of later) {
+    if (gaveUp.has(w.add.kind)) continue;
+    const id = nextId();
+    const r = tryCandidates(assembly, components, w.candidates, optsFor(w.add, id));
+    if (!r.ok) {
+      gaveUp.add(w.add.kind);
+      refused.push({
+        componentId: r.componentId,
+        // THE KIND AS WELL, because the control that asked for it is a kind
+        // now. Keyed on the part number alone, the shortfall note went
+        // looking for "008562" against a stepper called "metal-shelf" and
+        // found nothing - so "only 2 fit" was computed and never shown.
+        kind: w.add.kind,
+        label: w.add.label,
+        // How many of them DID go on, so the message can be about the
+        // shortfall rather than about the failure. "3 of the 4 fit" is a
+        // sentence somebody can act on; "could not place" is not.
+        placed: placedOf.get(w.add.kind) || 0,
+        asked: c.adds[w.add.kind] || 0,
+        reason: r.reason,
+      });
+      continue;
+    }
+    keepAdd(w, id, r);
   }
 
   // THE DEFERRED RECORDS, now that every slot they could name exists. Re-hung by
@@ -1721,6 +1982,8 @@ export function buildGuided(schema, choices, components, { rules = DEFAULT_RULES
     rules,
     judge: judgeAt,
     judgeMove,
+    // The slots that are kits - a cabinet or desk and the brackets under it.
+    kits: kitSlots,
     configurationId: encodeConfiguration(assembly, {
       mounting: c.mounting,
       footHeightMm: c.footHeightMm,
@@ -1791,6 +2054,19 @@ export function addAvailability(built, components) {
 
   for (const add of adds) {
     const key = add.kind || add.componentId;
+    // A kit brings the brackets it sits on, so "nothing on the product can carry
+    // it" is not a reason it can never go on. The build says so if it cannot.
+    // What stops one is a bay with nothing in it: one cabinet or desk per bay.
+    if (add.kit) {
+      const c = built.choices || {};
+      const used = new Set([...(built.kits || [])].map((k) => built.slotAt?.[k]?.bay));
+      let free = false;
+      for (let b = 0; b < (c.bays || 1) && !free; b += 1) {
+        free = !used.has(b) && (sizeAt(variant, c, b).adds || []).some((a) => a.kind === key && a.kit);
+      }
+      out[key] = free ? { ok: true } : { ok: false, kind: 'full', reason: 'every bay has one - add a bay' };
+      continue;
+    }
     const parts = partsOf.get(key) || [];
     if (parts.some((id) => pointsForComponent(matrix, id).length > 0)) { out[key] = { ok: true }; continue; }
     if (parts.some((id) => placed.has(id))) { out[key] = { ok: true }; continue; }

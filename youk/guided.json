@@ -41,7 +41,9 @@
     "`spans: true` means the part bridges two frames and must be held at both",
     "ends. Without it a fourth shelf asked for in a bay with three free rungs",
     "was cantilevered off the outside of the run rather than refused.",
-    "A3, 12 November 2026 (docs/audit/A1-failures.md): the 200 mm range defaults to the FLOOR and offers floor or wall only - its ladders have no fixing for a foot (F04); the 900 mm clothes rail and full-width hook strip are no longer listed for 200 mm deep, because both are 320 mm parts that can never attach there (F13); and a clothes rail is one PER BAY, so a three-bay wardrobe can have three (F12, Matt)."
+    "A3, 12 November 2026 (docs/audit/A1-failures.md): the 200 mm range defaults to the FLOOR and offers floor or wall only - its ladders have no fixing for a foot (F04); the 900 mm clothes rail and full-width hook strip are no longer listed for 200 mm deep, because both are 320 mm parts that can never attach there (F13); and a clothes rail is one PER BAY, so a three-bay wardrobe can have three (F12, Matt).",
+    "B, 12 November 2026: every add names its `group` - \"storage\" (shelves, YouboXx) or \"accessories\" (rails, hook strips, side racks) - which is the step of the guided flow it appears in (direction C). The runtime reads it; nothing in code lists the kinds.",
+    "Kits, 13 November 2026: cabinets (three heights) and desks (600/700 deep) are adds whose `kit` names a variant-level recipe in `kits` - the brackets, arms and clamps that carry them are placed with them and listed on the bill of materials. One kit per bay. Matt: all three heights, the cabinet on the bottom rung with the bay shelf moving up, the shared bracket chosen automatically, desks at the same time."
   ],
   "version": 1,
   "title": "YouK shelving",
@@ -50,7 +52,7 @@
     {
       "id": "d320",
       "label": "320 mm deep",
-      "help": "The full range. Takes shelves, cabinets, desks and every accessory.",
+      "help": "The full range. Takes shelves, cabinets and every accessory.",
       "defaultBays": 1,
       "maxBays": 3,
       "defaultMounting": "feet",
@@ -92,26 +94,57 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-450mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         },
@@ -129,14 +162,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-600mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008530-clothes-rail-600mm",
@@ -144,19 +179,49 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-600mm-h200mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-600mm-h300mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-600mm-h450mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         },
@@ -175,14 +240,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-900mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008531-clothes-rail-900mm",
@@ -190,32 +257,64 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008547-youboxx-set-4",
               "label": "YouboXx Set 4",
               "max": 2,
-              "kind": "youboxx"
+              "kind": "youboxx",
+              "group": "storage"
             },
             {
               "componentId": "008540-hook-strip-for-ladder-width-900mm",
               "label": "Hook strip, full width",
               "max": 1,
               "spans": true,
-              "kind": "hook-strip-full"
+              "kind": "hook-strip-full",
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008537-hook-strip-for-ladder-depth-320mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         },
@@ -233,14 +332,16 @@
               "label": "Extra metal shelf",
               "max": 4,
               "spans": true,
-              "kind": "metal-shelf"
+              "kind": "metal-shelf",
+              "group": "storage"
             },
             {
               "componentId": "pws-timber-shelf-1200mm-for-ladder-depth-320mm",
               "label": "Timber shelf, 25 mm",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008532-clothes-rail-1200mm",
@@ -248,24 +349,86 @@
               "max": 1,
               "spans": true,
               "kind": "clothes-rail",
-              "perBay": true
+              "perBay": true,
+              "group": "accessories"
             },
             {
               "componentId": "008541-hook-strip-for-ladder-width-1200mm",
               "label": "Hook strip, full width",
               "max": 1,
               "spans": true,
-              "kind": "hook-strip-full"
+              "kind": "hook-strip-full",
+              "group": "accessories"
             },
             {
               "componentId": "008543-rack-for-ladder-depth-320mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-1200mm-h200mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-1200mm-h300mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-1200mm-h450mm-for-ladder-depth-320mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         }
-      ]
+      ],
+      "kits": {
+        "cabinet": {
+          "_": "A cabinet on the bottom rung (Matt, 13 Nov 2026), on a bracket each side: an OUTER bracket where the cabinet ends, ONE EXTENSION bracket on a ladder two cabinets share (MA 406214 p.1, step 1b). The bay's own shelf moves up a rung to make room.",
+          "rung": 1,
+          "spanMovesUp": true,
+          "brackets": {
+            "end": "008558-outer-cabinet-bracket-for-ladder-depth-320mm",
+            "shared": "008560-cabinet-bracket-for-ladder-depth-320mm"
+          }
+        },
+        "desk": {
+          "_": "The office solution (Office solution sheet): a base bracket on each ladder at rung 3 - rungs 1 and 2 are drawn red - an arm bolted flat to it, a clamping angle on the arm's rear end, and the desktop laid across the two arms. The arm's hole row is chosen so the desk top is 750 mm: the lower row on 100 mm feet (sheet fig. 3), the upper row standing on the floor or the wall (fig. 2).",
+          "rung": 3,
+          "brackets": {
+            "end": "008551-base-brackets-for-office-solution"
+          },
+          "arm": {
+            "componentId": "008551-shelf-supports-for-office-solution",
+            "mount": "bolt-flat",
+            "hole": {
+              "feet": "arm-650",
+              "floor": "arm-750",
+              "wall": "arm-750"
+            }
+          },
+          "clamp": {
+            "componentId": "008551-clamping-angles-for-office-solution",
+            "on": "clamp"
+          },
+          "_heldBack": "Not offered yet (13 Nov 2026). Built and tried: brackets, arms and clamping angles all fit, but the desktop cannot go on, because one clamping angle stands inside the board - audit F18. The arm is a handed part and we hold one hand of the pair (project doc 5.13). The adds go back in - desk-600 and desk-700 on every d320 size, group accessories, max 1, perBay - when Kesseboehmer answer which way it is handed."
+        }
+      }
     },
     {
       "id": "d200",
@@ -302,19 +465,49 @@
               "label": "Extra timber shelf",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008542-rack-for-ladder-depth-200mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008536-hook-strip-for-ladder-depth-200mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h200mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h300mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-450mm-h450mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         },
@@ -333,19 +526,49 @@
               "label": "Extra timber shelf",
               "max": 4,
               "spans": true,
-              "kind": "timber-shelf"
+              "kind": "timber-shelf",
+              "group": "storage"
             },
             {
               "componentId": "008542-rack-for-ladder-depth-200mm",
               "label": "Side rack",
               "max": 2,
-              "kind": "side-rack"
+              "kind": "side-rack",
+              "group": "accessories"
             },
             {
               "componentId": "008536-hook-strip-for-ladder-depth-200mm",
               "label": "Hook strip",
               "max": 2,
-              "kind": "hook-strip"
+              "kind": "hook-strip",
+              "group": "accessories"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h200mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 200 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-200",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h300mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 300 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-300",
+              "group": "storage",
+              "kit": "cabinet"
+            },
+            {
+              "componentId": "pws-timber-cabinet-900mm-h450mm-for-ladder-depth-200mm",
+              "label": "Cabinet, 450 mm high",
+              "max": 1,
+              "perBay": true,
+              "kind": "cabinet-450",
+              "group": "storage",
+              "kit": "cabinet"
             }
           ]
         }
@@ -353,7 +576,18 @@
       "mountings": [
         "floor",
         "wall"
-      ]
+      ],
+      "kits": {
+        "cabinet": {
+          "_": "A cabinet on the bottom rung (Matt, 13 Nov 2026), on a bracket each side: an OUTER bracket where the cabinet ends, ONE EXTENSION bracket on a ladder two cabinets share (MA 406214 p.1, step 1b). The bay's own shelf moves up a rung to make room.",
+          "rung": 1,
+          "spanMovesUp": true,
+          "brackets": {
+            "end": "008557-outer-cabinet-bracket-for-ladder-depth-200mm",
+            "shared": "008559-cabinet-bracket-for-ladder-depth-200mm"
+          }
+        }
+      }
     }
   ]
 }

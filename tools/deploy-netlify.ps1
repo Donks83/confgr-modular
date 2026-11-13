@@ -190,7 +190,7 @@ Write-Host ("  signed in{0}" -f $(if ($account) { " as $account" } else { '' }))
 # only, and nothing would say so until somebody was standing in a room.
 Write-Host "`n  exporting the bundle..." -ForegroundColor Cyan
 Invoke-Native 'the export' 'node' @(
-  'tools/export-bundle.mjs', '--guided', '--models', $Models, '--ar-route', '--out', $Out
+  'tools/export-bundle.mjs', '--guided', '--models', $Models, '--ar-route', '--theme', 'youk', '--out', $Out
 )
 
 $manifest = Get-Content (Join-Path $Out 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -240,7 +240,12 @@ Write-Host "`n  deploying..." -ForegroundColor Cyan
 Write-Host '  (first run only: a browser will open for you to authorise and name the site)'
 # NOT $args: that is an automatic variable holding this script's own arguments,
 # and writing to it is a quiet way to confuse the next person reading this.
-$deploy = @('--yes', 'netlify-cli', 'deploy')
+# --skip-functions-cache, ALWAYS. The AR function builds models out of the part
+# GLBs it carries as included_files, and Netlify's function cache cannot see
+# those change: on 13 Nov 2026 it re-used a cached function packed WITHOUT the
+# models and every AR request answered 500 "This deployment has no part
+# models". The function is 1.3 MB; packing it fresh costs seconds.
+$deploy = @('--yes', 'netlify-cli', 'deploy', '--skip-functions-cache')
 if (-not $Draft) { $deploy += '--prod' }
 
 # NO stderr redirection here, deliberately. This one is INTERACTIVE on the

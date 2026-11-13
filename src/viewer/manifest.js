@@ -86,7 +86,7 @@ export function partsNeededFor(configurationId, { guided = null } = {}) {
  */
 export function buildManifest({
   configuration, models, catalogue = null, title = null, generated = null, ar = null,
-  guided = null, rules = null,
+  guided = null, rules = null, theme = null,
 }) {
   if (!configuration) throw new ManifestError('A bundle needs a configuration id.');
   if (!models?.length) throw new ManifestError('A bundle needs at least one model.');
@@ -115,6 +115,9 @@ export function buildManifest({
     // schema. Absent means the physical defaults only - nothing under the floor,
     // nothing through anything - never no rules at all.
     rules: rules || null,
+    // Which theme from tokens.css this deliverable wears ("youk"), or null for
+    // the neutral one. Per bundle, because it is a choice about who receives it.
+    theme: theme || null,
   };
 }
 

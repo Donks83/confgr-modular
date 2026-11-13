@@ -70,13 +70,30 @@ describe('the build space', () => {
   const css = readFileSync('src/viewer/viewer.css', 'utf8');
   const background = source.match(/export const BACKGROUND = '([^']+)'/)[1];
 
+  // SINCE B1 the colours are tokens (src/viewer/tokens.css), scoped to each
+  // instance. The facts these tests pin are unchanged; they are read through the
+  // token, in the neutral theme AND the YouK one, so neither theme drifts alone.
+  const tokens = readFileSync('src/viewer/tokens.css', 'utf8');
+  const block = (selector) => tokens.slice(tokens.indexOf(`${selector} {`)).split('\n}')[0];
+  const token = (name, selector = '.cfg-theme') => {
+    const m = block(selector).match(new RegExp(`--${name}:\\s*([^;]+);`));
+    return m ? m[1].trim() : null;
+  };
+  const brightnessOf = (hex) => {
+    const h = hex.replace('#', '');
+    return (parseInt(h.slice(0, 2), 16) + parseInt(h.slice(2, 4), 16) + parseInt(h.slice(4, 6), 16)) / 3;
+  };
+
   it('is light, while the shell around it stays dark', () => {
     // Matt asked for the 3D space only: "not the menus just the 3d space
     // background". A light value here and a dark one on `.cfgv` is the whole
     // of that, and both halves are asserted so neither drifts alone.
     const brightness = parseInt(background.slice(1, 3), 16);
     expect(brightness).toBeGreaterThan(200);
-    expect(css).toMatch(/\.cfgv \{[^}]*background: #1b1815/);
+    expect(css).toMatch(/\.cfgv \{[^}]*background: var\(--cfg-shell\)/);
+    expect(token('cfg-shell')).toBe('#1b1815');
+    // In the YouK theme the shell is dark too: a pine, not a light panel.
+    expect(brightnessOf(token('cfg-shell', '.cfg-theme[data-cfg-theme="youk"]'))).toBeLessThan(60);
   });
 
   it('is not pure white', () => {
@@ -88,7 +105,10 @@ describe('the build space', () => {
   it('is the same colour in the CSS and in the scene', () => {
     // Two places holding one fact. When they disagree the symptom is a seam
     // down the edge of the canvas for the frame before WebGL paints.
-    expect(css).toMatch(new RegExp(`\\.cfgv-stage \\{[^}]*background: ${background}`, 'i'));
+    expect(css).toMatch(/\.cfgv-stage \{[^}]*background: var\(--cfg-stage\)/);
+    expect(token('cfg-stage').toLowerCase()).toBe(background.toLowerCase());
+    // The build space is Matt's, not a theme's: no theme may redefine it.
+    expect(block('.cfg-theme[data-cfg-theme="youk"]')).not.toMatch(/--cfg-stage/);
   });
 
   it('gives metal something to reflect', () => {

@@ -1,0 +1,295 @@
+/* The configurator, direction C (workstream B2; Matt chose it 12 Nov 2026).
+ *
+ *   ┌──────────── step bar: 1 Size · 2 Bays · … · 6 Review ────────────┐
+ *   │ dark rail: ONE step,  │  the light build space, the product,       │
+ *   │ then Back / Next      │  undo/redo, AR / phone, the summary card   │
+ *   └───────────────────────┴────────────────────────────────────────────┘
+ *
+ * On a phone: the step bar, then the product (sticky), then the step and a
+ * sticky Back / Next. While a part is being placed or moved, the rail steps out
+ * of the way so the dots are not underneath it.
+ *
+ * Every colour is a token (tokens.css), scoped to this instance's root.
+ * Everything here is under `.cfgc`, so the plain viewer is untouched.
+ */
+
+.cfgc {
+  position: relative;
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  font: 15px/1.45 var(--cfg-font);
+  color: var(--cfg-ink);
+  background: var(--cfg-surface);
+  -webkit-font-smoothing: antialiased;
+}
+.cfgc :focus-visible { outline: none; box-shadow: var(--cfg-focus); }
+.cfgc button { font: inherit; }
+
+/* ------------------------------------------------------------ the step bar */
+.cfgc-steps {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px 20px;
+  min-height: 60px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--cfg-line);
+  background: var(--cfg-surface);
+  overflow-x: auto;
+}
+.cfgc-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cfgc-steplist { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.cfgc-stepbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--cfg-radius);
+  background: none;
+  color: var(--cfg-ink-2);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cfgc-stepbtn:hover { background: var(--cfg-surface-2); color: var(--cfg-ink); }
+.cfgc-stepnum {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--cfg-line);
+  font-size: 12px;
+}
+.cfgc-stepbtn[aria-current="step"] { color: var(--cfg-ink); font-weight: 700; }
+.cfgc-stepbtn[aria-current="step"] .cfgc-stepnum { background: var(--cfg-action); border-color: var(--cfg-action); color: var(--cfg-on-action); }
+.cfgc-stepbtn.is-done .cfgc-stepnum { background: var(--cfg-surface-2); color: var(--cfg-action); }
+
+/* ------------------------------------------------------------ the dark rail */
+/* `.cfgg-panel` is kept as a class so its [hidden] rule (options.css, pinned by
+   tests/touch.test.js) still hides it on a phone while dots are up. On a wide
+   screen the rail is permanent, so it overrides [hidden] - as the old rail did. */
+.cfgc .cfgg-panel.cfgc-rail {
+  position: static;
+  inset: auto;
+  width: auto;
+  height: auto;
+  border-right: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  grid-row: 2;
+  background: var(--cfg-shell);
+  color: var(--cfg-shell-ink);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cfgc-railbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 18px 20px 24px; }
+.cfgc-railhead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 19px;
+  font-weight: var(--cfg-head-weight);
+}
+.cfgc-stepn { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--cfg-accent); }
+.cfgc-short { margin: 0 0 12px; padding: 8px 10px; border-radius: var(--cfg-radius); background: var(--cfg-warn-bg); color: var(--cfg-warn-ink); font-size: 13px; }
+/* The options inside the rail: the old panel's own padding is the rail's now. */
+.cfgc-rail .cfgo { padding: 0; overflow: visible; }
+.cfgo-hint { margin: 10px 0 0; color: var(--cfg-shell-ink-2); font-size: 13px; }
+
+.cfgc-nav {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--cfg-shell-line);
+  background: var(--cfg-shell);
+}
+.cfgc-back, .cfgc-next {
+  flex: 1 1 0;
+  min-height: 48px;
+  border-radius: var(--cfg-radius);
+  cursor: pointer;
+}
+.cfgc-back { border: 1px solid var(--cfg-shell-line); background: none; color: var(--cfg-shell-ink); }
+.cfgc-back:disabled { opacity: 0.45; cursor: default; }
+.cfgc-next { flex-grow: 2; border: 0; background: var(--cfg-action); color: var(--cfg-on-action); font-weight: 700; }
+
+/* ------------------------------------------------------------ the review */
+.cfgc-review { display: grid; gap: 14px; }
+.cfgc-draft { padding: 10px 12px; border-radius: var(--cfg-radius); background: var(--cfg-warn-bg); color: var(--cfg-warn-ink); font-size: 14px; }
+.cfgc-draft ul { margin: 6px 0 0; padding-left: 18px; }
+.cfgc-dims { display: flex; gap: 18px; margin: 0; }
+.cfgc-dims div { display: grid; }
+.cfgc-dims dt { color: var(--cfg-shell-ink-3); font-size: 12px; }
+.cfgc-dims dd { margin: 0; font-weight: 700; }
+.cfgc-bom { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cfgc-bom caption { text-align: left; color: var(--cfg-shell-ink-2); font-size: 13px; padding-bottom: 6px; }
+.cfgc-bom th { text-align: left; font-size: 12px; font-weight: 500; color: var(--cfg-shell-ink-3); padding: 6px 4px; border-bottom: 1px solid var(--cfg-shell-line); }
+.cfgc-bom td { padding: 8px 4px; border-bottom: 1px solid var(--cfg-shell-line); vertical-align: top; }
+.cfgc-bom .art { width: 64px; color: var(--cfg-shell-ink-2); font-variant-numeric: tabular-nums; }
+.cfgc-bom .q { width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+.cfgc-bom small { display: block; color: var(--cfg-shell-ink-3); }
+.cfgc-bom tr.is-implied td { color: var(--cfg-shell-ink-2); }
+.cfgc-notes { margin: 0; padding-left: 18px; color: var(--cfg-shell-ink-2); font-size: 13px; }
+.cfgc-total { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.cfgc-total strong { font-size: 20px; }
+.cfgc-total span { color: var(--cfg-shell-ink-2); font-size: 13px; }
+
+/* ------------------------------------------------------------ the stage */
+.cfgc-stage { position: relative; grid-row: 2; min-width: 0; min-height: 0; background: var(--cfg-stage); }
+.cfgc-stage > .cfgv { position: absolute; inset: 0; min-height: 0; background: var(--cfg-stage); }
+.cfgc .cfgv-stage { margin: 0; }
+/* The part card: bottom-LEFT of the stage, where nothing else is. move.css puts
+   it 320 px in, for the layout whose options lay over the product; here that ran
+   10 px off a 1024 screen and covered the price. */
+@media (min-width: 900px) {
+  .cfgc-stage > .cfgm { inset: auto auto 20px 20px; width: min(300px, calc(100% - 40px)); box-sizing: border-box; }
+}
+
+.cfgc-tools { position: absolute; z-index: 3; top: 12px; left: 12px; display: flex; gap: 8px; }
+.cfgc-tool {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--cfg-line);
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-surface);
+  color: var(--cfg-ink);
+  box-shadow: var(--cfg-shadow);
+  cursor: pointer;
+}
+.cfgc-tool:disabled { color: var(--cfg-line); box-shadow: none; cursor: default; }
+.cfgc-tool svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.cfgc-summary {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  bottom: 16px;
+  width: min(340px, calc(100% - 32px));
+  padding: 14px 16px;
+  border-radius: var(--cfg-radius-lg);
+  background: var(--cfg-surface);
+  color: var(--cfg-ink);
+  box-shadow: var(--cfg-shadow);
+}
+.cfgc-price { font-size: 22px; font-weight: 700; }
+.cfgc-sub { color: var(--cfg-ink-2); font-size: 13px; font-variant-numeric: tabular-nums; }
+.cfgc-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cfgc-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.cfgc-state.is-ok { background: var(--cfg-ok-soft); color: var(--cfg-ok); }
+.cfgc-state.is-draft { background: var(--cfg-warn-light-bg); color: var(--cfg-warn-light-ink); }
+
+/* The prompt while placing, the move and spacing panels: on the stage now, so
+   they start at its edge rather than clearing a rail that is no longer there. */
+.cfgc .cfgg-ask { left: 12px; right: 12px; top: 68px; }
+
+/* The recorder (?record): under undo / redo, clear of the summary card and the
+   AR button, and obviously ON so nobody records by accident. */
+.cfgc-rec {
+  position: absolute;
+  z-index: 3;
+  left: 12px;
+  top: 64px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-shell);
+  color: var(--cfg-shell-ink);
+  box-shadow: var(--cfg-shadow);
+  font-size: 13px;
+}
+.cfgc-recdot { width: 10px; height: 10px; border-radius: 50%; background: var(--cfg-warn-ink); box-shadow: 0 0 0 3px var(--cfg-warn-bg); }
+.cfgc-rec button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--cfg-shell-line);
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-shell-2);
+  color: var(--cfg-shell-ink);
+  cursor: pointer;
+}
+
+/* "View on your phone": the stage layout's QR and AR sentence. */
+.cfgv-phone { position: absolute; z-index: 4; top: 12px; right: 12px; display: grid; justify-items: end; gap: 8px; }
+.cfgv-phonebtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--cfg-radius);
+  background: var(--cfg-shell);
+  color: var(--cfg-shell-ink);
+  box-shadow: var(--cfg-shadow);
+  font: 600 14px/1 var(--cfg-font);
+  cursor: pointer;
+}
+.cfgv-phonebtn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.cfgv-phonepop {
+  width: 280px;
+  padding: 14px;
+  border-radius: var(--cfg-radius-lg);
+  background: var(--cfg-shell-glass);
+  color: var(--cfg-shell-ink);
+  box-shadow: var(--cfg-shadow);
+}
+
+/* ------------------------------------------------------------ a phone */
+@media (max-width: 720px) {
+  .cfgc {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+  }
+  .cfgc-steps { position: sticky; top: 0; z-index: 6; gap: 4px 8px; padding: 0 8px; min-height: 52px; }
+  .cfgc-title { display: none; }
+  /* The product first, then the one step: the stage is the hero on a phone too. */
+  .cfgc-stage { order: 1; position: sticky; top: 52px; z-index: 5; height: 52vh; flex: 0 0 auto; }
+  .cfgc .cfgg-panel.cfgc-rail { order: 2; flex: 1 0 auto; }
+  /* "View on your phone" is a desktop's question. On a phone the stage's own
+     AR button is the action, when the bundle has AR at all. */
+  .cfgv-phone { display: none; }
+  /* Placing or moving: the stage takes the screen, the rail steps aside. */
+  .cfgc:has(.cfgc-rail[hidden]) .cfgc-stage { height: calc(100vh - 52px); height: calc(100dvh - 52px); }
+  .cfgc-nav { position: sticky; bottom: 0; z-index: 4; }
+  .cfgc-summary { display: none; }
+  .cfgc-tools { top: auto; bottom: 12px; left: auto; right: 12px; }
+  .cfgc-rec { top: 8px; left: 8px; }
+}
+
+/* On a wide screen the rail is permanent - there is nothing to dismiss - so it
+   beats the [hidden] the phone layout uses. */
+@media (min-width: 721px) {
+  .cfgc .cfgg-panel.cfgc-rail[hidden] { display: flex !important; }
+}

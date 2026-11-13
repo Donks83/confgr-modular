@@ -29,7 +29,7 @@ configuration id and the quote round-tripping.
 
 **Code:** `D:\Claude\confgr-modular` (moved from `C:\Claude\` in November 2026) — git, 116 commits on
 the session-10 branches; `main` pushed to **github.com/Donks83/confgr-modular** (private).
-**Tests:** 893 passing across 50 files (`npm test`), verified 12 November 2026.
+**Tests:** 947 passing across 55 files (`npm test`), verified 13 November 2026.
 **Components:** 85, counted from `youk/*.confgr.json` rather than remembered —
 **45 derived from Kesseböhmer's CAD, plus 40 timber parts generated rather than
 converted** (§5.5, §5.7): 8 shelves, 24 cabinets and 8 office desktops.
@@ -3566,6 +3566,199 @@ fix. `tests/rulesMatrix.test.js` offers every catalogue part to every depth of b
 
 F17 (the rail's 1.00 mm) and F18 (the handed office arm) are still Kesseböhmer's.
 
+### 5.29 The configurator in direction C, on design tokens
+
+Workstream B. Matt chose direction C from three clickable mockups
+(`docs/design/ui-directions/`) on 12 November 2026: one decision at a time on a
+dark rail, a step bar across the top, the light build space as the hero, and a
+review step before anything is sent.
+
+**Tokens first (B1).**
+- Every colour, font and radius in the runtime is now a CSS custom property, in
+  `src/viewer/tokens.css`.
+- The tokens are scoped to the **instance's own root** (`.cfg-theme`), never
+  `:root`. Two configurators on one page may wear different themes, and a
+  client's stylesheet cannot reach in.
+- The neutral theme's values are exactly the colours the runtime had before, so
+  a plain viewer looks the same as it did.
+- `data-cfg-theme="youk"` is the Kesseböhmer-flavoured theme: a pine shell,
+  Roboto, square corners. It takes none of their exact colours, logo or assets.
+- A bundle picks its theme with `youk:bundle --theme youk`; the Netlify deploy
+  script passes it.
+- **Not tokens**, because they are Matt's: the build space `#efece7` and the
+  material colours. `tests/lighting.test.js` now reads them through the tokens,
+  in both themes, and checks that no theme redefines the build space.
+
+**The layout (B2).** `Guided.jsx` renders:
+- **The step bar**: Size, Bays, Shelves & storage, Accessories, Mounting, Review.
+- **The rail**: one step at a time (`Options` takes a `step`). Which step an
+  accessory belongs to is its `group` in `guided.json` ("storage" or
+  "accessories"), not a list in code.
+- **The stage**: the viewer in a stage-only layout, with undo/redo (Ctrl+Z,
+  Ctrl+Shift+Z or Ctrl+Y), the snap dots, drag, the spacing lines, and the move
+  and spacing panels.
+- **AR on the stage**: on a phone the AR button; on a desktop "View on your
+  phone", with the QR code and the AR sentence inside it.
+- **A summary card**: the price (or "Price on request"), parts, size, and "Ready
+  to order" or "Draft · n issues", which opens the review.
+- **The review step**: the parts list as a table, the implied foot marked
+  *Included*, the notes, the total, and the draft reasons.
+
+Undo history holds choices, the same values `?o=` carries. System corrections
+(a dropped record being forgotten) are not on it, so undo undoes the person,
+not the engine.
+
+**On a phone:** the step bar, then the product (sticky), then the step, with a
+sticky Back / Next. While a part is being placed or moved, the rail steps aside
+so the dots are not underneath it. The `.cfgg-panel[hidden]` rule that
+`tests/touch.test.js` pins is what does it; on a wide screen the rail overrides
+it and stays.
+
+**Verified in a browser**, on an exported guided bundle in the YouK theme, at
+1280 × 800 and at 375 × 812:
+- the steps walk through, and completed ones tick;
+- Shelves & storage shows only shelves and YouboXx;
+- **+** on a timber shelf brings up 8 dots, all on rungs where it would be held;
+- tapping one put the shelf exactly there;
+- undo took it off and enabled redo;
+- the review shows the parts table.
+
+**Not yet:**
+- **The review's action** is "Copy link to this design". A "Request quote" button
+  needs somewhere for the request to go, which is Matt's decision.
+- **The editor (B3)** is untouched.
+- **Customer copy.** The foot's "because" text names an instruction PDF, and the
+  wall-fixings note names Kesseböhmer's sheet - both written for us, not for a
+  customer.
+- **Multi-instance.** `Guided` still reads and writes the page URL, and
+  `__viewerLayout` is still set (A1 F19, workstream C).
+- **Phones.** Not yet seen on Matt's phones.
+
+### 5.30 Cabinets in the configurator, as kits
+
+Matt, 13 November 2026: "there doesn't seem to be cabs available?" The engine
+had carried cabinets across two bays since F14 was fixed, but the guided
+configurator offered none. His answers to four questions are the specification:
+
+- all three heights (200, 300, 450);
+- the cabinet on the bottom rung, with the bay's shelf moving up;
+- the shared extension bracket between two cabinets chosen automatically;
+- desks at the same time.
+
+**A kit is an add that brings what carries it.** The variant's `kits` in
+`guided.json` says which brackets, on which rung, and whether the shelf moves.
+An add with `kit: 'cabinet'` uses that recipe, so another range writes its own
+and the engine knows nothing about cabinets. The rules are:
+
+- One kit per bay. The bay is recorded as `{ bay }`, so it survives the rebuild.
+- Bays are planned **per ladder** first. Between two cabinets on the same rung
+  there is one 008560 bracket, carrying a cabinet each side, instead of two
+  outer ones in the same place.
+- Every part goes through the same judge. If any step fails, the whole kit is
+  taken off again and refused with the reason.
+
+**The shelf moves by measurement, not by a rung number.** Every rung from the
+cabinet's own up to the first one above the cabinet's top plus 25 mm is avoided.
+On a 1500 ladder (rungs 100, 455, 810) a 450 cabinet reaches 553, so the shelf
+goes to rung 3, while a 300 cabinet leaves it on rung 2. The shelf must also
+land where the next ladder has a rung at the same height. If it can't, the
+cabinet is refused ("the ladders here are not tall enough"). Before this, the
+sweep found a 550 ladder hung 355 mm off the floor to meet the shelf.
+
+**In the configurator:**
+- the three heights are under Shelves & storage;
+- **+** just counts a cabinet, with no dots, because it goes in the next free bay;
+- when every bay has one, the note reads "every bay has one - add a bay";
+- a selected cabinet says it "comes with the brackets it sits on", and offers
+  only Remove.
+
+**Verified in a browser** on an exported bundle:
+- one 450 cabinet, with the shelf on rung 3;
+- two bays with two cabinets, where the parts list reads 2 × 008558 and
+  1 × 008560;
+- both orderable.
+
+On the way, the part card was moved to the stage's bottom left. It had run
+10 px off a 1024 px screen and covered the price.
+
+**What the sweep found, run with cabinets in it.** It now counts a per-bay
+kind's ceiling as the + button does, and asks for one kit per bay.
+
+- **A 550 ladder hung off the floor** to meet a shelf moved up for a 450
+  cabinet. Fixed, as described above.
+- **A recorded part lost to an unrecorded one.** A hook strip moved under bay 1's
+  rung 2 was dropped when a second clothes rail went on, because rails are
+  placed before hook strips. The rail took the same space from the other
+  ladder, which the reservation of the hook strip's own point could not see.
+  Accessories are now placed in **two passes**: every recorded one first,
+  across all kinds, then the policy's. A3's rule, that what the customer put
+  somewhere wins, now holds across kinds. The old-link migration tests still
+  open every fixture.
+- **Left as it is, and reported in words:** when one of two neighbouring
+  cabinets is removed, the shared bracket becomes an outer one. The outer
+  bracket takes the other face of that rung. A part pinned to that face is
+  re-placed, and the drop is listed.
+- **Observed, not changed:** with bay 1 taken by that hook strip, the second
+  rail went under rung 1 in bay 0, 26 mm off the floor. That is legal, and
+  `highest` is only a preference. Whether a rail needs a minimum height is
+  Matt's call.
+
+**Desks are not offered, and that needs Kesseböhmer or Matt.** The desk kit is
+built and tried: base brackets on rung 3, arms on the 650 or 750 hole row by
+mounting, and clamping angles. Every one of those parts fits. The desktop does
+not: one clamping angle stands **25 mm inside the 20 mm board**. This is F18 /
+§5.13: the arm is handed and we hold one hand of the pair. The judge refuses
+it, so a desk add would only ever say no. The recipe stays in `guided.json` with
+the reason in `_heldBack`. The adds go back in when the handedness is answered.
+
+### 5.31 AR on Android: Chrome first, because Scene Viewer stopped opening
+
+Matt, 13 November 2026: "the augmented reality feature isn't working". On his new
+phone, "View in your room" started Scene Viewer and it closed again at once. It
+did the same on his Pixel tablet.
+
+**It was not us, and proving that took four codes.** The live route built a
+valid GLB for the configuration on screen. The file passed every structural
+check: header and chunks, alignment, accessor bounds, unit normals, index
+ranges. The QR codes, each opening Scene Viewer:
+
+| Code | What it opened | Result |
+|---|---|---|
+| A | our shipped file | closed |
+| B | the route's file | closed |
+| C | Google's own sample avocado | closed |
+| D | our file in 3D-only mode | closed |
+
+C settles it. Current Google app builds (17.68 onwards) close Scene Viewer about
+30 ms after it opens, whatever the model (google-ar/arcore-android-sdk #1795,
+#1797). His old phone had an older Google app.
+
+On the way, the route now states each file's length and allows any origin to
+fetch it. Netlify still answers chunked, so the length does not survive. The
+change is harmless, and the AR route's test pins the length.
+
+**The fix is WebXR in Chrome.** On Android, `ArButton` loads
+`webxr-ar.js` (3.7 kB) and asks Chrome whether it can start `immersive-ar`.
+If it can, a tap opens the session inside Chrome:
+- it draws the same GLB Scene Viewer would have been given;
+- a ring finds the floor and a tap places the product, front to the person, with
+  a soft shadow;
+- tapping again moves it, and Close ends the session.
+
+Chrome's AR needs Google Play Services for AR, not the Google app, so Google's
+bug does not reach it. If Chrome cannot start a session, the intent link is
+followed exactly as before. iOS is unchanged.
+
+The module is per session and themed by its configurator, with no globals and
+no ids. Tested in jsdom:
+- the session is requested from the tap itself;
+- the overlay goes away when Chrome refuses;
+- Close is not a tap on the floor;
+- the product turns to face the person.
+
+**Needs a phone:** the session itself. Wall-mounted products are placed on the
+floor in front of the wall for now.
+
 ---
 
 ## 6. Roadmap
@@ -3929,6 +4122,11 @@ NULL-terminated request with `strict_json`); that is now `tools/blender-exec.mjs
   YouK-flavoured and a neutral theme. The stage image is rendered in headless
   Blender from our own export. **Matt chose C** (guided steps on a dark rail).
 - **A3**: built (§5.28). Sweep to zero; 893 tests.
+- **13 November**: cabinets in the configurator as kits (§5.30), all three
+  heights, with the shared bracket chosen automatically. Desks are built but held
+  back on F18. Two engine fixes came out of the sweep: a shelf no longer lifts a
+  short ladder off the floor, and recorded accessories are placed before the
+  policy's. 934 tests.
 
 Branches, none merged or pushed: `rework/a1-audit` → `rework/a2-rule-model` →
 `rework/a3-rules`, stacked.

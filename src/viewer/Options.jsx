@@ -120,13 +120,25 @@ export default function Options({
    */
   onPlace = null,
   placing = null,
+  /**
+   * ONE STEP of the guided flow (direction C), or null for every control at
+   * once (the embed and the tests). Which step an accessory belongs to is its
+   * `group` in guided.json - "storage" or "accessories" - so a new kind lands
+   * in the right step without anything here changing.
+   */
+  step = null,
   onChange,
 }) {
   if (!schema || !choices || !variant || !size) return null;
 
   const set = (patch) => onChange({ ...choices, ...patch });
 
-  const rows = adds || size.adds || [];
+  const show = (id) => !step || step === id;
+  const allRows = adds || size.adds || [];
+  const groupOf = (a) => (a.group === 'storage' ? 'storage' : 'accessories');
+  const rows = step === 'storage' || step === 'accessories'
+    ? allRows.filter((a) => groupOf(a) === step)
+    : (step ? [] : allRows);
 
   // How many bays carry a width of their own. Counted from the choices rather
   // than from the built run, because this panel is deliberately given the
@@ -157,11 +169,15 @@ export default function Options({
     const r = shortfall.get(componentId);
     if (!r) return null;
     if (r.placed > 0) return `only ${r.placed} fit`;
+    // A cabinet is refused for a reason worth reading (too tall for these
+    // ladders, every bay taken), not for want of a free rung.
+    if (r.kit && r.reason) return r.reason;
     return 'no room for one';
   };
 
   return (
     <div className="cfgo">
+      {show('size') && (<>
       <Choice
         label="Depth"
         help={variant.help}
@@ -193,7 +209,9 @@ export default function Options({
         value={choices.frameId}
         onChange={(id) => set({ frameId: id })}
       />
+      </>)}
 
+      {show('bays') && (
       <div className="cfgo-group">
         <div className="cfgo-label">Size</div>
         <Stepper
@@ -203,7 +221,15 @@ export default function Options({
           max={variant.maxBays ?? 4}
           onChange={(bays) => set({ bays })}
         />
+        {step === 'bays' && (
+          <p className="cfgo-hint">Tap the line between two ladders to set that bay's width on its own, or a ladder to change its height.</p>
+        )}
       </div>
+      )}
+
+      {(step === 'storage' || step === 'accessories') && rows.length === 0 && (
+        <p className="cfgo-hint">Nothing to add here for this size.</p>
+      )}
 
       {rows.length > 0 && (
         <div className="cfgo-group">
@@ -226,7 +252,9 @@ export default function Options({
                 onChange={(n) => {
                   const now = choices.adds?.[k] || 0;
                   // Going UP is a question about where; going down is not.
-                  if (onPlace && n > now) { onPlace(k); return; }
+                  // A kit (cabinet, desk) brings its own brackets and goes in the
+                  // next free bay, so + just counts it - there is no dot to choose.
+                  if (onPlace && n > now && !a.kit) { onPlace(k); return; }
                   set({ adds: { ...choices.adds, [k]: n } });
                 }}
               />
@@ -235,7 +263,7 @@ export default function Options({
         </div>
       )}
 
-      {mountings.length > 1 && (
+      {show('mounting') && mountings.length > 1 && (
         <Choice
           label="Standing on"
           options={mountings}

@@ -103,7 +103,7 @@ export default function ViewerHost({ configurationId = null }) {
 
   if (state.status) {
     return (
-      <div className="cfgv">
+      <div className="cfgv cfg-theme" data-cfg-theme={state?.manifest?.theme || undefined}>
         <div className="cfgv-error" role="status">{state.status}</div>
       </div>
     );
@@ -122,6 +122,7 @@ export default function ViewerHost({ configurationId = null }) {
       <Guided
         schema={parseGuided(state.manifest.guided)}
         rules={state.manifest.rules ? parseRules(state.manifest.rules, { catalogue: state.catalogue }) : undefined}
+        theme={state.manifest.theme || undefined}
         components={state.components}
         catalogue={state.catalogue}
         title={state.manifest.title}
@@ -141,6 +142,7 @@ export default function ViewerHost({ configurationId = null }) {
       components={state.components}
       catalogue={state.catalogue}
       rules={state.manifest?.rules ? parseRules(state.manifest.rules, { catalogue: state.catalogue }) : undefined}
+      theme={state.manifest?.theme || undefined}
       title={state.manifest?.title}
       // Only a bundle has AR files; the desktop app has an exporter instead,
       // and offering a link to `ar/product.usdz` inside Electron would be a
